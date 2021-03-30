@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 from setuptools import Command, setup
 
 
@@ -11,7 +14,7 @@ class RunTests(Command):
         pass
 
     def run(self):
-        errno = 0
+        errno = subprocess.call([sys.executable, '-m', 'unittest', 'clients.tests.tests'])
         raise SystemExit(errno)
 
 
@@ -32,7 +35,7 @@ setup(
     install_requires=[
         "gis-metadata-parser", "restle", "Pillow==7.2.*", "pyproj==2.6.1", "python-ags==0.3.2", "sciencebasepy==1.6.4"
     ],
-    tests_require=["mock", "pytest", "pytest-cov"],
+    tests_require=['mock'],
     url="https://github.com/consbio/mapservice-clients",
     license="BSD",
     cmdclass={"test": RunTests}
