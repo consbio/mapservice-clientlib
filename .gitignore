@@ -1,0 +1,9 @@
+*.pyc
+.cache/
+.coverage
+.tox/
+__pycache__/
+/build/
+/dist/
+/mapservices-clientlib.egg-info/
+/mapservices_clientlib.egg-info/
