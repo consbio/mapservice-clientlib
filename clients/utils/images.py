@@ -34,7 +34,9 @@ def image_to_bytes(image, image_format="PNG", quality=100, optimize=True):
 def image_to_string(image, prefix=True):
     """ Converts a PIL image, or a base64 string or bytes into a base64 image string """
 
-    if isinstance(image, Image.Image):
+    if image is None:
+        return None
+    elif isinstance(image, Image.Image):
         image_str = image_to_base64(image)
     elif isinstance(image, str):
         image_str = image.encode("ascii")
@@ -96,7 +98,7 @@ def overlay_images(images, background_color=(255, 255, 255, 255)):
 
     for current_image in images:
         current_image = current_image.convert("RGBA")
-        
+
         # Use composite, not paste, to keep alpha of images
         img = Image.alpha_composite(img, current_image)
 
