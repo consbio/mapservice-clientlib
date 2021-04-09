@@ -21,7 +21,7 @@ class DictField(fields.DictField):
         super(DictField, self).__init__(*args, **kwargs)
 
     def to_python(self, value, resource):
-        """ Overridden to set defaults before recursively apply camel casing and aliases """
+        """ Overridden to set defaults before recursively applying camel casing and aliases """
 
         if self.defaults:
             value = setdefaults(value, self.defaults)
@@ -30,17 +30,21 @@ class DictField(fields.DictField):
     def _to_python(self, value, resource):
         """ Recursively applies camel casing and aliases to all nested keys """
 
+        def convert(val):
+            if isinstance(val, (dict, list)):
+                return self._to_python(val, resource)
+            else:
+                return super(DictField, self).to_python(val, resource)
+
         if isinstance(value, dict):
-            d = {
-                self.aliases.get(k, k): self._to_python(v, resource) if isinstance(v, (dict, list)) else v
-                for k, v in value.items()
-            }
+            d = {self.aliases.get(k, k): convert(v) for k, v in value.items()}
             return {camel_to_snake(k): v for k, v in d.items()} if self.convert_camel else d
 
         elif isinstance(value, list):
-            return [self._to_python(x, resource) if isinstance(x, (dict, list)) else x for x in value]
+            return [convert(v) for v in value]
+
         else:
-            return super(DictField, self)._to_python(value, resource)
+            return super(DictField, self).to_python(value, resource)
 
 
 class ListField(fields.ListField):
@@ -52,7 +56,7 @@ class ListField(fields.ListField):
 
     def to_python(self, value, resource):
         if self.wrap and not isinstance(value, (list, tuple, set)):
-            value = [value] if value is not None else []
+            value = [] if value is None else [value]
 
         return super(ListField, self).to_python(value, resource)
 
@@ -95,60 +99,24 @@ class ObjectField(fields.ObjectField):
 
 
 class CommaSeparatedField(fields.TextField):
+    """ Overridden to convert text values with commas into lists """
+
     def to_python(self, value, resource):
-        value = super(CommaSeparatedField, self).to_python(value, resource)
-        return [val.strip() for val in value.split(",") if val] if value else []
+        if not isinstance(value, list):
+            value = super(CommaSeparatedField, self).to_python(value, resource).split(",")
+
+        return [str(val).strip() for val in value if val] if value else []
 
     def to_value(self, obj, resource):
-        return ",".join([obj] if isinstance(obj, str) else obj)
+        return obj if isinstance(obj, str) else ",".join(str(o) for o in obj)
 
 
 class DrawingInfoField(ObjectField):
 
     def __init__(self, *args, **kwargs):
-        aliases = {
-            # Labeling Info
-            "labelingInfo": "labeling",
-            "labelPlacement": "placement",
-            "labelExpression": "expression",
-            "useCodedValues": "use_coded_values",
-            "minScale": "min_scale",
-            "maxScale": "max_scale",
-            "whereClause": "where",
-
-            # Renderer
-            "defaultSymbol": "default_symbol",
-            "defaultLabel": "default_label",
-            "fieldDelimiter": "field_delimiter",
-            "uniqueValueInfos": "unique_values",
-            "classificationMethod": "method",
-            "normalizationType": "normalization",
-            "normalizationField": "normalization_field",
-            "normalizationTotal": "normalization_total",
-            "backgroundFillSymbol": "background_fill_symbol",
-            "minValue": "min",
-
-            # Class Break Info
-            "classBreakInfos": "class_breaks",
-            "classMinValue": "min",
-            "classMaxValue": "max",
-
-            # Symbol
-            "xoffset": "offset_x",
-            "yoffset": "offset_y",
-            "imageData": "image",
-            "contentType": "content_type",
-            "backgroundColor": "background_color",
-            "borderLineSize": "border_line_width",
-            "borderLineColor": "border_line_color",
-            "haloSize": "halo_size",
-            "haloColor": "halo_color",
-            "horizontalAlignment": "horizontal_alignment",
-            "verticalAlignment": "vertical_alignment",
-            "rightToLeft": "is_rtl"
-        }
         self.renderer_defaults = ("default_symbol", "field", "field1", "field2", "field3", "label")
 
+        aliases = dict(DRAWING_INFO_ALIASES)
         super(DrawingInfoField, self).__init__(class_name="DrawingInfo", aliases=aliases, *args, **kwargs)
 
     def to_python(self, value, resource):
@@ -171,17 +139,7 @@ class ExtentField(fields.Field):
 class TimeInfoField(ObjectField):
 
     def __init__(self, *args, **kwargs):
-        aliases = {
-            "startTimeField": "start_field",
-            "endTimeField": "end_field",
-            "trackIdField": "track_field",
-            # Used at the map service layer level (time data is layer specific)
-            "timeInterval": "interval",
-            "timeIntervalUnits": "units",
-            # Used at the map service level (defaults if not defined in layer)
-            "defaultTimeInterval": "default_interval",
-            "defaultTimeIntervalUnits": "default_units"
-        }
+        aliases = dict(TIME_INFO_ALIASES)
         super(TimeInfoField, self).__init__(class_name="TimeInfo", aliases=aliases, *args, **kwargs)
 
 
@@ -191,3 +149,60 @@ class SpatialReferenceField(fields.Field):
 
     def to_value(self, obj, resource):
         return obj.as_dict()
+
+
+DRAWING_INFO_ALIASES = {
+    # Labeling Info
+    "labelingInfo": "labeling",
+    "labelPlacement": "placement",
+    "labelExpression": "expression",
+    "useCodedValues": "use_coded_values",
+    "minScale": "min_scale",
+    "maxScale": "max_scale",
+    "whereClause": "where",
+
+    # Renderer
+    "defaultSymbol": "default_symbol",
+    "defaultLabel": "default_label",
+    "fieldDelimiter": "field_delimiter",
+    "uniqueValueInfos": "unique_values",
+    "classificationMethod": "method",
+    "normalizationType": "normalization",
+    "normalizationField": "normalization_field",
+    "normalizationTotal": "normalization_total",
+    "backgroundFillSymbol": "background_fill_symbol",
+    "minValue": "min",
+
+    # Class Break Info
+    "classBreakInfos": "class_breaks",
+    "classMinValue": "min",
+    "classMaxValue": "max",
+
+    # Symbol
+    "xoffset": "offset_x",
+    "yoffset": "offset_y",
+    "imageData": "image",
+    "contentType": "content_type",
+    "backgroundColor": "background_color",
+    "borderLineSize": "border_line_width",
+    "borderLineColor": "border_line_color",
+    "haloSize": "halo_size",
+    "haloColor": "halo_color",
+    "horizontalAlignment": "horizontal_alignment",
+    "verticalAlignment": "vertical_alignment",
+    "rightToLeft": "is_rtl"
+}
+
+TIME_INFO_ALIASES = {
+    "startTimeField": "start_field",
+    "endTimeField": "end_field",
+    "trackIdField": "track_field",
+
+    # Used at the map service layer level (time data is layer specific)
+    "timeInterval": "interval",
+    "timeIntervalUnits": "units",
+
+    # Used at the map service level (defaults if not defined in layer)
+    "defaultTimeInterval": "default_interval",
+    "defaultTimeIntervalUnits": "default_units"
+}
