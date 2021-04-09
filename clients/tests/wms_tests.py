@@ -1,12 +1,13 @@
 from hashlib import md5
-import unittest
 
 from clients.exceptions import ClientError, ImageError
 from clients.utils.geometry import Extent
 from clients.wms import WMSResource
 
+from .utils import BaseTestCase
 
-class WMSTestCase(unittest.TestCase):
+
+class WMSTestCase(BaseTestCase):
 
     def test_invalid_url(self):
         with self.assertRaises(ClientError):
