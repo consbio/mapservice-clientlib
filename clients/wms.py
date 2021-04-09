@@ -17,14 +17,13 @@ from PIL import Image
 from io import BytesIO
 
 from parserutils.collections import setdefaults, wrap_value
-from parserutils.elements import element_to_object
 from parserutils.urls import has_trailing_slash, update_url_params, url_to_parts, parts_to_url
 from restle.fields import TextField, BooleanField, IntegerField
-from restle.serializers import JSONSerializer
 
 from .exceptions import BadExtent, ClientError, ContentError, ImageError
 from .exceptions import MissingFields, NoLayers, UnsupportedVersion, ValidationError
 from .query.fields import DictField, ExtentField, ListField
+from .query.serializers import XMLToJSONSerializer
 from .resources import ClientResource
 from .utils.conversion import to_extent
 from .utils.geometry import Extent, union_extent
@@ -41,15 +40,6 @@ WMS_DEFAULT_PARAMS = {
 }
 WMS_EXCEPTION_FORMAT = "application/vnd.ogc.se_xml"
 WMS_SRS_DEFAULT = "EPSG:3857"
-
-
-class WMSSerializer(JSONSerializer):
-    """ Deserializes WMS standard XML as though it were JSON """
-
-    @staticmethod
-    def to_dict(s):
-        root, data = element_to_object(s)
-        return data[root]
 
 
 class NcWMSLayerResource(ClientResource):
@@ -491,7 +481,7 @@ class WMSResource(ClientResource):
         case_sensitive_fields = False
         match_fuzzy_keys = True
 
-        deserializer = WMSSerializer
+        deserializer = XMLToJSONSerializer
         get_parameters = WMS_DEFAULT_PARAMS
 
     @property
@@ -746,10 +736,12 @@ class WMSResource(ClientResource):
             response_type = response.headers["content-type"]
 
             if response_type != image_format:
-                if WMS_EXCEPTION_FORMAT in response_type:
-                    error = WMSSerializer.to_dict(response.content).get("ServiceException", "No service exception")
-                else:
+                if WMS_EXCEPTION_FORMAT not in response_type:
                     error = f"Unexpected image format {response_type}: {image_format}\n\t{response.text}"
+                else:
+                    error = XMLToJSONSerializer.to_dict(response.content).get(
+                        "ServiceException", "No service exception"
+                    )
                 raise ImageError(error, params=image_params, underlying=response.text, url=response.url)
 
             img = Image.open(BytesIO(response.content))

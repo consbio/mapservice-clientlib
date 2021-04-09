@@ -8,13 +8,14 @@ from io import BytesIO
 from gis_metadata.iso_metadata_parser import IsoParser
 from gis_metadata.utils import format_xpaths, ParserProperty
 from parserutils.collections import wrap_value
-from parserutils.elements import element_to_object, get_remote_element
+from parserutils.elements import get_remote_element
 from parserutils.urls import has_trailing_slash, url_to_parts, parts_to_url
 from restle.fields import TextField, BooleanField
 from restle.serializers import JSONSerializer
 
 from .exceptions import HTTPError, ImageError, ValidationError
 from .query.fields import DictField, ExtentField, ListField
+from .query.serializers import XMLToJSONSerializer
 from .resources import ClientResource
 from .utils.geometry import Extent, union_extent
 from .utils.images import make_color_transparent
@@ -26,15 +27,6 @@ logger = logging.getLogger(__name__)
 RELATED_ENDPOINT_FIELDS = (
     "access_constraints", "credits", "description", "keywords", "layers"
 )
-
-
-class ThreddsSerializer(JSONSerializer):
-    """ Deserializes WMS standard XML as though it were JSON """
-
-    @staticmethod
-    def to_dict(s):
-        root, data = element_to_object(s)
-        return data[root]
 
 
 class ThreddsResource(ClientResource):
@@ -78,7 +70,7 @@ class ThreddsResource(ClientResource):
     class Meta:
         case_sensitive_fields = False
         match_fuzzy_keys = True
-        deserializer = ThreddsSerializer
+        deserializer = XMLToJSONSerializer
 
     @classmethod
     def to_wms_url(cls, thredds_url):
