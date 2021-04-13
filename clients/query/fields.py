@@ -23,9 +23,11 @@ class DictField(fields.DictField):
     def to_python(self, value, resource):
         """ Overridden to set defaults before recursively applying camel casing and aliases """
 
+        value = self._to_python(value, resource)
         if self.defaults:
             value = setdefaults(value, self.defaults)
-        return self._to_python(value, resource)
+
+        return value
 
     def _to_python(self, value, resource):
         """ Recursively applies camel casing and aliases to all nested keys """
@@ -87,8 +89,11 @@ class ObjectField(fields.ObjectField):
 
             val = {k: self.to_data(v) for k, v in d.items()}
 
-            obj = type(self.class_name, (), d)
-            obj.get_data = types.MethodType(lambda field: val, obj)
+            if not d:
+                obj = None
+            else:
+                obj = type(self.class_name, (), d)
+                obj.get_data = types.MethodType(lambda field: val, obj)
 
             return obj
 

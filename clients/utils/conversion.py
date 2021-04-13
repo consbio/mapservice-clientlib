@@ -2,13 +2,13 @@ import json
 
 from parserutils.numbers import is_number
 
-from clients.query.fields import DictField, ExtentField, ObjectField
+from clients.query.fields import DictField, ObjectField
 
 from .geometry import Extent
 
 
 def to_extent(extent_data):
-    """ Utilizes ExtentField to transform JSON, dict or extent-like object to an Extent """
+    """ Converts JSON, dict or extent-like object to an Extent """
 
     if isinstance(extent_data, Extent):
         return extent_data
@@ -17,19 +17,17 @@ def to_extent(extent_data):
     elif hasattr(extent_data, "get_data"):
         extent_data = extent_data.get_data()
 
-    return ExtentField().to_python(
-        value={k: float(v) if is_number(v) else v for k, v in extent_data.items()},
-        resource=None
-    )
+    return Extent({k: float(v) if is_number(v) else v for k, v in extent_data.items()})
 
 
 def to_object(json_or_dict, aliases=None, from_camel=True, defaults=None):
     """ Transforms JSON data into an object """
 
-    if hasattr(json_or_dict, "get_data"):
-        json_or_dict = json_or_dict.get_data()
     if isinstance(json_or_dict, str):
         json_or_dict = json.loads(json_or_dict)
+    elif hasattr(json_or_dict, "get_data"):
+        json_or_dict = json_or_dict.get_data()
+
     if aliases or defaults:
         json_or_dict = DictField(
             aliases=aliases, convert_camel=from_camel, defaults=defaults
@@ -39,40 +37,41 @@ def to_object(json_or_dict, aliases=None, from_camel=True, defaults=None):
 
 
 def to_renderer(json_or_dict, from_camel=True):
-    """ Shortcut to build a renderer object from a dict or JSON """
+    """
+    Shortcut to build a renderer object from a dict or JSON
+    :param json_or_dict: the value to convert into a renderer
+    :param from_camel: implies conversion back to ESRI values if False
+    """
 
-    aliases = {
-        "classBreakInfos": "class_breaks",
-        "classMinValue": "min",
-        "classMaxValue": "max",
-        "uniqueValueInfos": "unique_values",
-        "classificationMethod": "method",
-        "normalizationType": "normalization",
-        "minValue": "min",
-        "imageData": "image",
-        "xoffset": "offset_x",
-        "yoffset": "offset_y"
-    }
+    aliases = dict(RENDERER_ALIASES)
+    defaults = ["symbol", "field", "field1", "field2", "field3", "label"]
 
     if from_camel:
-        defaults = ["symbol", "default_symbol", "field", "field1", "field2", "field3", "label"]
+        defaults.append("default_symbol")
     else:
+        defaults.append("defaultSymbol")
         aliases = {v: k for k, v in aliases.items()}
-        aliases["default_symbol"] = "defaultSymbol"  # May have been added from defaults
-        defaults = []
 
     renderer = to_object(json_or_dict, aliases, from_camel, defaults)
 
-    if hasattr(renderer, "symbol"):
-        renderer.symbol = to_symbol(renderer.symbol)
-    if hasattr(renderer, "default_symbol"):
-        renderer.default_symbol = to_symbol(renderer.default_symbol)
+    if getattr(renderer, "min", None) is None:
+        setattr(renderer, "min", getattr(renderer, "min_val", None))
+
+    if from_camel:
+        if renderer.symbol:
+            renderer.symbol = to_symbol(renderer.symbol, from_camel)
+        if renderer.default_symbol:
+            renderer.default_symbol = to_symbol(renderer.default_symbol, from_camel)
 
     return renderer
 
 
-def to_symbol(json_or_dict):
-    """ Shortcut to build a symbol object from a dict or JSON """
+def to_symbol(json_or_dict, from_camel=True):
+    """
+    Shortcut to build a symbol object from a dict or JSON
+    :param json_or_dict: the value to convert into a renderer
+    :param from_camel: implies conversion back to ESRI values if False
+    """
 
     aliases = {
         "imageData": "image",
@@ -80,40 +79,51 @@ def to_symbol(json_or_dict):
         "yoffset": "offset_y"
     }
     defaults = [
-        "type", "style", "color", "offset_x", "offset_y", "width", "height"
+        "type", "style", "color", "width", "height"
     ]
 
-    if not _is_symbol(json_or_dict):
+    if from_camel:
+        defaults.extend(("offset_x", "offset_y"))
+    else:
+        defaults.extend(("xoffset", "yoffset"))
+        aliases = {v: k for k, v in aliases.items()}
+
+    if not is_symbol(json_or_dict):
         symbol = None
     else:
-        symbol = to_object(json_or_dict, aliases=aliases, defaults=defaults)
-        symbol.outline = to_symbol(getattr(symbol, "outline", None))
+        symbol = to_object(json_or_dict, from_camel=from_camel, aliases=aliases, defaults=defaults)
+        symbol.outline = to_symbol(getattr(symbol, "outline", None), from_camel)
 
     return symbol
 
 
-def _is_symbol(json_or_dict, key=None):
+def is_symbol(json_or_dict, key=None):
     if json_or_dict is None:
         return False
 
     if hasattr(json_or_dict, "get_data"):
-        symbol = json_or_dict.get_data()
+        json_or_dict = json_or_dict.get_data()
     elif isinstance(json_or_dict, str):
-        symbol = json.loads(json_or_dict)
+        json_or_dict = json.loads(json_or_dict)
+
+    if key is not None:
+        return is_symbol(json_or_dict.get(key))
     else:
-        symbol = json_or_dict
-
-    symbol = symbol if key is None else symbol.get(key)
-
-    return symbol and symbol.get("type")
+        return bool(json_or_dict and json_or_dict.get("type"))
 
 
-def extent_to_polygon_wkt(extent_or_dict):
+def extent_to_polygon_wkt(extent_or_dict, **kwargs):
+    """ Generates a quadrilateral POLYGON(...) from extent data """
+
+    if extent_or_dict is None:
+        raise ValueError("Extent or dict is required")
 
     if isinstance(extent_or_dict, dict):
         extent = extent_or_dict
-    else:
+    elif isinstance(extent_or_dict, Extent):
         extent = extent_or_dict.as_dict()
+    else:
+        extent = Extent(extent_or_dict).as_dict()
 
     return "POLYGON(({xmin} {ymin}, {xmax} {ymin}, {xmax} {ymax}, {xmin} {ymax}, {xmin} {ymin}))".format(**extent)
 
@@ -144,8 +154,31 @@ def polygon_to_wkt(rings, **kwargs):
 
 
 def _points_to_str(points):
-    return ", ".join((f"{p[0]} {p[1]}" for p in points))
+    if points is None:
+        raise ValueError("A points array is required")
+    return ", ".join(("{0} {1}".format(*p[0:2]) for p in points))
 
 
 def _multi_points_to_str(multi_points):
-    return ", ".join(f"({_points_to_str(points)})" for points in multi_points)
+    if multi_points is None:
+        raise ValueError("An array of points arrays is required")
+    return ", ".join("({})".format(_points_to_str(points)) for points in multi_points)
+
+
+RENDERER_ALIASES = {
+    "classBreakInfos": "class_breaks",
+    "classMinValue": "min",
+    "classMaxValue": "max",
+    "classificationMethod": "method",
+    "defaultLabel": "default_label",
+    "defaultSymbol": "default_symbol",
+    "fieldDelimiter": "field_delimiter",
+    "uniqueValueInfos": "unique_values",
+    "normalizationType": "normalization",
+    "normalizationField": "normalization_field",
+    "normalizationTotal": "normalization_total",
+    "minValue": "min_val",
+    "imageData": "image",
+    "xoffset": "offset_x",
+    "yoffset": "offset_y"
+}
