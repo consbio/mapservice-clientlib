@@ -661,15 +661,16 @@ class ArcGISMapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
                 "source": {"type": "mapLayer", "mapLayerId": layer_id},
             }
             if layer_id in custom_renderers and custom_renderers[layer_id]:
+                # Convert internally aliased renderer properties back to ESRI values
                 renderer = to_renderer(custom_renderers[layer_id], from_camel=False).get_data()
-                if renderer["type"] == "classBreaks":
-                    # ClassBreaks JSON object doesn't have a way of specifying isMaxInclusive.
-                    # Decrement max value slightly to mimic.
-                    for info in renderer["classBreakInfos"]:
-                        info["classMaxValue"] -= .000001  # Any number smaller than this does not affect style
-                dynamic_layer["drawingInfo"] = {
-                    # Convert internally aliased renderer properties back to ESRI values
-                    "renderer": renderer
+
+                if renderer['type'] == 'classBreaks':
+                    # Decrement classMaxValue to mimic support for "isMaxInclusive" in ClassBreaks JSON
+                    for info in renderer['classBreakInfos']:
+                        # Smaller numbers than this do not affect style
+                        info['classMaxValue'] -= .000001
+                dynamic_layer['drawingInfo'] = {
+                    'renderer': renderer
                 }
             if str(layer_id) in layer_defs:
                 dynamic_layer["definitionExpression"] = layer_defs[str(layer_id)]
