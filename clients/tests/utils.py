@@ -1,3 +1,5 @@
+import os
+import pathlib
 import unittest
 
 from clients.utils.geometry import Extent, SpatialReference
@@ -76,6 +78,10 @@ def get_spatial_reference_object(web_mercator=False):
 
 
 class BaseTestCase(unittest.TestCase):
+
+    def setUp(self):
+        dir_name = os.path.dirname(os.path.abspath(__file__))
+        self.data_directory = pathlib.Path(dir_name) / "data"
 
     def assert_object_values(self, obj, target, props=None):
 
