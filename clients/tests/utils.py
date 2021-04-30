@@ -23,24 +23,36 @@ GEOGCS["WGS 84",
 """
 
 
-def get_extent():
-    return Extent(get_extent_dict())
+def get_extent(web_mercator=False):
+    return Extent(get_extent_dict(web_mercator))
 
 
-def get_extent_dict():
-    return {
-        "xmin": -180, "ymin": -90, "xmax": 180, "ymax": 90,
-        "spatial_reference": get_spatial_reference_dict()
+def get_extent_dict(web_mercator=False):
+    extent_dict = {
+        "xmin": -180.0, "ymin": -90.0, "xmax": 180.0, "ymax": 90.0,
+        "spatial_reference": get_spatial_reference_dict(web_mercator)
     }
+    if web_mercator:
+        extent_dict.update({
+            "xmin": -20037508.342789244,
+            "ymin": -20037471.205137067,
+            "xmax": 20037508.342789244,
+            "ymax": 20037471.20513706
+        })
+
+    return extent_dict
 
 
-def get_extent_list():
-    return [-180, -90, 180, 90]
+def get_extent_list(web_mercator=False):
+    if not web_mercator:
+        return [-180.0, -90.0, 180.0, 90.0]
+    else:
+        return [-20037508.342789244, -20037471.205137067, 20037508.342789244, 20037471.20513706]
 
 
-def get_extent_object():
-    extent_dict = get_extent_dict()
-    extent_dict["spatial_reference"] = get_spatial_reference()
+def get_extent_object(web_mercator=False):
+    extent_dict = get_extent_dict(web_mercator)
+    extent_dict["spatial_reference"] = get_spatial_reference(web_mercator)
 
     return get_object(extent_dict)
 

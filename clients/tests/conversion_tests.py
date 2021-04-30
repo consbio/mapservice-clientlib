@@ -269,7 +269,7 @@ class ConversionTestCase(GeometryTestCase):
         with self.assertRaises(ValueError):
             extent_to_polygon_wkt(None)
 
-        target = "POLYGON((-180 -90, 180 -90, 180 90, -180 90, -180 -90))"
+        target = "POLYGON((-180.0 -90.0, 180.0 -90.0, 180.0 90.0, -180.0 90.0, -180.0 -90.0))"
 
         self.assertEqual(extent_to_polygon_wkt(get_extent()), target)
         self.assertEqual(extent_to_polygon_wkt(get_extent_dict()), target)
