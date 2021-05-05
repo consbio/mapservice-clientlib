@@ -546,8 +546,7 @@ class TileLevels(object):
             diffs = [fabs(target_resolution - res) for res in self.resolutions]
             zoom_level = diffs.index(min(diffs))
         else:
-            sorted_resolutions = [round(res, 5) for res in self.resolutions]
-            sorted_resolutions.sort()
+            sorted_resolutions = sorted(round(res, 5) for res in self.resolutions)
 
             # Find the nearest index with resolution that is >= target_resolution
             last_index = len(sorted_resolutions) - 1

@@ -611,17 +611,16 @@ class WMSResource(ClientResource):
         supported_spatial_refs = {srs for l in self.leaf_layers.values() for srs in l.supported_spatial_refs}
         wms_data["supported_spatial_refs"] = list(supported_spatial_refs)
 
+        # Ensure EPSG:3857 is at front of list of supported projections
         web_mercator_srs = {"EPSG:3857", "EPSG:3785", "EPSG:900913", "EPSG:102113"}
-        web_mercator_srs = list(web_mercator_srs.intersection(supported_spatial_refs))
+        web_mercator_srs = sorted(web_mercator_srs.intersection(supported_spatial_refs))
 
         if not web_mercator_srs:
             logger.warning(f'The WMS Service "{title}" does not support Web Mercator:\n\t{self.wms_url}')
+        elif self._spatial_ref in web_mercator_srs:
+            wms_data["spatial_ref"] = self._spatial_ref
         else:
-            web_mercator_srs.sort()  # Put EPSG:3857 at front of list if supported
-            if self._spatial_ref in web_mercator_srs:
-                wms_data["spatial_ref"] = self._spatial_ref
-            else:
-                wms_data["spatial_ref"] = web_mercator_srs[0]
+            wms_data["spatial_ref"] = web_mercator_srs[0]
 
         # Populate fields with coerced, non-layer data (layers are nested to represent parent/child relationships)
 
