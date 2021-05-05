@@ -5,6 +5,7 @@ from parserutils.collections import setdefaults
 from parserutils.strings import camel_to_snake
 
 from clients.utils.geometry import Extent, SpatialReference
+from clients.exceptions import BadSpatialReference
 
 
 class DictField(fields.DictField):
@@ -134,8 +135,16 @@ class DrawingInfoField(ObjectField):
 
 
 class ExtentField(fields.Field):
+
+    def __init__(self, default_spatial_ref=None, *args, **kwargs):
+        self.default_spatial_ref = default_spatial_ref
+        super(ExtentField, self).__init__(*args, **kwargs)
+
     def to_python(self, value, resource):
-        return Extent(value)
+        try:
+            return Extent(value)
+        except BadSpatialReference:
+            return Extent(value, self.default_spatial_ref)
 
     def to_value(self, obj, resource):
         return obj.as_dict()

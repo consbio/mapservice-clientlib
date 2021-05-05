@@ -1,10 +1,16 @@
-from clients.exceptions import BadExtent
+import json
+
+from decimal import Decimal
+from statistics import mean
+
+from clients.arcgis import ARCGIS_RESOLUTIONS
+from clients.exceptions import BadExtent, BadSpatialReference
 from clients.utils.geometry import Extent, SpatialReference, TileLevels
 from clients.utils.geometry import extract_significant_digits, union_extent
 from clients.utils.geometry import GLOBAL_EXTENT_WEB_MERCATOR, GLOBAL_EXTENT_WGS84, GLOBAL_EXTENT_WGS84_CORRECTED
 
-from .utils import BaseTestCase, GeometryTestCase
-from .utils import get_extent, get_extent_dict, get_extent_list, get_extent_object
+from .utils import BaseTestCase, GeometryTestCase, WEB_MERCATOR_WKT
+from .utils import get_extent, get_extent_dict, get_extent_list, get_extent_object, get_object
 from .utils import get_spatial_reference, get_spatial_reference_dict, get_spatial_reference_object
 
 
@@ -13,41 +19,75 @@ class ExtentTestCase(GeometryTestCase):
     def test_extent(self):
         """ Tests successful extent creation """
 
-        extent = Extent()
-        self.assert_extent(extent, props="")
-        self.assertIsNone(extent._original_format)
-
         extent = Extent(get_extent_dict())
         self.assert_extent(extent)
         self.assertEqual(extent._original_format, "dict")
 
-        extent = Extent(get_extent_list())
+        extent = Extent(json.dumps(get_extent_dict()))
+        self.assert_extent(extent)
+        self.assertEqual(extent._original_format, "dict")
+
+        # Test with camel-cased spatial reference key
+        extent_dict = get_extent_dict()
+        extent_dict["spatialReference"] = extent_dict.pop("spatial_reference")
+        extent = Extent(extent_dict)
+        self.assert_extent(extent)
+        self.assertEqual(extent._original_format, "dict")
+
+        # Test with overridden invalid spatial reference
+        extent_dict = get_extent_dict()
+        extent_dict["spatial_reference"] = []
+        extent = Extent(extent_dict, get_spatial_reference())
+        self.assert_extent(extent)
+        self.assertEqual(extent._original_format, "dict")
+
+        # Test with overridden spatial reference when missing in dict
+        extent_dict = get_extent_dict()
+        extent_dict.pop("spatial_reference")
+        extent = Extent(extent_dict, get_spatial_reference())
+        self.assert_extent(extent)
+        self.assertEqual(extent._original_format, "dict")
+
+        extent = Extent(get_extent_list(), spatial_reference="EPSG:4326")
         self.assert_extent(extent)
         self.assertEqual(extent._original_format, "list")
 
-        extent = Extent(tuple(get_extent_list()))
+        extent = Extent(json.dumps(get_extent_list()), spatial_reference="EPSG:4326")
         self.assert_extent(extent)
         self.assertEqual(extent._original_format, "list")
 
-        extent = get_extent()
+        extent = Extent(tuple(get_extent_list()), spatial_reference="EPSG:4326")
         self.assert_extent(extent)
+        self.assertEqual(extent._original_format, "list")
 
-        extent = get_extent_object()
+        self.assert_extent(get_extent())
+        self.assert_extent(get_extent_object())
+
+        # Test with overridden invalid spatial reference
+        extent_obj = get_extent_object()
+        extent_obj.spatial_reference = []
+        extent = Extent(extent_obj, get_spatial_reference())
         self.assert_extent(extent)
+        self.assertEqual(extent._original_format, "obj")
+
+        # Test with overridden spatial reference when missing in object
+        extent_obj = get_extent_object()
+        delattr(extent_obj, "spatial_reference")
+        extent = Extent(extent_obj, get_spatial_reference())
+        self.assert_extent(extent)
+        self.assertEqual(extent._original_format, "obj")
 
     def test_invalid_extent(self):
         """ Tests invalid parameters for extent creation """
 
-        # Invalid extent parameter
+        # Invalid extent parameters
+
+        with self.assertRaises(BadExtent):
+            Extent(None)
         with self.assertRaises(BadExtent):
             Extent(set(get_extent_list()))
 
         # Invalid extent dicts
-
-        with self.assertRaises(BadExtent):
-            extent_dict = get_extent_dict()
-            extent_dict.pop("spatial_reference")
-            Extent(extent_dict)
 
         with self.assertRaises(BadExtent):
             extent_dict = get_extent_dict()
@@ -59,23 +99,25 @@ class ExtentTestCase(GeometryTestCase):
             extent_dict["xmin"] = "abc"
             Extent(extent_dict)
 
+        with self.assertRaises(BadSpatialReference):
+            extent_dict = get_extent_dict()
+            extent_dict.pop("spatial_reference")
+            Extent(extent_dict)
+
         # Invalid extent lists
+
+        spatial_ref = SpatialReference("EPSG:4326")
 
         with self.assertRaises(BadExtent):
             extent_list = get_extent_list()[:2]
-            Extent(extent_list)
+            Extent(extent_list, spatial_reference=spatial_ref)
 
         with self.assertRaises(BadExtent):
             extent_list = get_extent_list()
             extent_list[3] = "abc"
-            Extent(extent_list)
+            Extent(extent_list, spatial_reference=spatial_ref)
 
         # Invalid extent objects
-
-        with self.assertRaises(BadExtent):
-            extent_obj = get_extent_object()
-            del extent_obj.spatial_reference
-            Extent(extent_obj)
 
         with self.assertRaises(BadExtent):
             extent_obj = get_extent_object()
@@ -85,6 +127,11 @@ class ExtentTestCase(GeometryTestCase):
         with self.assertRaises(BadExtent):
             extent_obj = get_extent_object()
             extent_obj.ymin = "abc"
+            Extent(extent_obj)
+
+        with self.assertRaises(BadSpatialReference):
+            extent_obj = get_extent_object()
+            del extent_obj.spatial_reference
             Extent(extent_obj)
 
     def test_extent_clone(self):
@@ -146,11 +193,6 @@ class ExtentTestCase(GeometryTestCase):
         self.assertEqual(result, target)
 
     def test_extent_as_original(self):
-
-        # Test as_original when there is none
-
-        extent = Extent()
-        self.assertIsNone(extent._original_format)
 
         # Test as_original when it is a list
 
@@ -309,7 +351,7 @@ class ExtentTestCase(GeometryTestCase):
         self.assertEqual(result, target)
 
     def test_extent_fit_to_dimensions(self):
-        extent = Extent(get_extent_list())
+        extent = Extent(get_extent_list(), spatial_reference="EPSG:4326")
 
         # Test fit_to_dimensions
 
@@ -529,19 +571,19 @@ class ExtentTestCase(GeometryTestCase):
 
     def test_union_extent(self):
         extent_1 = None
-        extent_2 = Extent(get_extent_list())
+        extent_2 = Extent(get_extent_list(), spatial_reference="EPSG:4326")
         target = list(GLOBAL_EXTENT_WGS84)
         result = union_extent([extent_1, extent_2]).as_list()
         self.assertEqual(result, target)
 
-        extent_1 = Extent(get_extent_list())
+        extent_1 = Extent(get_extent_list(), spatial_reference="EPSG:4326")
         extent_2 = None
         target = list(GLOBAL_EXTENT_WGS84)
         result = union_extent([extent_1, extent_2]).as_list()
         self.assertEqual(result, target)
 
-        extent_1 = Extent([-10, -10, 10, 10])
-        extent_2 = Extent([-20, -20, 5, 5])
+        extent_1 = Extent([-10, -10, 10, 10], spatial_reference="EPSG:4326")
+        extent_2 = Extent([-20, -20, 5, 5], spatial_reference="EPSG:4326")
         target = [-20, -20, 10, 10]
         result = union_extent([extent_1, extent_2]).as_list()
         self.assertEqual(result, target)
@@ -550,51 +592,242 @@ class ExtentTestCase(GeometryTestCase):
 class SpatialReferenceTestCase(GeometryTestCase):
 
     def test_spatial_reference(self):
-        self.assert_spatial_reference(SpatialReference(), props="")
+        # Test with an SRS string
         self.assert_spatial_reference(SpatialReference("EPSG:4326"), props="srs")
+
+        # Test with valid spatial reference dicts
         self.assert_spatial_reference(SpatialReference(get_spatial_reference_dict()))
+        self.assert_spatial_reference(SpatialReference({"srs": "EPSG:4326"}), props="srs")
+        self.assert_spatial_reference(SpatialReference({"wkid": "4326"}), props="wkid")
+        self.assert_spatial_reference(SpatialReference({"wkt": WEB_MERCATOR_WKT}), props="wkt")
+
+        # Test with compatible spatial reference objects
         self.assert_spatial_reference(get_spatial_reference())
         self.assert_spatial_reference(get_spatial_reference_object())
 
     def test_invalid_spatial_references(self):
-        # TODO: test_invalid_spatial_references
-        SpatialReference
+        # Test invalid parameters
+        with self.assertRaises(BadSpatialReference):
+            SpatialReference(None)
+        with self.assertRaises(BadSpatialReference):
+            SpatialReference([])
+        with self.assertRaises(BadSpatialReference):
+            SpatialReference(())
+        with self.assertRaises(BadSpatialReference):
+            SpatialReference(get_object({"srs": "", "wkid": "", "wkt": ""}))
+        with self.assertRaises(BadSpatialReference):
+            SpatialReference(get_object({"wkid": "nope"}))
+
+        # Test with empty parameters
+        with self.assertRaises(BadSpatialReference):
+            SpatialReference("")
+        with self.assertRaises(BadSpatialReference):
+            SpatialReference({})
+        with self.assertRaises(BadSpatialReference):
+            SpatialReference(get_object({"latest_wkid": 4326}))
 
     def test_spatial_reference_as_dict(self):
-        # TODO: test_spatial_reference_as_dict
-        SpatialReference.as_dict
+        data = {
+            "latestWkid": "3857",
+            "srs": "EPSG:3857",
+            "wkid": 3857,
+            "wkt": WEB_MERCATOR_WKT
+        }
+
+        # Test as_dict in non-ESRI format
+
+        result = SpatialReference(data).as_dict(esri_format=False)
+        self.assertEqual(result, {"srs": "EPSG:3857"})
+
+        # Test as_dict in ESRI format
+
+        result = SpatialReference(data).as_dict(esri_format=True)
+        self.assertEqual(result, {"wkid": 3857})
+
+        data.pop("wkid")
+
+        result = SpatialReference(data).as_dict(esri_format=True)
+        self.assertEqual(result, {"wkt": WEB_MERCATOR_WKT})
 
     def test_spatial_reference_as_json_string(self):
-        # TODO: test_spatial_reference_as_json_string
-        SpatialReference.as_json_string
+        data = {
+            "latestWkid": "3857",
+            "srs": "EPSG:3857",
+            "wkid": 3857,
+            "wkt": WEB_MERCATOR_WKT
+        }
+
+        # Test as_json_string in non-ESRI format
+
+        result = SpatialReference(data).as_json_string(esri_format=False)
+        self.assertEqual(result, json.dumps({"srs": "EPSG:3857"}))
+
+        # Test as_json_string in ESRI format
+
+        result = SpatialReference(data).as_json_string(esri_format=True)
+        self.assertEqual(result, json.dumps({"wkid": 3857}))
+
+        data.pop("wkid")
+
+        result = SpatialReference(data).as_json_string(esri_format=True)
+        self.assertEqual(result, json.dumps({"wkt": WEB_MERCATOR_WKT}))
+
+    def test_spatial_reference_clone(self):
+        spatial_ref = get_spatial_reference()
+        cloned = spatial_ref.clone()
+
+        self.assert_spatial_reference(cloned)
+        self.assertIsNot(spatial_ref, cloned)
 
     def test_spatial_reference_is_geographic(self):
-        # TODO: test_spatial_reference_is_geographic
-        SpatialReference.is_geographic
+
+        self.assertTrue(SpatialReference("EPSG:4326").is_geographic())
+        self.assertTrue(SpatialReference({"wkid": 4326}).is_geographic())
+        self.assertTrue(get_spatial_reference(web_mercator=False).is_geographic())
+
+        for wkid in (3857, 102100, 102113):
+            self.assertFalse(SpatialReference({"wkid": wkid}).is_geographic())
+
+        for srs in ("EPSG:3857", "EPSG:3785", "EPSG:900913", "EPSG:102113"):
+            self.assertFalse(SpatialReference(srs).is_geographic())
 
     def test_spatial_reference_is_web_mercator(self):
-        # TODO: test_spatial_reference_is_web_mercator
-        SpatialReference.is_web_mercator
+
+        self.assertFalse(SpatialReference("EPSG:4326").is_web_mercator())
+        self.assertFalse(SpatialReference({"wkid": 4326}).is_web_mercator())
+        self.assertFalse(get_spatial_reference(web_mercator=False).is_web_mercator())
+
+        for wkid in (3857, 102100, 102113):
+            self.assertTrue(SpatialReference({"wkid": wkid}).is_web_mercator())
+
+        for srs in ("EPSG:3857", "EPSG:3785", "EPSG:900913", "EPSG:102113"):
+            self.assertTrue(SpatialReference(srs).is_web_mercator())
 
     def test_spatial_reference_is_valid_proj4_projection(self):
-        # TODO: test_spatial_reference_is_valid_proj4_projection
-        SpatialReference.is_valid_proj4_projection
+
+        self.assertFalse(SpatialReference({"srs": "EPSG:nope"}).is_valid_proj4_projection())
+        self.assertFalse(SpatialReference({"srs": "EPSG:4326:nope"}).is_valid_proj4_projection())
+        self.assertFalse(SpatialReference({"srs": 4326}).is_valid_proj4_projection())
+        self.assertFalse(SpatialReference({"wkid": 33000}).is_valid_proj4_projection())
+
+        self.assertTrue(get_spatial_reference(web_mercator=True).is_valid_proj4_projection())
+
+        for wkid in (1, 3857, 102100, 102113, 32999):
+            self.assertTrue(SpatialReference({"wkid": wkid}).is_valid_proj4_projection())
+
+        for srs in ("EPSG:3857", "EPSG:3785", "EPSG:900913", "EPSG:102113", "EPSG:4326"):
+            self.assertTrue(SpatialReference(srs).is_valid_proj4_projection())
 
 
 class TileLevelsTestCase(BaseTestCase):
 
     def test_tile_levels(self):
-        # TODO: test_tile_levels
-        TileLevels
 
-    def test_tile_levels_get_nearest_tile_level_and_resolution(self):
-        # TODO: test_tile_levels_get_nearest_tile_level_and_resolution
-        TileLevels.get_nearest_tile_level_and_resolution
+        # Invalid tile level resolutions
+        with self.assertRaises(ValueError):
+            TileLevels(None)
+        with self.assertRaises(ValueError):
+            TileLevels("")
+        with self.assertRaises(ValueError):
+            TileLevels([])
+        with self.assertRaises(ValueError):
+            TileLevels(["nope"])
+        with self.assertRaises(ValueError):
+            TileLevels(ARCGIS_RESOLUTIONS[0])
+
+        target = list(ARCGIS_RESOLUTIONS)
+
+        result = TileLevels(ARCGIS_RESOLUTIONS).resolutions
+        self.assertEqual(result, target)
+
+        result = TileLevels([str(res) for res in target]).resolutions
+        self.assertEqual(result, target)
 
     def test_tile_levels_get_matching_resolutions(self):
-        # TODO: test_tile_levels_get_matching_resolutions
-        TileLevels.get_matching_resolutions
+        source_resolutions = ARCGIS_RESOLUTIONS[:15]
+        target_resolutions = ARCGIS_RESOLUTIONS[-15:]
+        tile_levels = TileLevels(source_resolutions)
+
+        with self.assertRaises(ValueError):
+            tile_levels.get_matching_resolutions(None)
+        with self.assertRaises(ValueError):
+            tile_levels.get_matching_resolutions("nope")
+
+        # Resolutions overlap by the middle 10 (20 in all)
+        overlapping_resolutions = set(Decimal(res) for res in ARCGIS_RESOLUTIONS[-15:15])
+
+        target = {round(res) for res in overlapping_resolutions}
+        result = tile_levels.get_matching_resolutions(target_resolutions, None)
+        self.assertEqual(result, target)
+
+        target = {round(res, 5) for res in overlapping_resolutions}
+        result = tile_levels.get_matching_resolutions(target_resolutions)
+        self.assertEqual(result, target)
+
+        target = {round(res, 3) for res in overlapping_resolutions}
+        result = tile_levels.get_matching_resolutions(target_resolutions, 3)
+        self.assertEqual(result, target)
+
+    def test_tile_levels_get_nearest_tile_level_and_resolution(self):
+        tile_levels = TileLevels(ARCGIS_RESOLUTIONS)
+
+        with self.assertRaises(ValueError):
+            tile_levels.get_nearest_tile_level_and_resolution(None)
+        with self.assertRaises(ValueError):
+            tile_levels.get_nearest_tile_level_and_resolution("nope")
+
+        sorted_resolutions = sorted(tile_levels.resolutions)
+
+        res = sorted_resolutions[0]
+        target = (19, 0.298582141647617)
+        result = tile_levels.get_nearest_tile_level_and_resolution(res)
+        self.assertEqual(result, target)
+
+        res = sorted_resolutions[-1]
+        target = (0, 156543.033928)
+        result = tile_levels.get_nearest_tile_level_and_resolution(res)
+        self.assertEqual(result, target)
+
+        idx = int(len(sorted_resolutions) / 2)
+        res = sorted_resolutions[idx]
+        target = (9, 305.748113140558)
+        result = tile_levels.get_nearest_tile_level_and_resolution(res)
+        self.assertEqual(result, target)
+
+        res = mean(sorted_resolutions[:10])
+        target = (12, 38.2185141425366)
+        result = tile_levels.get_nearest_tile_level_and_resolution(res)
+        self.assertEqual(result, target)
+
+        res = mean(sorted_resolutions[10:])
+        target = (2, 39135.7584820001)
+        result = tile_levels.get_nearest_tile_level_and_resolution(res, True)
+        self.assertEqual(result, target)
 
     def test_tile_levels_snap_extent_to_nearest_tile_level(self):
-        # TODO: test_tile_levels_snap_extent_to_nearest_tile_level
-        TileLevels.snap_extent_to_nearest_tile_level
+        tile_levels = TileLevels(ARCGIS_RESOLUTIONS)
+
+        width = 946
+        height = 627
+
+        geo_extent_data = (
+            get_extent(),
+            get_extent_dict(),
+            get_extent_object(),
+            json.dumps(get_extent_dict())
+        )
+        for data in geo_extent_data:
+            target = [-282.4587061237935, -187.21100289600264, 282.4587061237935, 187.21100289600264]
+            result = tile_levels.snap_extent_to_nearest_tile_level(Extent(data), width, height).as_list()
+            self.assertEqual(result, target)
+
+        web_extent_data = (
+            get_extent(web_mercator=True),
+            get_extent_dict(web_mercator=True),
+            get_extent_object(web_mercator=True),
+            json.dumps(get_extent_dict(web_mercator=True))
+        )
+        for data in web_extent_data:
+            target = [-37022427.52397195, -24538120.56821397, 37022427.52397195, 24538120.568213962]
+            result = tile_levels.snap_extent_to_nearest_tile_level(Extent(data), width, height).as_list()
+            self.assertEqual(result, target)

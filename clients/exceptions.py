@@ -79,6 +79,13 @@ class BadExtent(ValidationError, ValueError):
         self.error_context["extent"] = self.extent = extent
 
 
+class BadSpatialReference(ValidationError, ValueError):
+
+    def __init__(self, message, spatial_reference=None, **kwargs):
+        super(BadSpatialReference, self).__init__(message, **kwargs)
+        self.error_context["spatial_reference"] = self.spatial_reference = spatial_reference
+
+
 class BadTileScheme(ValidationError):
 
     def __init__(self, message, tile_info=None, **kwargs):

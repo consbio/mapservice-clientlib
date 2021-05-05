@@ -174,12 +174,17 @@ class FieldsTestCase(BaseTestCase):
             get_extent_dict(),
             get_extent_object(),
             get_extent_list(),
-            Extent(get_extent_list()),
+            Extent(get_extent_list(), spatial_reference=get_spatial_reference()),
         )
         for value in data:
-            field = ExtentField(name="to_python")
+            if not isinstance(value, list):
+                field = ExtentField(name="to_python")
+                target = Extent(value)
+            else:
+                field = ExtentField(name="to_python", default_spatial_ref="EPSG:4326")
+                target = Extent(value, "EPSG:4326")
+
             result = field.to_python(value, None)
-            target = Extent(value)
             self.assert_objects_are_equal(
                 result, target,
                 "Testing to_python with {} data".format(type(value).__name__)
