@@ -184,10 +184,17 @@ class ExtentTestCase(GeometryTestCase):
 
     def test_extent_as_list(self):
 
-        result = get_extent().as_list()
+        # Test with default WGS84 values
         target = list(GLOBAL_EXTENT_WGS84)
+        result = get_extent().as_list()
         self.assertEqual(result, target)
 
+        # Test with default WGS84 numeric string values (converts to float)
+        target = list(GLOBAL_EXTENT_WGS84)
+        result = Extent([str(coord) for coord in target], "EPSG:4326").as_list()
+        self.assertEqual(result, target)
+
+        # Test that raw list values are unchanged
         target = [-179.1234, -89.2345, 179.3456, 89.4567]
         result = Extent(target, "EPSG:4326").as_list()
         self.assertEqual(result, target)

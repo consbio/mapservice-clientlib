@@ -114,6 +114,13 @@ class Extent(object):
 
         if any(not is_number(coord) for coord in (self.xmin, self.ymin, self.xmax, self.ymax)):
             raise BadExtent("Invalid extent coordinates", extent=extent)
+        else:
+            self.xmin, self.ymin, self.xmax, self.ymax = (
+                float(self.xmin),
+                float(self.ymin),
+                float(self.xmax),
+                float(self.ymax)
+            )
 
         if spatial_reference is None:
             raise BadSpatialReference("Spatial reference required for Extent", extent=extent)
