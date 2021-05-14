@@ -85,7 +85,7 @@ class ThreddsResource(ClientResource):
         return parts_to_url(parts, trailing_slash=has_trailing_slash(thredds_url))
 
     @classmethod
-    def get(cls, url, strict=True, lazy=True, session=None):
+    def get(cls, url, strict=True, lazy=True, session=None, **kwargs):
         """ Overridden to parse the URL in case it includes the GetCapabilities request """
 
         parts = url_to_parts(url)
@@ -104,7 +104,7 @@ class ThreddsResource(ClientResource):
         parts.path[-1] = "catalog.xml"  # Ensure catalog service query
 
         thredds_url = parts_to_url(parts, trailing_slash=has_trailing_slash(url))
-        return super(ThreddsResource, cls).get(thredds_url, strict=strict, lazy=lazy, session=session)
+        return super(ThreddsResource, cls).get(thredds_url, strict=strict, lazy=lazy, session=session, **kwargs)
 
     def _get(self, url, **kwargs):
         """ Overridden to initialize URL's derived from a THREDDS endpoint """
@@ -283,7 +283,12 @@ class ThreddsResource(ClientResource):
 
         layer_url = self._layers_url_format.format(layer_id=layer_id)
 
-        return NcWMSLayerResource.get(layer_url, lazy=False, data=layer_data)
+        return NcWMSLayerResource.get(
+            layer_url,
+            lazy=False,
+            data=layer_data,
+            session=(self._layer_session or self._session)
+        )
 
     def _query_layer_ids(self, data=None, layer_ids=None):
         """ Queries layer list endpoint and returns leaf layer ids by layer group description """

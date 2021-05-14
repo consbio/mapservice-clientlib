@@ -214,7 +214,7 @@ class WMSLayerResource(ClientResource):
         match_fuzzy_keys = True
 
     @classmethod
-    def get(cls, url, strict=True, lazy=True, session=None):
+    def get(cls, url, strict=True, lazy=True, session=None, **kwargs):
         raise NotImplementedError("WMSLayerResource cannot be fetched, only populated")
 
     def populate_field_values(self, data):
@@ -270,7 +270,7 @@ class WMSLayerResource(ClientResource):
             layer["parent"] = self
             layer["version"] = data["version"]
 
-            wms_layer = WMSLayerResource()
+            wms_layer = WMSLayerResource(session=(self._layer_session or self._session))
             wms_layer.populate_field_values(layer)
             self.child_layers.append(wms_layer)
             self.full_extent = union_extent((self.full_extent, wms_layer.full_extent))
@@ -347,8 +347,8 @@ class WMSLayerResource(ClientResource):
         parsed = wrap_value(self._metadata_url)
 
         self.metadata_urls = {
-            md["type"]: md["online_resource"]["href"]
-            for md in parsed if md.get("type") and (md.get("online_resource") or {}).get("href")
+            md["metadata_url_type"]: md["online_resource"]["href"]
+            for md in parsed if md.get("metadata_url_type") and (md.get("online_resource") or {}).get("href")
         }
 
     def _populate_ncwms_names(self):
@@ -397,7 +397,7 @@ class WMSLayerResource(ClientResource):
         supported_spatial_refs.update(sr.strip() for sr in self._spatial_ref)
         supported_spatial_refs.update(cr.strip() for cr in self._coordinate_ref)
 
-        self.supported_spatial_refs = list(supported_spatial_refs)
+        self.supported_spatial_refs = sorted(supported_spatial_refs)
 
     def _populate_ordered_layers(self, ordered_layers=None):
         """ Sets a unique layer order for all layers and a common parent order for nested sibling layers """
@@ -432,7 +432,12 @@ class WMSLayerResource(ClientResource):
             }
 
             try:
-                ncwms_layer = NcWMSLayerResource.get(layer_url, lazy=False, data=layer_data)
+                ncwms_layer = NcWMSLayerResource.get(
+                    layer_url,
+                    lazy=False,
+                    data=layer_data,
+                    session=(self._layer_session or self._session)
+                )
             except ClientError:
                 pass  # No ncWMS data to query
             else:
@@ -494,7 +499,7 @@ class WMSResource(ClientResource):
         return update_url_params(self._url, replace_all=True, **service_params)
 
     @classmethod
-    def get(cls, url, strict=True, lazy=True, session=None, version=None, spatial_ref=WMS_SRS_DEFAULT):
+    def get(cls, url, strict=True, lazy=True, session=None, version=None, spatial_ref=WMS_SRS_DEFAULT, **kwargs):
         """ Overridden to parse the URL in case it includes the GetCapabilities request """
 
         parts = url_to_parts(url)
@@ -505,7 +510,7 @@ class WMSResource(ClientResource):
 
         return super(WMSResource, cls).get(
             parts_to_url(parts, trailing_slash=has_trailing_slash(url)),
-            strict=strict, lazy=lazy, session=session, version=version, spatial_ref=spatial_ref
+            strict=strict, lazy=lazy, session=session, version=version, spatial_ref=spatial_ref, **kwargs
         )
 
     def _get(self, url, version=None, spatial_ref=WMS_SRS_DEFAULT, **kwargs):
@@ -515,7 +520,7 @@ class WMSResource(ClientResource):
 
         # Note: if ncWMS, initial request may take a VERY long time
         # URL is trimmed of any query parameters at this point, so endswith is valid
-        self._is_ncwms = ("/ncwms/" in self._url.lower() or self._url.endswith(".nc"))
+        self._is_ncwms = ("ncwms" in self._url.lower() or self._url.endswith(".nc"))
         self._ordered_layers = []  # Populated before resource is loaded, or anytime afterwards if self._lazy
 
         if version is not None:
@@ -582,7 +587,7 @@ class WMSResource(ClientResource):
             layer["wms"] = self
             layer["version"] = wms_data["version"]
 
-            wms_layer = WMSLayerResource()
+            wms_layer = WMSLayerResource(session=(self._layer_session or self._session))
             wms_layer.populate_field_values(layer)
 
             self.root_layers.append(wms_layer)
@@ -609,7 +614,7 @@ class WMSResource(ClientResource):
         # Validate spatial references: must support a variant of Web Mercator to call get_image
 
         supported_spatial_refs = {srs for l in self.leaf_layers.values() for srs in l.supported_spatial_refs}
-        wms_data["supported_spatial_refs"] = list(supported_spatial_refs)
+        wms_data["supported_spatial_refs"] = sorted(supported_spatial_refs)
 
         # Ensure EPSG:3857 is at front of list of supported projections
         web_mercator_srs = {"EPSG:3857", "EPSG:3785", "EPSG:900913", "EPSG:102113"}
@@ -649,7 +654,8 @@ class WMSResource(ClientResource):
         """
 
         if not isinstance(extent, Extent):
-            extent = Extent(extent)
+            spatial_ref = getattr(extent, "spatial_reference", None) or self._spatial_ref
+            extent = Extent(extent, spatial_reference=spatial_ref)
 
         if self.spatial_ref is None:
             supported_srs = ",".join(self.supported_spatial_refs)

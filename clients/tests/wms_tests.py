@@ -1,47 +1,327 @@
+import pathlib
+
 from hashlib import md5
+from unittest import mock
 
-from clients.exceptions import ClientError, ImageError
-from clients.utils.geometry import Extent
+from clients.exceptions import ContentError, ImageError
 from clients.wms import WMSResource
+from clients.utils.geometry import Extent
 
-from .utils import BaseTestCase
+from .utils import BaseTestCase, get_extent
 
 
 class WMSTestCase(BaseTestCase):
 
-    def test_invalid_url(self):
-        with self.assertRaises(ClientError):
-            WMSResource.get("http://www.google.com", lazy=False)  # not a WMS
+    def setUp(self):
+        super(WMSTestCase, self).setUp()
 
-    def test_invalid_projection(self):
-        with self.assertRaises(ClientError):
-            WMSResource.get("http://wms.jpl.nasa.gov/wms.cgi", lazy=False)  # svc does not support WMS
+        self.wms_data = pathlib.Path(self.data_directory) / "wms"
 
-    def test_valid_svc_info(self):
-        WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", lazy=False)  # valid svc
+    def mock_mapservice_session(self, data_path, mode="r", headers=None, session=None):
 
-    def test_valid_image(self):
-        client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", lazy=False)
-        img = client.get_image(client.full_extent, 250, 175, ["country_bounds"], ["default"])
-        assert img.size == (250, 175)
-        assert img.mode == "RGBA"
-        assert md5(img.tobytes()).hexdigest() == "526a075ca774aa2601fe38f191b7b798"  # Note: fails if service changes
+        mock_session = session or mock.Mock(get=mock.Mock())
 
-    def test_invalid_image_request(self):
-        client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", lazy=False)
+        if headers is None:
+            headers = {"content-type": "application/vnd.ogc.se_xml"}
 
-        extent_dict = {"xmin": -1000, "ymin": -1000, "xmax": 1000, "ymax": 1000, "spatial_reference": "EPSG:3857"}
-        extent_list = [-1000, -1000, 1000, 1000]
+        mock_session.headers = mock.Mock()
+        mock_session.headers.__getitem__ = mock.Mock()
+        mock_session.headers.__getitem__.side_effect = headers.__getitem__
+        mock_session.headers.__setitem__ = mock.Mock()
+        mock_session.headers.__setitem__.side_effect = headers.__setitem__
 
-        with self.assertRaises(ImageError):
-            client.get_image(Extent(), 100, 100)
-        with self.assertRaises(ImageError):
-            client.get_image(extent_dict, 100, 100)
-        with self.assertRaises(ImageError):
-            client.get_image(extent_list, 100, 100, style_ids=["style1"])
-        with self.assertRaises(ImageError):
-            client.get_image(Extent(extent_dict), 100, 100, layer_ids=["layer1"])
-        with self.assertRaises(ImageError):
-            client.get_image(
-                Extent(extent_list), 100, 100, layer_ids=["layer1"], image_format="invalid_format"
+        with open(data_path, mode=mode) as mapservice_data:
+            mapservice_content = mapservice_data.read()
+            mock_session.get.return_value = mock.Mock(
+                ok=True,
+                status_code=200,
+                content=mapservice_content,
+                text=mapservice_content,
+                headers=headers
             )
+
+        return mock_session
+
+    def test_invalid_wms_url(self):
+
+        session = self.mock_mapservice_session(self.data_directory / "test.html")
+
+        with self.assertRaises(ContentError):
+            WMSResource.get("http://www.google.com", session=session, lazy=False)
+
+    def test_valid_wms_request(self):
+
+        session = self.mock_mapservice_session(self.data_directory / "wms" / "demo-wms.xml")
+        client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", session=session, lazy=False)
+
+        # Test service level information
+
+        self.assertEqual(client.wms_url, "http://demo.mapserver.org/cgi-bin/wms")
+        self.assertEqual(client.title, "WMS Demo Server for MapServer")
+        self.assertEqual(client.description, "This demonstration server showcases MapServer")
+        self.assertEqual(client.access_constraints, None)
+        self.assertEqual(client.version, "1.3.0")
+        self.assertEqual(client.feature_info_formats, ["text/html", "application/vnd.ogc.gml", "text/plain"])
+        self.assertEqual(client.map_formats, ["image/png", "image/jpeg", "application/json"])
+        self.assertEqual(client.keywords, ["DEMO", "WMS"])
+        self.assertEqual(client.layer_drawing_limit, None)
+        self.assertEqual(
+            client.full_extent.as_list(),
+            [-20037508.342789244, -20037471.205137067, 20037508.342789244, 20037471.20513706]
+        )
+        self.assertEqual(client.full_extent.spatial_reference.wkid, 3857)
+        self.assertEqual(
+            client.supported_spatial_refs,
+            ["EPSG:3857", "EPSG:3978", "EPSG:4269", "EPSG:4326"]
+        )
+        self.assertEqual(client.has_dimensions, False)
+        self.assertEqual(client.has_time, False)
+        self.assertEqual(client.is_ncwms, False)
+        self.assertEqual(client.spatial_ref, "EPSG:3857")
+
+        layer_ids = {"continents", "country_bounds", "cities", "bluemarble"}
+
+        self.assertEqual(len(client.leaf_layers), len(layer_ids))
+        self.assertTrue(all(l in layer_ids for l in client.leaf_layers))
+
+        self.assertEqual(len(client.root_layers), len(layer_ids))
+        self.assertTrue(all(l.id in layer_ids for l in client.root_layers))
+
+        self.assertEqual(len(client.ordered_layers), len(layer_ids))
+        self.assertTrue(all(l.id in layer_ids for l in client.ordered_layers))
+
+        # Test layer level information for first layer
+
+        first_layer = client.ordered_layers[0]
+
+        self.assertEqual(first_layer.id, "cities")
+        self.assertEqual(first_layer.title, "World cities")
+        self.assertEqual(first_layer.description, None)
+        self.assertEqual(first_layer.version, "1.3.0")
+        self.assertEqual(first_layer.supports_query, True)
+
+        self.assertEqual(
+            Extent(first_layer._new_extent).as_list(),
+            [-178.167, -54.8, 179.383, 78.9333]
+        )
+        self.assertEqual(first_layer._new_extent["spatial_reference"], "EPSG:4326")
+        self.assertEqual(
+            Extent(first_layer._old_bbox_extent).as_list(),
+            [-178.167, -54.8, 179.383, 78.9333]
+        )
+        self.assertEqual(first_layer._old_bbox_extent["spatial_reference"], "EPSG:4326")
+        self.assertEqual(
+            Extent(first_layer.full_extent).as_list(),
+            [-19833459.716165174, -7323146.544576741, 19968824.216969796, 14888598.992608657]
+        )
+        self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
+        self.assertEqual(
+            first_layer.supported_spatial_refs,
+            ["EPSG:3857", "EPSG:3978", "EPSG:4269", "EPSG:4326"]
+        )
+
+        self.assertEqual(first_layer.has_time, False)
+        self.assertEqual(first_layer.has_dimensions, False)
+        self.assertEqual(first_layer.is_ncwms, False)
+        self.assertEqual(first_layer.is_old_version, False)
+        self.assertEqual(first_layer.layer_order, 0)
+        self.assertEqual(first_layer.parent_order, None)
+        self.assertEqual(first_layer.metadata_urls, {
+            "TC211": "https://demo.mapserver.org/cgi-bin/wms?request=GetMetadata&layer=cities"
+        })
+        self.assertEqual(
+            first_layer._metadata_url["online_resource"]["href"],
+            "https://demo.mapserver.org/cgi-bin/wms?request=GetMetadata&layer=cities"
+        )
+        self.assertEqual(len(first_layer.styles), 1)
+        self.assertEqual(len(first_layer.styles[0]), 4)
+        self.assertEqual(first_layer.styles[0]["id"], "default")
+        self.assertEqual(first_layer.styles[0]["title"], "default")
+        self.assertEqual(first_layer.styles[0]["abstract"], None)
+        self.assertEqual(first_layer.styles[0]["legendURL"], (
+            "https://demo.mapserver.org/cgi-bin/wms?version=1.3.0&service=WMS&request=GetLegendGraphic"
+            "&sld_version=1.1.0&layer=cities&format=image/png&STYLE=default"
+        ))
+
+        self.assertEqual(first_layer.attribution, {})
+        self.assertEqual(first_layer.dimensions, {})
+        self.assertEqual(first_layer.child_layers, [])
+        self.assertEqual(first_layer.leaf_layers, {})
+
+    def test_valid_ncwms_request(self):
+
+        session = self.mock_mapservice_session(self.data_directory / "wms" / "ncwms.xml")
+
+        headers = {"content-type": "application/json"}
+        wms_json = self.data_directory / "wms" / "ncwms-layer.json"
+        layer_session = self.mock_mapservice_session(wms_json, headers=headers)
+
+        client = WMSResource.get(
+            "http://tools.pacificclimate.org/ncWMS-PCIC/wms",
+            lazy=False,
+            session=session,
+            layer_session=layer_session,
+        )
+
+        # Test service level information
+
+        self.assertEqual(client.wms_url, "http://tools.pacificclimate.org/ncWMS-PCIC/wms")
+        self.assertEqual(client.title, "My ncWMS server")
+        self.assertEqual(client.description, "")
+        self.assertEqual(client.access_constraints, None)
+        self.assertEqual(client.version, "1.3.0")
+        self.assertEqual(client.feature_info_formats, ["image/png", "text/xml"])
+        self.assertEqual(client.map_formats, ["image/png", "image/gif", "image/jpeg"])
+        self.assertEqual(client.keywords, [""])
+        self.assertEqual(client.layer_drawing_limit, 1)
+        self.assertEqual(
+            client.full_extent.as_list(),
+            [-15696047.830489751, 5012341.860907214, -5788613.783964222, 18295676.048854332]
+        )
+        self.assertEqual(client.full_extent.spatial_reference.wkid, 3857)
+        self.assertEqual(
+            client.supported_spatial_refs,
+            ["EPSG:27700", "EPSG:32661", "EPSG:32761", "EPSG:3408", "EPSG:3409", "EPSG:3857", "EPSG:41001"]
+        )
+        self.assertEqual(client.has_dimensions, True)
+        self.assertEqual(client.has_time, True)
+        self.assertEqual(client.is_ncwms, True)
+        self.assertEqual(client.spatial_ref, "EPSG:3857")
+
+        layer_ids = {"pr-tasmax-tasmin_day"}
+
+        self.assertEqual(len(client.leaf_layers), len(layer_ids))
+        self.assertTrue(all(l in layer_ids for l in client.leaf_layers))
+
+        self.assertEqual(len(client.root_layers), 1)
+        child_layers = {l for l in client.root_layers[0].child_layers}
+        self.assertTrue(all(l.id in layer_ids for l in child_layers))
+
+        ordered_layers = {l for l in client.ordered_layers if l.id}
+        self.assertEqual(len(ordered_layers), len(layer_ids))
+        self.assertTrue(all(l.id in layer_ids for l in ordered_layers))
+
+        # Test layer level information for first child layer
+
+        first_layer = client.root_layers[0].child_layers[0]
+
+        self.assertEqual(first_layer.id, "pr-tasmax-tasmin_day")
+        self.assertEqual(first_layer.title, "precipitation_flux")
+        self.assertEqual(first_layer.description, "Precipitation")
+        self.assertEqual(first_layer.version, "1.3.0")
+        self.assertEqual(first_layer.supports_query, True)
+
+        self.assertEqual(
+            Extent(first_layer._new_extent).as_list(),
+            [-140.99999666399998, 41.000001336, -52.00000235999998, 83.49999861600001]
+        )
+        self.assertEqual(first_layer._new_extent["spatial_reference"], "EPSG:4326")
+        self.assertEqual(
+            Extent(first_layer._old_bbox_extent).as_list(),
+            [-140.99999666399998, 41.000001336, -52.00000235999998, 83.49999861600001]
+        )
+        self.assertEqual(first_layer._old_bbox_extent["spatial_reference"], "CRS:84")
+        self.assertEqual(
+            Extent(first_layer.full_extent).as_list(),
+            [-15696047.830489751, 5012341.860907214, -5788613.783964222, 18295676.048854332]
+        )
+        self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
+        self.assertEqual(
+            first_layer.supported_spatial_refs,
+            ["EPSG:27700", "EPSG:32661", "EPSG:32761", "EPSG:3408", "EPSG:3409", "EPSG:3857", "EPSG:41001"]
+        )
+
+        self.assertEqual(first_layer.has_time, True)
+        self.assertEqual(first_layer.has_dimensions, True)
+        self.assertEqual(first_layer.is_ncwms, True)
+        self.assertEqual(first_layer.is_old_version, False)
+        self.assertEqual(first_layer.layer_order, 1)
+        self.assertEqual(first_layer.parent_order, 0)
+        self.assertEqual(first_layer.metadata_urls, {})
+        self.assertEqual(first_layer._metadata_url, [])
+        self.assertEqual(len(first_layer.styles), 17)
+        self.assertEqual(len(first_layer.styles[0]), 5)
+        self.assertEqual(first_layer.styles[0]["id"], "boxfill/alg")
+        self.assertEqual(first_layer.styles[0]["title"], "Algorithmic")
+        self.assertEqual(first_layer.styles[0]["abstract"], None)
+        self.assertEqual(first_layer.styles[0]["legendURL"], (
+            "http://tools.pacificclimate.org/ncWMS-PCIC/wms"
+            "?palette=alg&request=GetLegendGraphic&layer=pr-tasmax-tasmin_day&colorbaronly=True"
+        ))
+
+        self.assertEqual(first_layer.attribution, {})
+        self.assertEqual(len(first_layer.dimensions), 1)
+        self.assertEqual(len(first_layer.dimensions["time"]), 6)
+        self.assertEqual(first_layer.dimensions["time"]["current"], "true")
+        self.assertEqual(first_layer.dimensions["time"]["default"], "2021-05-05T00:00:00.000Z")
+        self.assertEqual(first_layer.dimensions["time"]["multiple_values"], "true")
+        self.assertEqual(first_layer.dimensions["time"]["name"], "time")
+        self.assertEqual(first_layer.dimensions["time"]["units"], "ISO8601")
+        self.assertEqual(
+            first_layer.dimensions["time"]["values"],
+            ["1950-01-01T00:00:00.000Z/2100-12-31T00:00:00.000Z/P1D"]
+        )
+        self.assertEqual(first_layer.child_layers, [])
+        self.assertEqual(first_layer.leaf_layers, {})
+
+        # Test NcWMS specific layer level information
+
+        self.assertEqual(first_layer.credits, None)
+        self.assertEqual(first_layer.copyright_text, "")
+        self.assertEqual(first_layer.more_info, "")
+        self.assertEqual(first_layer.num_color_bands, 254)
+        self.assertEqual(first_layer.log_scaling, False)
+        self.assertEqual(first_layer.scale_range, ["0.0", "797.8125"])
+        self.assertEqual(len(first_layer.legend_info), 4)
+        self.assertEqual(first_layer.legend_info["colorBands"], 254)
+        self.assertEqual(first_layer.legend_info["legendUnits"], "mm day-1")
+        self.assertEqual(first_layer.legend_info["logScaling"], False)
+        self.assertEqual(first_layer.legend_info["scaleRange"], ["0.0", "797.8125"])
+        self.assertEqual(first_layer.units, "mm day-1")
+        self.assertEqual(first_layer.default_style, "boxfill/rainbow")
+        self.assertEqual(first_layer.default_palette, "rainbow")
+        self.assertEqual(first_layer.palettes, [
+            "alg", "greyscale", "ncview", "occam", "yellow_red", "red_yellow", "lightblue_darkblue_log", "occam_inv",
+            "ferret", "redblue", "brown_green", "blueheat", "brown_blue", "blue_brown", "blue_darkred",
+            "lightblue_darkblue", "rainbow"
+        ])
+        self.assertEqual(first_layer.supported_styles, ["boxfill"])
+
+    def test_valid_wms_image_request(self):
+
+        session = self.mock_mapservice_session(self.data_directory / "wms" / "demo-wms.xml")
+        client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", session=session, lazy=False)
+
+        self.mock_mapservice_session(
+            self.data_directory / "test.png",
+            mode="rb",
+            headers={"content-type": "image/png"},
+            session=client._session
+        )
+        img = client.get_image(client.full_extent, 32, 32, ["country_bounds"], ["default"])
+
+        self.assertEqual(img.size, (32, 32))
+        self.assertEqual(img.mode, "RGBA")
+        self.assertEqual(md5(img.tobytes()).hexdigest(), "93d44c4c38607ac0834c68fc2b3dc92b")
+
+    def test_invalid_wms_image_request(self):
+
+        session = self.mock_mapservice_session(self.data_directory / "wms" / "demo-wms.xml")
+        client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", session=session, lazy=False)
+
+        self.mock_mapservice_session(
+            self.data_directory / "wms" / "service-exception.xml", session=client._session
+        )
+
+        extent = get_extent(web_mercator=True)
+
+        with self.assertRaises(ImageError):
+            client.get_image(extent.as_dict(), 100, 100)
+        with self.assertRaises(ImageError):
+            client.get_image(extent.as_list(), 100, 100, style_ids=["style1"])
+        with self.assertRaises(ImageError):
+            client.get_image(extent, 100, 100, layer_ids=["layer1"])
+        with self.assertRaises(ImageError):
+            client.get_image(extent, 100, 100, layer_ids=["layer1"], style_ids=["style1", "style2"])
+        with self.assertRaises(ImageError):
+            client.get_image(extent, 100, 100, layer_ids=["layer1"], image_format="invalid_format")

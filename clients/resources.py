@@ -4,8 +4,8 @@ import requests
 from parserutils.collections import setdefaults
 from parserutils.numbers import is_number
 from parserutils.strings import ALPHANUMERIC, snake_to_camel
-from restle.exceptions import HTTPException, MissingFieldException, NotFoundException
 from restle.resources import Resource
+from restle.exceptions import HTTPException, MissingFieldException, NotFoundException
 
 from .exceptions import BadExtent, ClientError, ContentError, HTTPError, MissingFields
 from .exceptions import NetworkError, ServiceError, ServiceTimeout, UnsupportedVersion
@@ -23,6 +23,9 @@ class ClientResource(Resource):
     _incoming_casing = "camel"
     _minimum_version = None
     _maximum_version = None
+
+    _session = None
+    _layer_session = None
 
     def __init__(self, **kwargs):
 
@@ -46,6 +49,14 @@ class ClientResource(Resource):
                 # Capitalize only the first letter if Pascal: leave the rest camel-cased
                 f[0].upper() + f[1:] if self._incoming_casing == "pascal" else f for f in required
             ]
+
+    @property
+    def service_url(self):
+        return getattr(self, "_service_url", self._url)
+
+    @service_url.setter
+    def service_url(self, value):
+        self._service_url = value
 
     @classmethod
     def bulk_get(cls, url, strict=True, lazy=True, session=None, bulk_key=None, bulk_defaults=None, **kwargs):
@@ -163,6 +174,8 @@ class ClientResource(Resource):
         self = super(ClientResource, cls).get(url, strict=strict, lazy=True, session=session)
         self._lazy = lazy
         self._strict = strict
+        self._layer_session = kwargs.pop("layer_session", None)
+
         self.service_url = self._url
 
         self._get(url, strict=strict, lazy=lazy, session=session, **kwargs)
@@ -237,7 +250,7 @@ class ClientResource(Resource):
         headers = kwargs.pop("headers", self._session.headers)
         headers["User-agent"] = self._client_user_agent
 
-        return requests.get(url, params=params, headers=headers, **kwargs)
+        return self._session.get(url, params=params, headers=headers, **kwargs)
 
     def populate_field_values(self, data):
         """ Overridden to define custom API for all resources, and validate Extent """

@@ -447,19 +447,18 @@ class ArcGISSecureResource(ClientResource):
         parsed_url = urlsplit(self._url)
 
         self.hostname = parsed_url.netloc
-        self.service_url = self._url
-        self.service_id = None
 
         # Extract the local ID of this service on the server, which includes its folder path in the services directory
         service_pattern_match = ARCGIS_SERVICE_ID_PATTERN.search(parsed_url.path)
-        if service_pattern_match:
-            self.service_id = service_pattern_match.group()
+        self.service_id = service_pattern_match.group() if service_pattern_match else None
 
         self.username = username
         self.password = password
 
+        # Attempt to derive token, or assume service is public
+
         if token:
-            self._params["token"] = token   # Continue using token, or assume service is public
+            self._params["token"] = token
         elif username and password:
             server_admin = ArcGISMapServerResource.generate_token(self._url, username, password)
             if server_admin.token:
@@ -560,8 +559,11 @@ class ArcGISMapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
             # Query all layers with full layer detail for each
             layer_url = "{0}/layers".format(self._url.strip("/"))
             self.layers = ArcGISMapLayerResource.bulk_get(
-                layer_url, username=self.username, password=self.password, token=self.token,
-                strict=self._strict, bulk_key="layers", bulk_defaults={"currentVersion": self.version}
+                layer_url,
+                strict=self._strict, lazy=True,
+                session=(self._layer_session or self._session),
+                username=self.username, password=self.password, token=self.token,
+                bulk_key="layers", bulk_defaults={"currentVersion": self.version}
             )
         elif "layers" in data:
             # Query each layer one by one to get full layer detail for each
@@ -584,8 +586,11 @@ class ArcGISMapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
         if "/MapServer" in self._url:
             legend_url = "{0}/legend/".format(self._url.strip("/"))
             legend_elements = ArcGISMapLegendResource.bulk_get(
-                legend_url, username=self.username, password=self.password, token=self.token,
-                strict=self._strict, bulk_key="layers.legend", bulk_defaults={"currentVersion": self.version}
+                legend_url,
+                strict=self._strict, lazy=True,
+                session=(self._layer_session or self._session),
+                username=self.username, password=self.password, token=self.token,
+                bulk_key="layers.legend", bulk_defaults={"currentVersion": self.version}
             )
 
             # Assign separately queried legend elements to respective layers
