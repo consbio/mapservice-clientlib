@@ -2,6 +2,8 @@ import os
 import pathlib
 import unittest
 
+from unittest import mock
+
 from clients.utils.geometry import Extent, SpatialReference
 
 
@@ -173,3 +175,49 @@ class GeometryTestCase(BaseTestCase):
     def assert_spatial_reference(self, spatial_reference, props="latest_wkid,srs,wkid,wkt"):
         self.assertTrue(spatial_reference is not None)
         self.assert_object_values(spatial_reference, self.spatial_reference_props, props)
+
+
+class ResourceTestCase(BaseTestCase):
+
+    def setUp(self):
+        super(ResourceTestCase, self).setUp()
+        self.headers = {"content-type": "application/vnd.ogc.se_xml"}
+
+    def mock_mapservice_get(self, data_path, mock_request, service_url, mode="r", headers=None):
+
+        if headers is None:
+            headers = self.headers
+
+        with open(data_path, mode=mode) as mapservice_data:
+            mapservice_content = mapservice_data.read()
+            return mock_request.get(
+                service_url,
+                status_code=200,
+                text=mapservice_content,
+                headers=headers
+            )
+
+    def mock_mapservice_session(self, data_path, mode="r", headers=None, session=None):
+
+        mock_session = session or mock.Mock(get=mock.Mock())
+
+        if headers is None:
+            headers = {"content-type": "application/vnd.ogc.se_xml"}
+
+        mock_session.headers = mock.Mock()
+        mock_session.headers.__getitem__ = mock.Mock()
+        mock_session.headers.__getitem__.side_effect = headers.__getitem__
+        mock_session.headers.__setitem__ = mock.Mock()
+        mock_session.headers.__setitem__.side_effect = headers.__setitem__
+
+        with open(data_path, mode=mode) as mapservice_data:
+            mapservice_content = mapservice_data.read()
+            mock_session.get.return_value = mock.Mock(
+                ok=True,
+                status_code=200,
+                content=mapservice_content,
+                text=mapservice_content,
+                headers=headers
+            )
+
+        return mock_session

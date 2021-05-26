@@ -76,6 +76,8 @@ class NcWMSLayerResource(ClientResource):
     legend_info = DictField(required=False)
     styles = ListField(default=[])
 
+    is_ncwms = True
+
     class Meta:
         case_sensitive_fields = False
         match_fuzzy_keys = True

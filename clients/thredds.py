@@ -7,7 +7,7 @@ from io import BytesIO
 
 from gis_metadata.iso_metadata_parser import IsoParser
 from gis_metadata.utils import format_xpaths, ParserProperty
-from parserutils.collections import wrap_value
+from parserutils.collections import reduce_value, wrap_value
 from parserutils.elements import get_remote_element
 from parserutils.urls import has_trailing_slash, url_to_parts, parts_to_url
 from restle.fields import TextField, BooleanField
@@ -121,21 +121,26 @@ class ThreddsResource(ClientResource):
     def populate_field_values(self, data):
         """ Overridden to populate from multiple end points """
 
-        dataset_info = data["dataset"]
+        # Flatten nested dataset metadata and service info
 
-        if "dataset" not in dataset_info:
-            dataset_info = data.pop("dataset")
-        elif len(dataset_info["dataset"]) == 1:
-            dataset_info = data.pop("dataset").pop("dataset")[0]
-        else:
+        dataset_info = data.pop("dataset")
+        dataset_detail = reduce_value(dataset_info.pop("dataset", None))
+
+        if isinstance(dataset_detail, dict):
+            dataset_info.update(dataset_detail)
+        elif isinstance(dataset_detail, (list, tuple)):
             raise ValidationError(
                 message="THREDDS resource must specify one dataset",
                 datasets=dataset_info,
                 url=self._url
             )
 
-        data.update(dataset_info)
-        data.update(data.pop("metadata"))
+        dataset_meta = data.pop("metadata", dataset_info.pop("metadata", None))
+
+        data.update(dataset_info or {})
+        data.update(dataset_meta or {})
+
+        # Derive and flatten other required service information
 
         data["dataSize"] = " ".join(data["dataSize"][k] for k in ("value", "units"))
         data["modified"] = data["date"]["value"] if data["date"]["date_type"] == "modified" else ""
@@ -336,9 +341,10 @@ class ThreddsResource(ClientResource):
         """
 
         if not isinstance(extent, Extent):
-            extent = Extent(extent)
+            spatial_ref = getattr(extent, "spatial_reference", None) or self.spatial_ref
+            extent = Extent(extent, spatial_reference=spatial_ref)
 
-        elif not layer_ids:
+        if not layer_ids:
             raise ImageError("No layers from which to generate an image", url=self._url)
 
         elif style_ids and len(layer_ids) != len(style_ids):

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><WMS_Capabilities
+    version="1.3.0"
+    updateSequence="2021-05-17T19:08:20.030Z"
+    xmlns="http://www.opengis.net/wms"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd">
+
+  <Service>
+    <Name>WMS</Name>
+    <Title>Northwest Knowledge Network (NKN) - THREDDS Server</Title>
+    <Abstract>Scientific Data</Abstract>
+    <KeywordList>
+      <Keyword>meteorology</Keyword>
+      <Keyword>atmosphere</Keyword>
+      <Keyword>climate</Keyword>
+      <Keyword>ocean</Keyword>
+      <Keyword>earth science</Keyword>
+      </KeywordList>
+    <OnlineResource xlink:type="simple" xlink:href="http://www.northwestknowledge.net"/>
+    <ContactInformation>
+      <ContactPersonPrimary>
+        <ContactPerson>Luke Sheneman</ContactPerson>
+        <ContactOrganization>Northwest Knowledge Network</ContactOrganization>
+      </ContactPersonPrimary>
+      <ContactVoiceTelephone>208.885.4228</ContactVoiceTelephone>
+      <ContactElectronicMailAddress>admin@northwestknowledge.net</ContactElectronicMailAddress>
+    </ContactInformation>
+    <Fees>none</Fees>
+    <AccessConstraints>none</AccessConstraints>
+    <LayerLimit>1</LayerLimit>
+    <MaxWidth>2048</MaxWidth>
+    <MaxHeight>2048</MaxHeight>
+  </Service>
+  <Capability>
+    <Request>
+      <GetCapabilities>
+        <Format>text/xml</Format>
+        <DCPType><HTTP><Get><OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc"/></Get></HTTP></DCPType>
+      </GetCapabilities>
+      <GetMap>
+        <Format>image/png</Format>
+        <Format>image/png;mode=32bit</Format>
+        <Format>image/gif</Format>
+        <Format>image/jpeg</Format>
+        <Format>application/vnd.google-earth.kmz</Format>
+        <DCPType><HTTP><Get><OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc"/></Get></HTTP></DCPType>
+      </GetMap>
+      <GetFeatureInfo>
+        <Format>image/png</Format>
+        <Format>text/xml</Format>
+        <DCPType><HTTP><Get><OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc"/></Get></HTTP></DCPType>
+      </GetFeatureInfo>
+    </Request>
+    <Exception>
+      <Format>XML</Format>
+    </Exception>
+    <Layer>
+      <Title>Northwest Knowledge Network (NKN) - THREDDS Server</Title><CRS>EPSG:4326</CRS>
+      <CRS>CRS:84</CRS>
+      <CRS>EPSG:41001</CRS>
+      <CRS>EPSG:27700</CRS>
+      <CRS>EPSG:3408</CRS>
+      <CRS>EPSG:3409</CRS>
+      <CRS>EPSG:3857</CRS>
+      <CRS>EPSG:900913</CRS>
+      <CRS>EPSG:32661</CRS>
+      <CRS>EPSG:32761</CRS>
+      <Layer>
+        <Title>Downscaled daily meteorological data of Precipitation from Average.</Title>
+        <Layer>
+          <Name>macav2metdata_pr_SON_20702099_rcp45_20CMIP5ModelMean</Name>
+          <Title>macav2metdata_pr_SON_20702099_rcp45_20CMIP5ModelMean</Title>
+          <Abstract>Precipitation</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-124.77216339111328</westBoundLongitude>
+            <eastBoundLongitude>-67.06383005777995</eastBoundLongitude>
+            <southBoundLatitude>25.062689463297527</southBoundLatitude>
+            <northBoundLatitude>49.39602279663086</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="CRS:84" minx="-124.77216339111328" maxx="-67.06383005777995" miny="25.062689463297527" maxy="49.39602279663086"/>
+          <Style>
+            <Name>boxfill/greens</Name>
+            <Title>boxfill/greens</Title>
+            <Abstract>boxfill style, using the greens palette</Abstract>
+            <LegendURL width="110" height="264">
+              <Format>image/png</Format>
+              <OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc?REQUEST=GetLegendGraphic&amp;LAYER=macav2metdata_pr_ANN_20702099_rcp45_20CMIP5ModelMean&amp;PALETTE=greens"/>
+            </LegendURL>
+          </Style>
+          <Style>
+            <Name>boxfill/greys</Name>
+            <Title>boxfill/greys</Title>
+            <Abstract>boxfill style, using the greys palette</Abstract>
+            <LegendURL width="110" height="264">
+              <Format>image/png</Format>
+              <OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc?REQUEST=GetLegendGraphic&amp;LAYER=macav2metdata_pr_SON_20702099_rcp45_20CMIP5ModelMean&amp;PALETTE=greys"/>
+            </LegendURL>
+          </Style>
+          <Style>
+            <Name>boxfill/ferret</Name>
+            <Title>boxfill/ferret</Title>
+            <Abstract>boxfill style, using the ferret palette</Abstract>
+            <LegendURL width="110" height="264">
+              <Format>image/png</Format>
+              <OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc?REQUEST=GetLegendGraphic&amp;LAYER=macav2metdata_pr_ANN_20702099_rcp45_20CMIP5ModelMean&amp;PALETTE=ferret"/>
+            </LegendURL>
+          </Style>
+          </Layer>
+        </Layer>
+      </Layer>
+  </Capability>
+</WMS_Capabilities>

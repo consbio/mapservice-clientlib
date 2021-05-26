@@ -1,46 +1,13 @@
-import pathlib
-
 from hashlib import md5
-from unittest import mock
 
 from clients.exceptions import ContentError, ImageError
 from clients.wms import WMSResource
 from clients.utils.geometry import Extent
 
-from .utils import BaseTestCase, get_extent
+from .utils import ResourceTestCase, get_extent
 
 
-class WMSTestCase(BaseTestCase):
-
-    def setUp(self):
-        super(WMSTestCase, self).setUp()
-
-        self.wms_data = pathlib.Path(self.data_directory) / "wms"
-
-    def mock_mapservice_session(self, data_path, mode="r", headers=None, session=None):
-
-        mock_session = session or mock.Mock(get=mock.Mock())
-
-        if headers is None:
-            headers = {"content-type": "application/vnd.ogc.se_xml"}
-
-        mock_session.headers = mock.Mock()
-        mock_session.headers.__getitem__ = mock.Mock()
-        mock_session.headers.__getitem__.side_effect = headers.__getitem__
-        mock_session.headers.__setitem__ = mock.Mock()
-        mock_session.headers.__setitem__.side_effect = headers.__setitem__
-
-        with open(data_path, mode=mode) as mapservice_data:
-            mapservice_content = mapservice_data.read()
-            mock_session.get.return_value = mock.Mock(
-                ok=True,
-                status_code=200,
-                content=mapservice_content,
-                text=mapservice_content,
-                headers=headers
-            )
-
-        return mock_session
+class WMSTestCase(ResourceTestCase):
 
     def test_invalid_wms_url(self):
 
@@ -316,12 +283,14 @@ class WMSTestCase(BaseTestCase):
         extent = get_extent(web_mercator=True)
 
         with self.assertRaises(ImageError):
+            # No layers from which to generate an image
             client.get_image(extent.as_dict(), 100, 100)
         with self.assertRaises(ImageError):
-            client.get_image(extent.as_list(), 100, 100, style_ids=["style1"])
-        with self.assertRaises(ImageError):
+            # Failed image request (service exception)
             client.get_image(extent, 100, 100, layer_ids=["layer1"])
         with self.assertRaises(ImageError):
+            # Provided styles do not correspond to specified Layers
             client.get_image(extent, 100, 100, layer_ids=["layer1"], style_ids=["style1", "style2"])
         with self.assertRaises(ImageError):
+            # Incompatible image format invalid_format
             client.get_image(extent, 100, 100, layer_ids=["layer1"], image_format="invalid_format")

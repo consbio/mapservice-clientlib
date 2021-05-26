@@ -1,0 +1,27 @@
+{
+  "units": "inches",
+  "bbox": [
+    "-124.77216339111328",
+    "25.062689463297527",
+    "-67.06383005777995",
+    "49.39602279663086"
+  ],
+  "scaleRange": [
+    "26.0",
+    "75.0"
+  ],
+  "numColorBands": 9,
+  "supportedStyles": [
+    "boxfill",
+    "contour"
+  ],
+  "moreInfo": "",
+  "copyright": "",
+  "palettes": [
+    "greens",
+    "greys",
+    "ferret"
+  ],
+  "defaultPalette": "ferret",
+  "logScaling": false
+}

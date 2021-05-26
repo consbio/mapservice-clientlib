@@ -1,0 +1,14 @@
+{
+  "label": "Northwest Knowledge Network (NKN) - THREDDS Server",
+  "children": [
+    {
+      "label": "Downscaled daily meteorological data of Precipitation from Average.",
+      "children": [
+        {
+          "id": "macav2metdata_pr_ANN_20702099_rcp45_20CMIP5ModelMean",
+          "label": "macav2metdata_pr_ANN_20702099_rcp45_20CMIP5ModelMean"
+        }
+      ]
+    }
+  ]
+}
