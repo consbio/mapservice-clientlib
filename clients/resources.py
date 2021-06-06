@@ -198,7 +198,6 @@ class ClientResource(Resource):
                 # Call with response.content to try ASCII serialization
 
                 response = self._make_request(self._url, self._params)
-                response.raise_for_status()
                 self.populate_field_values(self._meta.deserializer.to_dict(response.content))
 
         except ClientError:
@@ -250,7 +249,10 @@ class ClientResource(Resource):
         headers = kwargs.pop("headers", self._session.headers)
         headers["User-agent"] = self._client_user_agent
 
-        return self._session.get(url, params=params, headers=headers, **kwargs)
+        response = self._session.get(url, params=params, headers=headers, **kwargs)
+        response.raise_for_status()
+
+        return response
 
     def populate_field_values(self, data):
         """ Overridden to define custom API for all resources, and validate Extent """

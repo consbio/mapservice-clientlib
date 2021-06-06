@@ -86,7 +86,7 @@ class BadSpatialReference(ValidationError, ValueError):
         self.error_context["spatial_reference"] = self.spatial_reference = spatial_reference
 
 
-class BadTileScheme(ValidationError):
+class BadTileScheme(ValidationError, ValueError):
 
     def __init__(self, message, tile_info=None, **kwargs):
         super(BadTileScheme, self).__init__(message, **kwargs)

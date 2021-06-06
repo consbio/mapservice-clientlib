@@ -12,6 +12,7 @@ layer may have sublayers (extent may be defined at parent layer level).
 """
 
 import logging
+import requests
 
 from PIL import Image
 from io import BytesIO
@@ -20,7 +21,7 @@ from parserutils.collections import setdefaults, wrap_value
 from parserutils.urls import has_trailing_slash, update_url_params, url_to_parts, parts_to_url
 from restle.fields import TextField, BooleanField, IntegerField
 
-from .exceptions import BadExtent, ClientError, ContentError, ImageError
+from .exceptions import BadExtent, ClientError, ContentError, HTTPError, ImageError
 from .exceptions import MissingFields, NoLayers, UnsupportedVersion, ValidationError
 from .query.fields import DictField, ExtentField, ListField
 from .query.serializers import XMLToJSONSerializer
@@ -764,6 +765,11 @@ class WMSResource(ClientResource):
 
             return img
 
+        except requests.exceptions.HTTPError as ex:
+            raise HTTPError(
+                "The WMS service image query did not respond correctly",
+                params=image_params, underlying=ex, url=self.wms_url
+            )
         except (IOError, ValueError) as ex:
             raise ImageError(
                 "The WMS service did not return a valid image",

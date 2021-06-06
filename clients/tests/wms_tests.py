@@ -1,6 +1,6 @@
 from hashlib import md5
 
-from clients.exceptions import ContentError, ImageError
+from clients.exceptions import ContentError, HTTPError, ImageError
 from clients.wms import WMSResource
 from clients.utils.geometry import Extent
 
@@ -8,6 +8,10 @@ from .utils import ResourceTestCase, get_extent
 
 
 class WMSTestCase(ResourceTestCase):
+
+    def setUp(self):
+        super(WMSTestCase, self).setUp()
+        self.wms_directory = self.data_directory / "wms"
 
     def test_invalid_wms_url(self):
 
@@ -18,7 +22,7 @@ class WMSTestCase(ResourceTestCase):
 
     def test_valid_wms_request(self):
 
-        session = self.mock_mapservice_session(self.data_directory / "wms" / "demo-wms.xml")
+        session = self.mock_mapservice_session(self.wms_directory / "demo-wms.xml")
         client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", session=session, lazy=False)
 
         # Test service level information
@@ -117,10 +121,10 @@ class WMSTestCase(ResourceTestCase):
 
     def test_valid_ncwms_request(self):
 
-        session = self.mock_mapservice_session(self.data_directory / "wms" / "ncwms.xml")
+        session = self.mock_mapservice_session(self.wms_directory / "ncwms.xml")
 
         headers = {"content-type": "application/json"}
-        wms_json = self.data_directory / "wms" / "ncwms-layer.json"
+        wms_json = self.wms_directory / "ncwms-layer.json"
         layer_session = self.mock_mapservice_session(wms_json, headers=headers)
 
         client = WMSResource.get(
@@ -256,14 +260,11 @@ class WMSTestCase(ResourceTestCase):
 
     def test_valid_wms_image_request(self):
 
-        session = self.mock_mapservice_session(self.data_directory / "wms" / "demo-wms.xml")
+        session = self.mock_mapservice_session(self.wms_directory / "demo-wms.xml")
         client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", session=session, lazy=False)
 
-        self.mock_mapservice_session(
-            self.data_directory / "test.png",
-            mode="rb",
-            headers={"content-type": "image/png"},
-            session=client._session
+        client._session = self.mock_mapservice_session(
+            self.data_directory / "test.png", mode="rb", headers={"content-type": "image/png"}
         )
         img = client.get_image(client.full_extent, 32, 32, ["country_bounds"], ["default"])
 
@@ -273,21 +274,25 @@ class WMSTestCase(ResourceTestCase):
 
     def test_invalid_wms_image_request(self):
 
-        session = self.mock_mapservice_session(self.data_directory / "wms" / "demo-wms.xml")
+        session = self.mock_mapservice_session(self.wms_directory / "demo-wms.xml")
         client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", session=session, lazy=False)
 
-        self.mock_mapservice_session(
-            self.data_directory / "wms" / "service-exception.xml", session=client._session
-        )
+        # Test with valid params and broken endpoint
 
+        client._session = self.mock_mapservice_session(self.wms_directory / "service-exception.xml", ok=False)
+        with self.assertRaises(HTTPError):
+            client.get_image(client.full_extent, 32, 32, ["country_bounds"], ["default"])
+
+        # Test with invalid params but working endpoint
+
+        client._session = self.mock_mapservice_session(
+            self.data_directory / "test.png", mode="rb", headers={"content-type": "image/png"}
+        )
         extent = get_extent(web_mercator=True)
 
         with self.assertRaises(ImageError):
             # No layers from which to generate an image
             client.get_image(extent.as_dict(), 100, 100)
-        with self.assertRaises(ImageError):
-            # Failed image request (service exception)
-            client.get_image(extent, 100, 100, layer_ids=["layer1"])
         with self.assertRaises(ImageError):
             # Provided styles do not correspond to specified Layers
             client.get_image(extent, 100, 100, layer_ids=["layer1"], style_ids=["style1", "style2"])

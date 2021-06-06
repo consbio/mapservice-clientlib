@@ -1,7 +1,12 @@
 import os
 import pathlib
+import requests
+import types
 import unittest
 
+from hashlib import md5
+from io import BytesIO
+from PIL import Image
 from unittest import mock
 
 from clients.utils.geometry import Extent, SpatialReference
@@ -23,6 +28,16 @@ GEOGCS["WGS 84",
         AUTHORITY["EPSG","9122"]],
     AUTHORITY["EPSG","4326"]]
 """
+
+
+def get_default_image():
+    test_png = get_test_directory() / "data" / "test.png"
+    with open(test_png, mode="rb") as image_data:
+        return Image.open(BytesIO(image_data.read())).convert("RGBA")
+
+
+def get_test_directory():
+    return pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
 
 
 def get_extent(web_mercator=False):
@@ -64,10 +79,13 @@ def get_object(props):
 
 
 def get_object_properties(obj):
+    def is_callable(val):
+        return isinstance(val, (types.FunctionType, types.MethodType))  # callable(val)
+
     return {
         prop for prop in dir(obj)
         if not prop.startswith("__")
-        and not callable(getattr(obj, prop))
+        and not is_callable(getattr(obj, prop))
     }
 
 
@@ -94,8 +112,7 @@ def get_spatial_reference_object(web_mercator=False):
 class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
-        dir_name = os.path.dirname(os.path.abspath(__file__))
-        self.data_directory = pathlib.Path(dir_name) / "data"
+        self.data_directory = get_test_directory() / "data"
 
     def assert_object_values(self, obj, target, props=None):
 
@@ -183,41 +200,53 @@ class ResourceTestCase(BaseTestCase):
         super(ResourceTestCase, self).setUp()
         self.headers = {"content-type": "application/vnd.ogc.se_xml"}
 
-    def mock_mapservice_get(self, data_path, mock_request, service_url, mode="r", headers=None):
+    def assert_get_image(self, client):
+        client._session = self.mock_mapservice_session(
+            self.data_directory / "test.png",
+            mode="rb",
+            headers={"content-type": "image/png"}
+        )
+        img = client.get_image(client.full_extent, 32, 32)
 
-        if headers is None:
-            headers = self.headers
+        self.assertEqual(img.size, (32, 32))
+        self.assertEqual(img.mode, "RGBA")
+        self.assertEqual(md5(img.tobytes()).hexdigest(), "93d44c4c38607ac0834c68fc2b3dc92b")
+
+    def mock_mapservice_request(self, mock_method, service_url, data_path, mode="r", ok=True, headers=None):
 
         with open(data_path, mode=mode) as mapservice_data:
-            mapservice_content = mapservice_data.read()
-            return mock_request.get(
+            return mock_method(
                 service_url,
-                status_code=200,
-                text=mapservice_content,
-                headers=headers
+                status_code=200 if ok else 500,
+                text=mapservice_data.read(),
+                headers=self.headers if headers is None else headers
             )
 
-    def mock_mapservice_session(self, data_path, mode="r", headers=None, session=None):
+    def mock_mapservice_session(self, data_path, mode="r", ok=True, headers=None):
 
-        mock_session = session or mock.Mock(get=mock.Mock())
+        mock_headers = self.headers if headers is None else headers
 
-        if headers is None:
-            headers = {"content-type": "application/vnd.ogc.se_xml"}
-
+        mock_session = mock.Mock(get=mock.Mock())
         mock_session.headers = mock.Mock()
         mock_session.headers.__getitem__ = mock.Mock()
-        mock_session.headers.__getitem__.side_effect = headers.__getitem__
+        mock_session.headers.__getitem__.side_effect = mock_headers.__getitem__
         mock_session.headers.__setitem__ = mock.Mock()
-        mock_session.headers.__setitem__.side_effect = headers.__setitem__
+        mock_session.headers.__setitem__.side_effect = mock_headers.__setitem__
 
         with open(data_path, mode=mode) as mapservice_data:
-            mapservice_content = mapservice_data.read()
-            mock_session.get.return_value = mock.Mock(
-                ok=True,
-                status_code=200,
+
+            mapservice_text = mapservice_content = mapservice_data.read()
+            if isinstance(mapservice_content, str):
+                mapservice_content = mapservice_text.encode()
+
+            response = mock_session.get.return_value = mock.Mock(
+                ok=ok,
+                status_code=200 if ok else 500,
                 content=mapservice_content,
-                text=mapservice_content,
-                headers=headers
+                text=mapservice_text,
+                headers=mock_headers
             )
+            if not ok:
+                response.raise_for_status.side_effect = requests.exceptions.HTTPError
 
         return mock_session

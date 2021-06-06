@@ -299,7 +299,13 @@ class ThreddsResource(ClientResource):
         """ Queries layer list endpoint and returns leaf layer ids by layer group description """
 
         if data is None:
-            data = JSONSerializer.to_dict(self._make_request(self._layers_url, timeout=120).text)
+            try:
+                data = JSONSerializer.to_dict(self._make_request(self._layers_url, timeout=120).text)
+            except requests.exceptions.HTTPError as ex:
+                raise HTTPError(
+                    "The THREDDS layer id query did not respond correctly",
+                    underlying=ex, url=self._layers_url
+                )
 
         label = data["label"]
         layers = defaultdict(list)
@@ -437,6 +443,11 @@ class ThreddsResource(ClientResource):
 
             return img
 
+        except requests.exceptions.HTTPError as ex:
+            raise HTTPError(
+                "The THREDDS service image query did not respond correctly",
+                params=image_params, underlying=ex, url=self._wms_url
+            )
         except (IOError, ValueError) as ex:
             raise ImageError(
                 "The WMS service did not return a valid image",

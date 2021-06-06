@@ -3,7 +3,7 @@ import requests_mock
 from hashlib import md5
 from unittest import mock
 
-from clients.exceptions import ClientError, ImageError
+from clients.exceptions import ClientError, HTTPError, ImageError
 from clients.utils.geometry import Extent
 from clients.thredds import ThreddsResource
 
@@ -15,6 +15,8 @@ class THREDDSTestCase(ResourceTestCase):
     def setUp(self):
         super(THREDDSTestCase, self).setUp()
 
+        self.thredds_directory = self.data_directory / "thredds"
+
         base_url = "http://thredds.northwestknowledge.net:8080/thredds"
         service_path = "NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN"
         dataset_path = f"{service_path}/macav2metdata.nc"
@@ -23,21 +25,21 @@ class THREDDSTestCase(ResourceTestCase):
         self.download_url = f"{base_url}/fileServer/{dataset_path}"
 
         self.catalog_url = f"{base_url}/catalog/{service_path}/catalog.xml?dataset={dataset_path}"
-        self.catalog_path = self.data_directory / "thredds" / "thredds-catalog.xml"
+        self.catalog_path = self.thredds_directory / "thredds-catalog.xml"
 
         self.metadata_url = f"{base_url}/iso/{dataset_path}?dataset={dataset_path}"
-        self.metadata_path = self.data_directory / "thredds" / "thredds-metadata.xml"
+        self.metadata_path = self.thredds_directory / "thredds-metadata.xml"
 
         self.service_url = f"{base_url}/wms/{dataset_path}?service=WMS&version=1.3.0&request=GetCapabilities"
-        self.service_path = self.data_directory / "thredds" / "thredds-wms.xml"
+        self.service_path = self.thredds_directory / "thredds-wms.xml"
 
         self.layer_menu_url = f"{base_url}/wms/{dataset_path}?item=menu&request=GetMetadata"
-        self.layer_menu_path = self.data_directory / "thredds" / "thredds-layers.json"
+        self.layer_menu_path = self.thredds_directory / "thredds-layers.json"
 
         self.layer_url = (
             f"{base_url}/wms/{dataset_path}?item=layerDetails&layerName={layer_name}&request=GetMetadata"
         )
-        self.layer_path = self.data_directory / "thredds" / "thredds-layer.json"
+        self.layer_path = self.thredds_directory / "thredds-layer.json"
         self.layer_name = layer_name
 
         self.legend_url = (
@@ -51,17 +53,29 @@ class THREDDSTestCase(ResourceTestCase):
 
         mock_request.head(self.download_url, status_code=200)
 
-        self.mock_mapservice_get(self.catalog_path, mock_request, self.catalog_url)
-        self.mock_mapservice_get(self.metadata_path, mock_request, self.metadata_url)
-        self.mock_mapservice_get(self.service_path, mock_request, self.service_url)
-        self.mock_mapservice_get(self.layer_path, mock_request, self.layer_url)
-        self.mock_mapservice_get(self.layer_menu_path, mock_request, self.layer_menu_url)
+        self.mock_mapservice_request(mock_request.get, self.catalog_url, self.catalog_path)
+        self.mock_mapservice_request(mock_request.get, self.metadata_url, self.metadata_path)
+        self.mock_mapservice_request(mock_request.get, self.service_url, self.service_path)
+        self.mock_mapservice_request(mock_request.get, self.layer_url, self.layer_path)
+        self.mock_mapservice_request(mock_request.get, self.layer_menu_url, self.layer_menu_path)
 
-    def test_invalid_thredds_url(self):
+    @requests_mock.Mocker()
+    @mock.patch('clients.thredds.get_remote_element')
+    def test_invalid_thredds_url(self, mock_request, mock_metadata):
+
+        # Test with invalid url
+
         session = self.mock_mapservice_session(self.data_directory / "test.html")
-
         with self.assertRaises(ClientError):
             ThreddsResource.get("http://www.google.com/test", session=session, lazy=False)
+
+        # Test with broken layer menu endpoint
+
+        self.mock_thredds_client(mock_request, mock_metadata)
+        self.mock_mapservice_request(mock_request.get, self.layer_menu_url, self.layer_menu_path, ok=False)
+
+        with self.assertRaises(HTTPError):
+            ThreddsResource.get(self.catalog_url, lazy=False)
 
     @requests_mock.Mocker()
     @mock.patch('clients.thredds.get_remote_element')
@@ -184,18 +198,23 @@ class THREDDSTestCase(ResourceTestCase):
         self.mock_thredds_client(mock_request, mock_metadata)
 
         client = ThreddsResource.get(self.catalog_url, lazy=False)
-        client._session = self.mock_mapservice_session(
-            self.data_directory / "wms" / "service-exception.xml"
-        )
 
+        # Test with valid params and broken endpoint
+
+        client._session = self.mock_mapservice_session(self.data_directory / "wms" / "service-exception.xml", ok=False)
+        with self.assertRaises(HTTPError):
+            client.get_image(client.full_extent, 32, 32, [self.layer_name], ["ferret"])
+
+        # Test with invalid params but working endpoint
+
+        client._session = self.mock_mapservice_session(
+            self.data_directory / "test.png", mode="rb", headers={"content-type": "image/png"}
+        )
         extent = get_extent(web_mercator=True)
 
         with self.assertRaises(ImageError):
             # No layers from which to generate an image
             client.get_image(extent.as_dict(), 100, 100)
-        with self.assertRaises(ImageError):
-            # Failed image request (service exception)
-            client.get_image(extent, 100, 100, layer_ids=["layer1"])
         with self.assertRaises(ImageError):
             # Provided styles do not correspond to specified Layers
             client.get_image(extent, 100, 100, layer_ids=["layer1"], style_ids=["style1", "style2"])
