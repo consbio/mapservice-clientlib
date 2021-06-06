@@ -120,7 +120,7 @@ class CommaSeparatedField(fields.TextField):
 class DrawingInfoField(ObjectField):
 
     def __init__(self, *args, **kwargs):
-        self.renderer_defaults = ("default_symbol", "field", "field1", "field2", "field3", "label")
+        self.renderer_defaults = RENDERER_DEFAULTS
 
         aliases = dict(DRAWING_INFO_ALIASES)
         super(DrawingInfoField, self).__init__(class_name="DrawingInfo", aliases=aliases, *args, **kwargs)
@@ -206,6 +206,25 @@ DRAWING_INFO_ALIASES = {
     "verticalAlignment": "vertical_alignment",
     "rightToLeft": "is_rtl"
 }
+
+RENDERER_ALIASES = {
+    "classBreakInfos": "class_breaks",
+    "classMinValue": "min",
+    "classMaxValue": "max",
+    "classificationMethod": "method",
+    "defaultLabel": "default_label",
+    "defaultSymbol": "default_symbol",
+    "fieldDelimiter": "field_delimiter",
+    "uniqueValueInfos": "unique_values",
+    "normalizationType": "normalization",
+    "normalizationField": "normalization_field",
+    "normalizationTotal": "normalization_total",
+    "minValue": "min_val",
+    "imageData": "image",
+    "xoffset": "offset_x",
+    "yoffset": "offset_y"
+}
+RENDERER_DEFAULTS = ("default_symbol", "field", "field1", "field2", "field3", "label")
 
 TIME_INFO_ALIASES = {
     "startTimeField": "start_field",

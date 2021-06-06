@@ -2,6 +2,7 @@ import json
 
 from parserutils.numbers import is_number
 
+from clients.query.fields import RENDERER_ALIASES
 from clients.query.fields import DictField, ObjectField
 
 from .geometry import Extent
@@ -163,22 +164,3 @@ def _multi_points_to_str(multi_points):
     if multi_points is None:
         raise ValueError("An array of points arrays is required")
     return ", ".join("({})".format(_points_to_str(points)) for points in multi_points)
-
-
-RENDERER_ALIASES = {
-    "classBreakInfos": "class_breaks",
-    "classMinValue": "min",
-    "classMaxValue": "max",
-    "classificationMethod": "method",
-    "defaultLabel": "default_label",
-    "defaultSymbol": "default_symbol",
-    "fieldDelimiter": "field_delimiter",
-    "uniqueValueInfos": "unique_values",
-    "normalizationType": "normalization",
-    "normalizationField": "normalization_field",
-    "normalizationTotal": "normalization_total",
-    "minValue": "min_val",
-    "imageData": "image",
-    "xoffset": "offset_x",
-    "yoffset": "offset_y"
-}
