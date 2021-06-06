@@ -33,7 +33,7 @@ ArcGIS Map, Feature and Image services may be queried.
 ```python
 from clients.arcgis import MapServerResource, ArcGISSecureResource
 from clients.arcgis import FeatureLayerResource, FeatureServerResource, ImageServerResource
-from clients.utils.geometry import Extent, SpatialReference
+from clients.utils.geometry import Extent
 
 
 # Query the feature service, or an individual layer (lazy=False: query executed right away)
@@ -64,11 +64,11 @@ client = MapServerResource.get(
 # Reproject an ArcGIS extent to web mercator
 old_extent = Extent(
     {'xmin': -180.0000, 'xmax': 180.0000, 'ymin': -90.0000, 'ymax': 90.0000},
-    spatial_reference=SpatialReference({'wkid': 4326})
+    spatial_reference={'wkid': 4326}
 )
 geometry_url = 'http://tasks.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer'
 client = GeometryServiceClient(geometry_url)
-extent = client.project_extent(old_extent, SpatialReference({'wkid': 3857})).limit_to_global_extent()
+extent = client.project_extent(old_extent, {'wkid': 3857}).limit_to_global_extent()
 ```
 
 
