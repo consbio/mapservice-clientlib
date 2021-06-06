@@ -12,6 +12,7 @@ from urllib.parse import urlparse, urlsplit
 from ags import exceptions as ags
 from ags.admin.server import ServerAdmin
 from parserutils.collections import accumulate_items, setdefaults
+from parserutils.urls import get_base_url
 from restle.actions import Action
 from restle.fields import TextField, IntegerField, BooleanField, NumberField, ToManyField
 from restle.serializers import URLSerializer, JSONSerializer
@@ -80,7 +81,7 @@ class ArcGISResource(ClientResource):
 
         super(ArcGISResource, self).populate_field_values(data)
 
-    def handle_error(self, data, message=""):
+    def handle_error(self, data, message="", error_class=ServiceError):
 
         error = data["error"]
         if "message" not in error:
@@ -100,7 +101,7 @@ class ArcGISResource(ClientResource):
         else:
             status_code = error.get("code", 500)
 
-        raise ServiceError(message, status_code=status_code, url=self._url, **error)
+        raise error_class(message, status_code=status_code, url=self._url, **error)
 
 
 class ArcGISServerResource(ArcGISResource):
@@ -363,8 +364,6 @@ class ArcGISTiledImageResource(ArcGISServerResource):
 
         try:
             response = self._make_request(tile_url, tile_params)
-            response.raise_for_status()
-
         except requests.exceptions.HTTPError as ex:
             raise HTTPError(
                 "The ArcGIS single tile query did not respond correctly",
@@ -460,18 +459,16 @@ class ArcGISSecureResource(ClientResource):
         if token:
             self._params["token"] = token
         elif username and password:
-            server_admin = ArcGISMapServerResource.generate_token(self._url, username, password)
+            server_admin = MapServerResource.generate_token(self._url, username, password)
             if server_admin.token:
                 self._params["token"] = server_admin.token
 
         self.token = self._params.get("token", token)
 
 
-class ArcGISMapLayerResource(ArcGISLayerResource, ArcGISSecureResource):
+class MapLayerResource(ArcGISLayerResource, ArcGISSecureResource):
     """ Compatible with ArcGIS map layer resources >= version 10.1 """
 
-    can_modify_layer = BooleanField(default=False)
-    can_scale_symbols = BooleanField(default=False)
     parent = ObjectField(name="parentLayer", class_name="ParentLayer", required=False)
     sub_layers = ObjectField(class_name="ChildLayer", required=False, aliases={"name": "title"})
     legend = ObjectField(class_name="LegendElement", default=[], aliases={
@@ -481,6 +478,8 @@ class ArcGISMapLayerResource(ArcGISLayerResource, ArcGISSecureResource):
         "LegendValue": "values"
     })
 
+    can_modify_layer = BooleanField(default=False)
+    can_scale_symbols = BooleanField(default=False)
     definition_query = TextField(name="definitionExpression", required=False)
     popup_type = TextField(name="htmlPopupType", required=False)
 
@@ -490,7 +489,7 @@ class ArcGISMapLayerResource(ArcGISLayerResource, ArcGISSecureResource):
         match_fuzzy_keys = True
 
 
-class ArcGISMapLegendResource(ArcGISSecureResource):
+class MapLegendResource(ArcGISSecureResource):
     """
     There is no direct end point to query individual legend elements for a layer.
     This resource is only used to convert legend element data to objects under a layer.
@@ -520,23 +519,24 @@ class ArcGISMapLegendResource(ArcGISSecureResource):
         """ Overridden to massage legend element data before populating fields """
 
         if "layerId" in data and "url" in data:
-            base_url = self._url[:self._url.index("/MapServer")],
-            layer = data["layerId"],
+            base_url = self._url[:self._url.index("/MapServer")]
+            layer = data["layerId"]
             path = data["url"]
 
             data["url"] = f"{base_url}/MapServer/{layer}/images/{path}"
 
-        super(ArcGISMapLegendResource, self).populate_field_values(data)
+        super(MapLegendResource, self).populate_field_values(data)
 
 
-class ArcGISMapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
+class MapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
     """ Compatible with ArcGIS map service resources >= version 10.1 """
 
     version = NumberField(name="currentVersion", required=False)  # Overridden not to require
+
     name = TextField(name="mapName")
-    single_fused_map_cache = BooleanField(default=False)
-    export_tiles_allowed = BooleanField(default=False)
     units = TextField(required=False)
+    export_tiles_allowed = BooleanField(default=False)
+    single_fused_map_cache = BooleanField(default=False)
     supports_dynamic_layers = BooleanField(default=False)
     supported_extensions = TextField(required=False)
     supported_image_format_types = TextField()
@@ -551,14 +551,14 @@ class ArcGISMapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
     def populate_field_values(self, data):
         """ Overridden to flexibly populate layers and legend """
 
-        super(ArcGISMapServerResource, self).populate_field_values(data)
+        super(MapServerResource, self).populate_field_values(data)
 
         # Load all layers at once (if not a feature service), otherwise one at a time
 
         if "/FeatureServer" not in self._url:
             # Query all layers with full layer detail for each
             layer_url = "{0}/layers".format(self._url.strip("/"))
-            self.layers = ArcGISMapLayerResource.bulk_get(
+            self.layers = MapLayerResource.bulk_get(
                 layer_url,
                 strict=self._strict, lazy=True,
                 session=(self._layer_session or self._session),
@@ -567,7 +567,7 @@ class ArcGISMapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
             )
         elif "layers" in data:
             # Query each layer one by one to get full layer detail for each
-            layer_field = ToManyField(ArcGISMapLayerResource, "partial", id_field="id", relative_path="{id}")
+            layer_field = ToManyField(MapLayerResource, "partial", id_field="id", relative_path="{id}")
             self.layers = layer_field.to_python(data["layers"], self)
 
         if not self.layers:
@@ -585,7 +585,7 @@ class ArcGISMapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
 
         if "/MapServer" in self._url:
             legend_url = "{0}/legend/".format(self._url.strip("/"))
-            legend_elements = ArcGISMapLegendResource.bulk_get(
+            legend_elements = MapLegendResource.bulk_get(
                 legend_url,
                 strict=self._strict, lazy=True,
                 session=(self._layer_session or self._session),
@@ -698,7 +698,7 @@ class ArcGISMapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
         return layer_map
 
 
-class ArcGISGeometryServiceClient(object):
+class GeometryServiceClient(object):
     """
     Class used to handle geometry processing requests against ArcGIS server.
     Intended for internal use, so no validation of URL, etc is performed.
@@ -707,7 +707,9 @@ class ArcGISGeometryServiceClient(object):
     _client_user_agent = DEFAULT_USER_AGENT
 
     def __init__(self, service_url):
-        self.service_url = service_url
+        self.service_url = get_base_url(service_url, True).strip("/")
+        if self.service_url.endswith("/project"):
+            self.service_url = self.service_url[:self.service_url.index("/project")]
 
     def project_extent(self, extent, to_spatial_ref):
         """
@@ -794,21 +796,21 @@ class FeatureLayerResource(ArcGISLayerResource):
 
     max_feature_request = MAX_FEATURE_REQUEST
 
+    global_id_field = TextField(required=False)
+    object_id_field = TextField(required=False)
     effective_min_scale = NumberField(required=False)
     effective_max_scale = NumberField(required=False)
+    has_static_data = BooleanField(default=False)
     has_m = BooleanField(default=False)
     has_z = BooleanField(default=False)
     enable_z_defaults = BooleanField(default=False)
     z_default = NumberField(required=False)
     allow_geometry_updates = BooleanField(default=False)
+    html_popup_type = TextField(required=False)
     time_interval = IntegerField(required=False)
     time_interval_units = TextField(required=False)
-    html_popup_type = TextField(required=False)
-    object_id_field = TextField(required=False)
-    global_id_field = TextField(required=False)
-    types = ObjectField(class_name="Type", required=False)
     templates = ObjectField(class_name="Template", required=False)
-    has_static_data = BooleanField(default=False)
+    types = ObjectField(class_name="Type", required=False)
 
     query = QueryAction(
         "query",
@@ -873,7 +875,10 @@ class FeatureLayerResource(ArcGISLayerResource):
         match_fuzzy_keys = True
 
     def get_image(self, extent, width, height, custom_renderers=None, layer_defs="", **kwargs):
-        transparent_background = (0, 0, 0, 0)
+
+        if not isinstance(extent, Extent):
+            extent = Extent(extent)
+
         renderer = self.drawing_info.renderer
         if custom_renderers:
             renderer = custom_renderers[self.id]
@@ -898,8 +903,13 @@ class FeatureLayerResource(ArcGISLayerResource):
         )
 
         if "error" in id_query:
-            self.handle_error(id_query, message="The ArcGIS feature service did not return a valid image")
+            self.handle_error(
+                id_query,
+                message="The ArcGIS feature service did not return a valid image",
+                error_class=ImageError
+            )
 
+        transparent_background = (0, 0, 0, 0)
         object_ids = id_query["objectIds"]
         full_image = Image.new("RGBA", (width, height), transparent_background)
         starting_record = 0
@@ -921,7 +931,11 @@ class FeatureLayerResource(ArcGISLayerResource):
             query_results = self.query(where=id_where_clause, out_sr=3857, out_fields="*")
 
             if "error" in query_results:
-                self.handle_error(query_results, message="The ArcGIS feature layer did not return a valid image")
+                self.handle_error(
+                    query_results,
+                    message="The ArcGIS feature layer did not return a valid image",
+                    error_class=ImageError
+                )
 
             # Generate the sub-images for each subset query and overlay it on the current image
             sub_image = self.generate_sub_image(extent, width, height, renderer, query_results)
@@ -942,18 +956,20 @@ class FeatureLayerResource(ArcGISLayerResource):
 class FeatureServerResource(ArcGISServerResource):
     """ Compatible with ArcGIS feature service resources >= version 10.1 """
 
-    has_versioned_data = BooleanField(default=False)
-    supports_disconnected_editing = BooleanField(default=False)
-    has_static_data = BooleanField(default=False)
     max_record_count = IntegerField()  # Overridden to require
-    allow_geometry_updates = BooleanField(default=False)
+
     units = TextField()
-    sync_enabled = BooleanField(default=False)
-    sync_capabilities = ObjectField(class_name="SyncCapabilities", required=False)
+    has_static_data = BooleanField(default=False)
+    has_versioned_data = BooleanField(default=False)
+    allow_geometry_updates = BooleanField(default=False)
     editor_tracking_info = ObjectField(class_name="EditorTrackingInfo", required=False)
-    layers = ToManyField(FeatureLayerResource, "partial", id_field="id", relative_path="{id}")
     enable_z_defaults = BooleanField(default=False)
     z_default = NumberField(required=False)
+    supports_disconnected_editing = BooleanField(default=False)
+    sync_enabled = BooleanField(default=False)
+    sync_capabilities = ObjectField(class_name="SyncCapabilities", required=False)
+
+    layers = ToManyField(FeatureLayerResource, "partial", id_field="id", relative_path="{id}")
 
     query = QueryAction(
         "query",
@@ -988,6 +1004,14 @@ class FeatureServerResource(ArcGISServerResource):
         get_parameters = {"f": "json"}
         match_fuzzy_keys = True
 
+    def populate_field_values(self, data):
+        """ Overridden to validate layers """
+
+        super(FeatureServerResource, self).populate_field_values(data)
+
+        if not self.layers:
+            raise NoLayers("The ArcGIS feature service does not have any layers", url=self._url)
+
     def get_image(self, extent, width, height, custom_renderers=None, layer_defs="", **kwargs):
         final_image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
 
@@ -1008,10 +1032,11 @@ class ImageServerResource(ArcGISTiledImageResource):
     band_count = IntegerField()
     default_resampling_method = TextField()
 
+    fields = ObjectField(class_name="Field", required=False)
     edit_fields_info = ObjectField(class_name="EditFieldsInfo", required=False)
 
     extent = ExtentField(required=False)
-    fields = ObjectField(class_name="Field", required=False)
+    spatial_reference = SpatialReferenceField(required=False)  # Overridden not to require
     has_color_map = BooleanField(default=False)
     has_histograms = BooleanField(default=False)
     has_multi_dimensions = BooleanField(default=False)
@@ -1029,7 +1054,6 @@ class ImageServerResource(ArcGISTiledImageResource):
     pixel_type = TextField()
 
     service_data_type = TextField(required=False)
-    spatial_reference = SpatialReferenceField(required=False)  # Overridden not to require
     standard_variation_values = ObjectField(name="stdvValues", class_name="ValuesList")
     supports_statistics = BooleanField(default=False)
     supports_advanced_queries = BooleanField(default=False)

@@ -1,0 +1,101 @@
+{
+  "currentVersion": 10.5,
+  "serviceDescription": "",
+  "mapName": "Layers",
+  "description": "This data set represents the extent of wetlands and deepwater habitats.",
+  "copyrightText": "U.S. Fish and Wildlife Service, National Standards and Support Team",
+  "supportsDynamicLayers": true,
+  "layers": [
+    {
+      "id": 0,
+      "name": "Wetlands",
+      "parentLayerId": -1,
+      "defaultVisibility": true,
+      "subLayerIds": null,
+      "minScale": 250000,
+      "maxScale": 0
+    },
+    {
+      "id": 1,
+      "name": "Wetlands Project Metadata",
+      "parentLayerId": -1,
+      "defaultVisibility": true,
+      "subLayerIds": null,
+      "minScale": 112076270.45185185,
+      "maxScale": 112076270.45185185
+    }
+  ],
+  "tables": [
+    {
+      "id": 2,
+      "name": "NWI_Wetland_Codes"
+    }
+  ],
+  "spatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  },
+  "singleFusedMapCache": false,
+  "initialExtent": {
+    "xmin": 513260.3879679106,
+    "ymin": 7886090.999233324,
+    "xmax": 18518909.628708655,
+    "ymax": 13864251.221455548,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "fullExtent": {
+    "xmin": -19951753.9839,
+    "ymin": -1622986.231899999,
+    "xmax": 20021553.447300003,
+    "ymax": 11554273.714599997,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "minScale": 112076270.45185185,
+  "maxScale": 0,
+  "units": "esriMeters",
+  "supportedImageFormatTypes": "PNG,JPG,DIB,TIFF,EMF,PS,PDF,GIF,SVG,SVGZ,BMP",
+  "documentInfo": {
+    "Title": "National Wetlands Inventory",
+    "Author": "U.S. Fish and Wildlife Service, National Standards and Support Team",
+    "Comments": "For wetland information visit www.fws.gov/wetlands/",
+    "Subject": "This data set represents the extent of wetlands and deepwater habitats",
+    "Category": "",
+    "Keywords": "Wetlands,Hydrography,Surface water,Swamps,Marshes,Bogs,Fens"
+  },
+  "capabilities": "Map,Query,Data",
+  "supportedQueryFormats": "JSON,AMF,geoJSON",
+  "exportTilesAllowed": false,
+  "datumTransformations": [
+    {
+      "geoTransforms": [
+        {
+          "wkid": 108001,
+          "latestWkid": 1241,
+          "transformForward": true,
+          "name": "NAD_1927_To_NAD_1983_NADCON"
+        }
+      ]
+    },
+    {
+      "geoTransforms": [
+        {
+          "wkid": 108001,
+          "latestWkid": 1241,
+          "transformForward": false,
+          "name": "NAD_1927_To_NAD_1983_NADCON"
+        }
+      ]
+    }
+  ],
+  "supportsDatumTransformation": true,
+  "maxRecordCount": 1000,
+  "maxImageHeight": 4096,
+  "maxImageWidth": 4096,
+  "supportedExtensions": "KmlServer,WMSServer"
+}

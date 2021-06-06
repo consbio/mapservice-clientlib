@@ -1,0 +1,118 @@
+{
+  "layers": [
+    {
+      "layerId": 0,
+      "layerName": "Wetlands",
+      "layerType": "Feature Layer",
+      "minScale": 250000,
+      "maxScale": 0,
+      "legend": [
+        {
+          "label": "Estuarine and Marine Deepwater",
+          "url": "bc7988a8ada44f94ae79a56c02b45bb7",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADtJREFUOI1jYaAyYKGlgf=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "Estuarine and Marine Deepwater"
+          ]
+        },
+        {
+          "label": "Estuarine and Marine Wetland",
+          "url": "75bd578489df54f6e0a9e37734eee897",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAD1JREFUOI1jYaAyYKGlgf=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "Estuarine and Marine Wetland"
+          ]
+        },
+        {
+          "label": "Freshwater Emergent Wetland",
+          "url": "c16123ab22f6aaf73b853e6005396f2c",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAD1JREFUOI1jYaAyYKGlgf=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "Freshwater Emergent Wetland"
+          ]
+        },
+        {
+          "label": "Freshwater Forested/Shrub Wetland",
+          "url": "e6c1e7498680e3bde1ba5cf9bfeda02f",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADtJREFUOI1jYaAyYKGlgf=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "Freshwater Forested/Shrub Wetland"
+          ]
+        },
+        {
+          "label": "Freshwater Pond",
+          "url": "0bf8ae99508b4ee7ddcf84123c8f6d8f",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAD1JREFUOI1jYaAyYKGlgf=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "Freshwater Pond"
+          ]
+        },
+        {
+          "label": "Lake",
+          "url": "bcfc90e4e8ec6d5cb798b348a741fd87",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAD1JREFUOI1jYaAyYKGlgf=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "Lake"
+          ]
+        },
+        {
+          "label": "Other",
+          "url": "5727b4eb2a84fa14d5114c5d7ac369e1",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAD1JREFUOI1jYaAyYKGlgf=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "Other"
+          ]
+        },
+        {
+          "label": "Riverine",
+          "url": "2296af670f24284f6f00ed7d6b530d79",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADtJREFUOI1jYaAyYKGlgf=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "Riverine"
+          ]
+        }
+      ]
+    },
+    {
+      "layerId": 1,
+      "layerName": "Wetlands Project Metadata",
+      "layerType": "Feature Layer",
+      "minScale": 112076270,
+      "maxScale": 112076270,
+      "legend": [
+        {
+          "label": "",
+          "url": "98fb6d62c20377d8d861e56ede28766f",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADZJREFUOI1jYaAyYKGlgf=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20
+        }
+      ]
+    }
+  ]
+}

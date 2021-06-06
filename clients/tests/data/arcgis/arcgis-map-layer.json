@@ -1,0 +1,211 @@
+{
+  "currentVersion": 10.5,
+  "id": 0,
+  "name": "Wetlands",
+  "type": "Feature Layer",
+  "description": "This data set represents the extent of wetlands and deepwater habitats.",
+  "geometryType": "esriGeometryPolygon",
+  "sourceSpatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  },
+  "copyrightText": "U.S. Fish and Wildlife Service, National Standards and Support Team",
+  "parentLayer": null,
+  "subLayers": [],
+  "minScale": 250000,
+  "maxScale": 0,
+  "drawingInfo": {
+    "renderer": {
+      "type": "uniqueValue",
+      "field1": "Wetlands.WETLAND_TYPE",
+      "field2": null,
+      "field3": null,
+      "defaultSymbol": null,
+      "defaultLabel": null,
+      "uniqueValueInfos": [
+        {
+          "symbol": {
+            "type": "esriSFS",
+            "style": "esriSFSSolid",
+            "color": [
+              0,
+              124,
+              136,
+              255
+            ],
+            "outline": {
+              "type": "esriSLS",
+              "style": "esriSLSSolid",
+              "color": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "width": 0.4
+            }
+          },
+          "value": "Estuarine and Marine Deepwater",
+          "label": "Estuarine and Marine Deepwater",
+          "description": ""
+        },
+        {
+          "symbol": {
+            "type": "esriSFS",
+            "style": "esriSFSSolid",
+            "color": [
+              102,
+              194,
+              165,
+              255
+            ],
+            "outline": {
+              "type": "esriSLS",
+              "style": "esriSLSSolid",
+              "color": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "width": 0.4
+            }
+          },
+          "value": "Estuarine and Marine Wetland",
+          "label": "Estuarine and Marine Wetland",
+          "description": ""
+        }
+      ],
+      "fieldDelimiter": ","
+    },
+    "transparency": 0,
+    "labelingInfo": [
+      {
+        "labelPlacement": "esriServerPolygonPlacementAlwaysHorizontal",
+        "where": null,
+        "labelExpression": "[Wetlands.ATTRIBUTE]",
+        "useCodedValues": true,
+        "symbol": {
+          "type": "esriTS",
+          "color": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "backgroundColor": null,
+          "borderLineColor": null,
+          "borderLineSize": null,
+          "verticalAlignment": "bottom",
+          "horizontalAlignment": "center",
+          "rightToLeft": false,
+          "angle": 0,
+          "xoffset": 0,
+          "yoffset": 0,
+          "kerning": true,
+          "haloColor": null,
+          "haloSize": null,
+          "font": {
+            "family": "Arial",
+            "size": 10,
+            "style": "normal",
+            "weight": "normal",
+            "decoration": "none"
+          }
+        },
+        "minScale": 50000,
+        "maxScale": 0
+      }
+    ]
+  },
+  "defaultVisibility": true,
+  "extent": {
+    "xmin": -19024325.925,
+    "ymin": -1622985.366700001,
+    "xmax": 16239651.735799998,
+    "ymax": 11554273.612999998,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "hasAttachments": false,
+  "htmlPopupType": "esriServerHTMLPopupTypeNone",
+  "displayField": "Wetlands.ATTRIBUTE",
+  "typeIdField": null,
+  "fields": [
+    {
+      "name": "Wetlands.OBJECTID",
+      "type": "esriFieldTypeOID",
+      "alias": "OBJECTID",
+      "domain": null
+    },
+    {
+      "name": "Wetlands.ATTRIBUTE",
+      "type": "esriFieldTypeString",
+      "alias": "ATTRIBUTE",
+      "length": 20,
+      "domain": null
+    },
+    {
+      "name": "Wetlands.ACRES",
+      "type": "esriFieldTypeDouble",
+      "alias": "ACRES",
+      "domain": null
+    },
+    {
+      "name": "Wetlands.SHAPE",
+      "type": "esriFieldTypeGeometry",
+      "alias": "Shape",
+      "domain": null
+    },
+    {
+      "name": "Wetlands.GLOBALID",
+      "type": "esriFieldTypeGlobalID",
+      "alias": "GLOBALID",
+      "length": 38,
+      "domain": null
+    },
+    {
+      "name": "Wetlands.WETLAND_TYPE",
+      "type": "esriFieldTypeString",
+      "alias": "WETLAND_TYPE",
+      "length": 50,
+      "domain": null
+    }
+  ],
+  "indexes": [
+    {
+      "name": "Wetlands",
+      "fields": "Wetlands.WETLAND_TYPE",
+      "isAscending": true,
+      "isUnique": false,
+      "description": ""
+    }
+  ],
+  "relationships": [],
+  "canModifyLayer": true,
+  "canScaleSymbols": false,
+  "hasLabels": true,
+  "capabilities": "Map,Query,Data",
+  "maxRecordCount": 1000,
+  "supportsStatistics": true,
+  "supportsAdvancedQueries": true,
+  "supportedQueryFormats": "JSON,AMF,geoJSON",
+  "ownershipBasedAccessControlForFeatures": {
+    "allowOthersToQuery": true
+  },
+  "useStandardizedQueries": true,
+  "advancedQueryCapabilities": {
+    "useStandardizedQueries": true,
+    "supportsStatistics": true,
+    "supportsOrderBy": true,
+    "supportsDistinct": true,
+    "supportsPagination": true,
+    "supportsTrueCurve": true,
+    "supportsReturningQueryExtent": true,
+    "supportsQueryWithDistance": true,
+    "supportsSqlExpression": false
+  },
+  "supportsDatumTransformation": true
+}
