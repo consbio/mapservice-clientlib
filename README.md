@@ -11,6 +11,10 @@ A library to make web service calls to map service REST APIs easier. Currently s
 * WMS / NcWMS (versions 1.1.1 and 1.3.0)
 * ScienceBase
 
+Each leverages the [restle](https://github.com/consbio/restle) library to represent queried map service data as Python objects.
+Each also provides some default functionality for rendering projected map service data as images, which may be overridden per class as needed.
+
+Beyond this are some utilities for working with images (PIL) and extents (mostly Geographic, Web Mercator and other proj4 compatible projections).
 
 ## Installation
 
@@ -19,8 +23,7 @@ Install with `pip install mapservice-clientlib`.
 
 ## Usage
 
-The clients package in this library contains Python classes that interface with a given web service API.
-Below are some examples:
+Below are some examples of each supported map service web API standard:
 
 
 ### ArcGIS Resources
@@ -28,7 +31,7 @@ Below are some examples:
 ArcGIS Map, Feature and Image services may be queried.
 
 ```python
-from clients.arcgis import ArcGISMapServerResource, ArcGISSecureResource
+from clients.arcgis import MapServerResource, ArcGISSecureResource
 from clients.arcgis import FeatureLayerResource, FeatureServerResource, ImageServerResource
 from clients.utils.geometry import Extent, SpatialReference
 
@@ -42,7 +45,7 @@ client = ImageServerResource.get(service_url, lazy=True)
 client.extent  # Query executes here
 
 # Query a map service and generate an image
-arcgis_image = ArcGISMapServerResource.get(service_url).get_image(
+arcgis_image = MapServerResource.get(service_url).get_image(
     extent, width=400, height=200,
     layers="show:0",
     layer_defs="<arcgis_layer_defs>",
@@ -54,7 +57,7 @@ arcgis_image = ArcGISMapServerResource.get(service_url).get_image(
 token_obj = ArcGISSecureResource.generate_token(
     service_url, "user", "pass",  duration=15
 )
-client = ArcGISMapServerResource.get(
+client = MapServerResource.get(
     service_url, username="user", password="pass", token=token_obj.token
 )
 
@@ -64,7 +67,7 @@ old_extent = Extent(
     spatial_reference=SpatialReference({'wkid': 4326})
 )
 geometry_url = 'http://tasks.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer'
-client = ArcGISGeometryServiceClient(geometry_url)
+client = GeometryServiceClient(geometry_url)
 extent = client.project_extent(old_extent, SpatialReference({'wkid': 3857})).limit_to_global_extent()
 ```
 
