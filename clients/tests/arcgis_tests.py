@@ -21,23 +21,23 @@ class ArcGISTestCase(ResourceTestCase):
         self.arcgis_directory = self.data_directory / "arcgis"
 
         self.map_url = "https://www.fws.gov/wetlands/arcgis/rest/services/Wetlands/MapServer/?f=json"
-        self.map_path = self.arcgis_directory / "arcgis-map.json"
+        self.map_path = self.arcgis_directory / "map.json"
         self.map_layer_url = "https://www.fws.gov/wetlands/arcgis/rest/services/Wetlands/MapServer/0/?f=json"
-        self.map_layer_path = self.arcgis_directory / "arcgis-map-layer.json"
+        self.map_layer_path = self.arcgis_directory / "map-layer.json"
         self.map_layers_url = "https://www.fws.gov/wetlands/arcgis/rest/services/Wetlands/MapServer/layers?f=json"
-        self.map_layers_path = self.arcgis_directory / "arcgis-map-layers.json"
+        self.map_layers_path = self.arcgis_directory / "map-layers.json"
         self.map_legend_url = "https://www.fws.gov/wetlands/arcgis/rest/services/Wetlands/MapServer/legend/?f=json"
-        self.map_legend_path = self.arcgis_directory / "arcgis-map-legend.json"
+        self.map_legend_path = self.arcgis_directory / "map-legend.json"
 
         self.feature_url = "https://services1.arcgis.com/gbas/arcgis/rest/services/prcp/FeatureServer/?f=json"
-        self.feature_path = self.arcgis_directory / "arcgis-feature.json"
+        self.feature_path = self.arcgis_directory / "feature.json"
         self.feature_layer_url = "https://services1.arcgis.com/gbas/arcgis/rest/services/prcp/FeatureServer/0?f=json"
-        self.feature_layer_path = self.arcgis_directory / "arcgis-feature-layer.json"
+        self.feature_layer_path = self.arcgis_directory / "feature-layer.json"
         self.feature_layer_id_url = "https://services1.arcgis.com/gbas/arcgis/rest/services/prcp/FeatureServer/0/query"
-        self.feature_layer_id_path = self.arcgis_directory / "arcgis-feature-layer-ids.json"
+        self.feature_layer_id_path = self.arcgis_directory / "feature-layer-ids.json"
 
         self.image_url = "https://map.dfg.ca.gov/arcgis/rest/services/BaseRemoteSensing/NAIP_2010/ImageServer/?f=json"
-        self.image_path = self.arcgis_directory / "arcgis-image.json"
+        self.image_path = self.arcgis_directory / "image.json"
 
         self.geometry_url = "http://tasks.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer/project"
         self.geometry_args = (
@@ -51,7 +51,7 @@ class ArcGISTestCase(ResourceTestCase):
             "&inSR=4326"
             "&outSR=3857"
         )
-        self.geometry_path = self.arcgis_directory / "arcgis-geometry.json"
+        self.geometry_path = self.arcgis_directory / "geometry.json"
 
         self.config_url = "https://services1.arcgis.com/errors/arcgis/rest/services/BadConfig/MapServer/?f=json"
         self.config_path = self.arcgis_directory / "config-error.json"
@@ -64,7 +64,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.token_required_url = "https://services1.arcgis.com/errors/arcgis/rest/services/Token/MapServer/?f=json"
         self.token_required_path = self.arcgis_directory / "token-required.json"
 
-        self.error_path = self.arcgis_directory / "arcgis-error.html"
+        self.error_path = self.arcgis_directory / "error.html"
 
     def mock_arcgis_client(self, mock_request, service_type):
 
