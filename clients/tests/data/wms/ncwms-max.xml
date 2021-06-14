@@ -71,7 +71,7 @@
             <CRS>EPSG:32761</CRS>
 
             <Layer>
-                <Title>pr-tasmax-tasmin_day_BCSD-ANUSPLIN300-CCSM4_historical-rcp45_r2i1p1_19500101-21001231</Title>
+                <Title>pr-tasmax-tasmin_day</Title>
 
                 <Layer queryable="1">
                     <Name>pr-tasmax-tasmin_day</Name>

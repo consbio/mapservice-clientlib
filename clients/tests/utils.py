@@ -10,6 +10,7 @@ from PIL import Image
 from unittest import mock
 
 from clients.utils.geometry import Extent, SpatialReference
+from clients.wms import WMS_EXCEPTION_FORMAT
 
 
 BUILTIN_SIMPLE = (bool, str, int, float)
@@ -198,7 +199,7 @@ class ResourceTestCase(BaseTestCase):
 
     def setUp(self):
         super(ResourceTestCase, self).setUp()
-        self.headers = {"content-type": "application/vnd.ogc.se_xml"}
+        self.headers = {"content-type": WMS_EXCEPTION_FORMAT}
 
     def assert_get_image(self, client):
         client._session = self.mock_mapservice_session(

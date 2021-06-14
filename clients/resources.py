@@ -2,14 +2,12 @@ import copy
 import requests
 
 from parserutils.collections import setdefaults
-from parserutils.numbers import is_number
 from parserutils.strings import ALPHANUMERIC, snake_to_camel
 from restle.resources import Resource
 from restle.exceptions import HTTPException, MissingFieldException, NotFoundException
 
-from .exceptions import BadExtent, ClientError, ContentError, HTTPError, MissingFields
+from .exceptions import ClientError, ContentError, HTTPError, MissingFields
 from .exceptions import NetworkError, ServiceError, ServiceTimeout, UnsupportedVersion
-from .utils.geometry import EXTENT_KEYS
 
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (compatible; +https://databasin.org)"
@@ -22,7 +20,7 @@ class ClientResource(Resource):
 
     _incoming_casing = "camel"
     _minimum_version = None
-    _maximum_version = None
+    _supported_versions = ()
 
     _session = None
     _layer_session = None
@@ -270,27 +268,10 @@ class ClientResource(Resource):
             )
 
         self.validate_version()
-        self.validate_extent()
 
     def get_image(self, extent, width, height, **kwargs):
         class_name = self.__class__.__name__
         raise NotImplementedError(f"{class_name}.get_image")
-
-    def validate_extent(self):
-        """ Validates extent data dereferenced from standard extent properties """
-
-        for extent_attr in ("extent", "full_extent", "initial_extent"):
-            extent = getattr(self, extent_attr, None)
-
-            if extent is None:
-                continue
-            elif isinstance(extent, dict):
-                coords = (extent.get(key) for key in EXTENT_KEYS)
-            else:
-                coords = (getattr(extent, key, None) for key in EXTENT_KEYS)
-
-            if any(not is_number(coord) for coord in coords):
-                raise BadExtent("Invalid extent coordinates", extent=extent, url=self._url)
 
     def validate_version(self):
         """ Validates version against min and max defined on resource """
@@ -298,24 +279,18 @@ class ClientResource(Resource):
         invalid, supported = None, None
 
         if not self.version:
-            invalid = "Unavailable"
+            return
 
-        elif not is_number(self.version):
-            # True for WMS resources: 1.1.1, 1.3.0
-            supported = tuple(v for v in (self._minimum_version, self._maximum_version) if v)
-            if supported and self.version not in supported:
-                invalid = self.version
-
-        elif float(self.version) < float(self._minimum_version or self.version):
-            supported = self._minimum_version
+        elif self._supported_versions and self.version not in self._supported_versions:
+            supported = ", ".join(self._supported_versions)
             invalid = self.version
 
-        elif float(self.version) > float(self._maximum_version or self.version):
-            supported = self._maximum_version
+        elif self._minimum_version and self.version < self._minimum_version:
+            supported = self._minimum_version
             invalid = self.version
 
         if invalid:
             raise UnsupportedVersion(
-                "The map service version is not supported",
+                f"The map service version is not supported: {invalid}",
                 invalid=invalid, supported=supported, url=self._url
             )

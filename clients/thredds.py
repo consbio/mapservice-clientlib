@@ -19,7 +19,7 @@ from .query.serializers import XMLToJSONSerializer
 from .resources import ClientResource
 from .utils.geometry import Extent, union_extent
 from .utils.images import make_color_transparent
-from .wms import WMS_DEFAULT_PARAMS, WMS_KNOWN_VERSIONS, NcWMSLayerResource
+from .wms import WMS_DEFAULT_PARAMS, WMS_EXCEPTION_FORMAT, WMS_KNOWN_VERSIONS, NcWMSLayerResource
 
 
 logger = logging.getLogger(__name__)
@@ -411,7 +411,7 @@ class ThreddsResource(ClientResource):
                 image_params["exceptions"] = "XML"
                 image_params["crs"] = self.spatial_ref
             else:
-                image_params["exceptions"] = "application/vnd.ogc.se_xml"
+                image_params["exceptions"] = WMS_EXCEPTION_FORMAT
                 image_params["srs"] = self.spatial_ref
 
             # Note: time and custom params may require ordering to match layer - not clear from docs

@@ -184,7 +184,7 @@ class WMSLayerResource(ClientResource):
     has_time = BooleanField(default=False)
     has_dimensions = BooleanField(default=False)
     is_ncwms = BooleanField(default=False)
-    is_old_version = BooleanField(name="deprecated", default=False)
+    is_old_version = BooleanField(name="old_version", default=False)
     layer_order = IntegerField(name="order", required=False)
     parent_order = IntegerField(name="group", required=False)
 
@@ -228,8 +228,6 @@ class WMSLayerResource(ClientResource):
 
         self._url = self.wms.wms_url
         self._behind_proxy = self.wms._behind_proxy
-        self._minimum_version = self.wms._minimum_version
-        self._maximum_version = self.wms._maximum_version
 
         self._ncwms_layer_url = update_url_params(self._url, **{
             "request": "GetMetadata",
@@ -240,7 +238,7 @@ class WMSLayerResource(ClientResource):
         self.child_layers = []
         self.leaf_layers = {}
 
-        data["deprecated"] = (data["version"] == self._minimum_version)
+        data["old_version"] = (data["version"] == self.wms._minimum_version)
         data["queryable"] = (data.get("queryable", "").lower() in {"1", "true"})
         data["is_ncwms"] = self.wms._is_ncwms
 
@@ -299,10 +297,8 @@ class WMSLayerResource(ClientResource):
         if not self._dimension:
             return
 
-        extent = self._extent if self.is_old_version else None
-
         for dim in wrap_value(self._dimension):
-            obj = dict(extent or dim)
+            obj = dict(self._extent or dim)
 
             if dim.get("name") and dim.get("units") and obj.get("values"):
                 obj["units"] = dim["units"]
@@ -329,7 +325,6 @@ class WMSLayerResource(ClientResource):
 
         if extent:
             self.full_extent = to_extent(extent)
-            self.validate_extent()
 
         if self.id and not self.full_extent:
             raise BadExtent(
@@ -483,7 +478,7 @@ class WMSResource(ClientResource):
     spatial_ref = TextField(required=False)
 
     _minimum_version = WMS_KNOWN_VERSIONS[0]
-    _maximum_version = WMS_KNOWN_VERSIONS[1]
+    _supported_versions = WMS_KNOWN_VERSIONS
 
     class Meta:
         case_sensitive_fields = False
@@ -551,8 +546,8 @@ class WMSResource(ClientResource):
         elif "Capability" not in data:
             raise NoLayers("The WMS service does not have any layers", url=self.wms_url)
 
-        elif data["version"] not in WMS_KNOWN_VERSIONS:
-            invalid, supported = data["version"], WMS_KNOWN_VERSIONS
+        elif data["version"] not in self._supported_versions:
+            invalid, supported = data["version"], self._supported_versions
             raise UnsupportedVersion("The WMS service version is not supported", invalid, supported, url=self.wms_url)
 
         service = data["Service"]
@@ -726,7 +721,7 @@ class WMSResource(ClientResource):
                 "styles": ",".join(wrap_value(style_ids)),
                 "version": self.version
             }
-            if self.version == self._maximum_version:
+            if self.version == "1.3.0":
                 image_params["exceptions"] = "XML"
                 image_params["crs"] = self.spatial_ref
             else:
