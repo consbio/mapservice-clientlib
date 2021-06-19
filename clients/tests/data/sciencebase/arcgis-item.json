@@ -1,0 +1,230 @@
+{
+  "link": {
+    "rel": "self",
+    "url": "https://www.sciencebase.gov/catalog/item/arcgis_service"
+  },
+  "relatedItems": {
+    "link": {
+      "url": "https://www.sciencebase.gov/catalog/itemLinks?itemId=arcgis_service",
+      "rel": "related"
+    }
+  },
+  "id": "arcgis_service",
+  "title": "Testing ArcGIS Service",
+  "summary": "With reference to white tailed jack rabbit",
+  "body": "With reference to white tailed jack rabbit found in Alaska",
+  "provenance": {
+    "dataSource": "Input directly",
+    "dateCreated": "2015-04-15T22:48:33Z",
+    "lastUpdated": "2016-04-08T23:42:46Z",
+    "lastUpdatedBy": "daniel.harvey@consbio.org",
+    "createdBy": "daniel.harvey@consbio.org"
+  },
+  "hasChildren": false,
+  "parentId": "parent-folder",
+  "browseCategories": [
+    "Data"
+  ],
+  "browseTypes": [
+    "ArcGIS Service Definition",
+    "Downloadable",
+    "Map Service",
+    "ArcGIS REST Map Service"
+  ],
+  "systemTypes": [
+    "Downloadable",
+    "Mappable"
+  ],
+  "tags": [
+    {
+      "name": "test"
+    }
+  ],
+  "dates": [
+    {
+      "type": "Reported",
+      "dateString": "2016",
+      "label": "Date Reported"
+    }
+  ],
+  "facets": [
+    {
+      "filePathUsed": "__disk__5a/bf/54/5abf54639219dd2649def400288ed1fcb7e724ca",
+      "boundingBox": {
+        "minY": 44.4967792744768,
+        "minX": -121.861000575342,
+        "maxY": 49.0040515878564,
+        "maxX": -115.403665323615
+      },
+      "processingState": "success",
+      "servicePath": "arcgis_service",
+      "serverType": "",
+      "processingMessage": "",
+      "name": "ArcGIS.sd",
+      "files": [
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "ArcGIS.sd",
+          "title": "Testing ArcGIS Service",
+          "contentType": "x-gis/x-arcgis_service-def",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__5a/bf/54/5abf54639219dd2649def400288ed1fcb7e724ca",
+          "processed": false,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 12537004,
+          "dateUploaded": "2015-04-15T22:47:46Z",
+          "uploadedBy": "daniel.harvey@consbio.org",
+          "originalMetadata": true,
+          "useForPreview": false,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__5a%2Fbf%2F54%2F5abf54639219dd2649def400288ed1fcb7e724ca",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__5a%2Fbf%2F54%2F5abf54639219dd2649def400288ed1fcb7e724ca"
+        },
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "thumbnail.png",
+          "title": null,
+          "contentType": "image/png",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__d2/b8/54/d2b854e2e7ff628155d0dafda1cc526c164f1d5c",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": 200,
+          "imageHeight": 133,
+          "size": 11287,
+          "dateUploaded": "2015-04-15T22:48:33Z",
+          "uploadedBy": "daniel.harvey@consbio.org",
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__d2%2Fb8%2F54%2Fd2b854e2e7ff628155d0dafda1cc526c164f1d5c",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__d2%2Fb8%2F54%2Fd2b854e2e7ff628155d0dafda1cc526c164f1d5c",
+          "viewUri": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__d2%2Fb8%2F54%2Fd2b854e2e7ff628155d0dafda1cc526c164f1d5c&width=200&height=133",
+          "previewImage": {
+            "thumbnail": {
+              "uri": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__d2%2Fb8%2F54%2Fd2b854e2e7ff628155d0dafda1cc526c164f1d5c&width=150&height=100",
+              "width": 150,
+              "height": 100
+            }
+          }
+        }
+      ],
+      "enabledServices": [
+        "KmlServer",
+        "WMSServer"
+      ],
+      "serviceId": "arcgis_service",
+      "className": "gov.sciencebase.catalog.item.facet.ServiceDefinitionFacet",
+      "facetName": "ArcGIS Service Definition"
+    }
+  ],
+  "permissions": {
+    "read": {
+      "acl": [
+        "USER:bcward@consbio.org",
+        "USER:daniel.harvey@consbio.org"
+      ],
+      "inherited": false
+    },
+    "write": {
+      "acl": [
+        "USER:bcward@consbio.org",
+        "USER:daniel.harvey@consbio.org",
+        "USER:databasinadmin@consbio.org"
+      ],
+      "inherited": false
+    }
+  },
+  "distributionLinks": [
+    {
+      "uri": "https://www.sciencebase.gov/arcgis/rest/services/Catalog/service/MapServer",
+      "title": "ArcGIS REST Service",
+      "type": "serviceLink",
+      "typeLabel": "Service Link",
+      "rel": "alternate",
+      "name": "",
+      "files": ""
+    },
+    {
+      "uri": "https://www.sciencebase.gov/arcgis/rest/services/Catalog/service/MapServer/kml/mapImage.kmz",
+      "title": "KML Service",
+      "type": "kml",
+      "typeLabel": "KML Download",
+      "rel": "alternate",
+      "name": "",
+      "files": ""
+    },
+    {
+      "uri": "https://www.sciencebase.gov/arcgis/services/Catalog/service/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+      "title": "ArcGIS WMS Service",
+      "type": "serviceLink",
+      "typeLabel": "Service Link",
+      "rel": "alternate",
+      "name": "",
+      "files": ""
+    },
+    {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/arcgis_service",
+      "title": "Download Attached Files",
+      "type": "downloadLink",
+      "typeLabel": "Download Link",
+      "rel": "alternate",
+      "name": "TestingBeaverAr.zip",
+      "files": [
+        {
+          "name": "ArcGIS.sd/ArcGIS.sd",
+          "title": "Testing ArcGIS Service",
+          "contentType": "x-gis/x-arcgis_service-def",
+          "size": 12537004
+        },
+        {
+          "name": "ArcGIS.sd/thumbnail.png",
+          "title": null,
+          "contentType": "image/png",
+          "size": 11287
+        }
+      ]
+    }
+  ],
+  "previewImage": {
+    "from": "mapPreview",
+    "original": {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__37%2F8f%2F14%2F378f141ccced0572b8409747454b112a92489c68",
+      "viewUri": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__37%2F8f%2F14%2F378f141ccced0572b8409747454b112a92489c68&width=735&height=445",
+      "viewUrl": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?deprecated=__use__viewUri__instead__&f=__disk__37%2F8f%2F14%2F378f141ccced0572b8409747454b112a92489c68&width=735&height=445",
+      "width": 735,
+      "height": 445,
+      "size": 0
+    },
+    "thumbnail": {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__37%2F8f%2F14%2F378f141ccced0572b8409747454b112a92489c68&width=150&height=91",
+      "width": 150,
+      "height": 91
+    },
+    "small": {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__37%2F8f%2F14%2F378f141ccced0572b8409747454b112a92489c68&width=350&height=212",
+      "width": 350,
+      "height": 212
+    },
+    "medium": {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/arcgis_service?f=__disk__37%2F8f%2F14%2F378f141ccced0572b8409747454b112a92489c68&width=580&height=351",
+      "width": 580,
+      "height": 351
+    }
+  },
+  "locked": false
+}

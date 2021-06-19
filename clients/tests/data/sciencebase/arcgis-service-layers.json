@@ -1,0 +1,285 @@
+{
+  "layers": [
+    {
+      "currentVersion": 10.5,
+      "id": 0,
+      "name": "Habitat for wide-ranging species in Connectivity PR",
+      "type": "Raster Layer",
+      "description": "",
+      "geometryType": null,
+      "copyrightText": "",
+      "parentLayer": null,
+      "subLayers": [],
+      "minScale": 0,
+      "maxScale": 0,
+      "defaultVisibility": true,
+      "extent": {
+        "xmin": -19024325.925,
+        "ymin": -1622985.366700001,
+        "xmax": 16239651.735799998,
+        "ymax": 11554273.612999998,
+        "spatialReference": {
+          "wkid": 102100,
+          "latestWkid": 3857
+        }
+      },
+      "hasAttachments": false,
+      "htmlPopupType": "esriServerHTMLPopupTypeNone",
+      "displayField": "",
+      "typeIdField": null,
+      "fields": null,
+      "indexes": [],
+      "relationships": [],
+      "canModifyLayer": false,
+      "canScaleSymbols": false,
+      "hasLabels": false,
+      "capabilities": "Map,Query",
+      "supportsStatistics": false,
+      "supportsAdvancedQueries": false,
+      "supportedQueryFormats": "JSON, AMF, geoJSON",
+      "ownershipBasedAccessControlForFeatures": {
+        "allowOthersToQuery": true
+      },
+      "useStandardizedQueries": true,
+      "advancedQueryCapabilities": {
+        "useStandardizedQueries": true,
+        "supportsStatistics": false,
+        "supportsOrderBy": false,
+        "supportsDistinct": false,
+        "supportsPagination": false,
+        "supportsTrueCurve": false,
+        "supportsReturningQueryExtent": true,
+        "supportsQueryWithDistance": true,
+        "supportsSqlExpression": false
+      }
+    }
+  ],
+  "tables": [
+    {
+      "currentVersion": 10.5,
+      "id": 1,
+      "name": "AllThree_PotentialHabitat.csv",
+      "type": "Table",
+      "description": null,
+      "hasAttachments": false,
+      "htmlPopupType": "esriServerHTMLPopupTypeNone",
+      "displayField": "Rowid_",
+      "typeIdField": null,
+      "fields": [
+        {
+          "name": "Rowid_",
+          "type": "esriFieldTypeString",
+          "alias": "Rowid_",
+          "length": 8000,
+          "domain": null
+        },
+        {
+          "name": "VALUE",
+          "type": "esriFieldTypeInteger",
+          "alias": "VALUE",
+          "domain": null
+        },
+        {
+          "name": "COUNT",
+          "type": "esriFieldTypeInteger",
+          "alias": "COUNT",
+          "domain": null
+        }
+      ],
+      "indexes": null,
+      "relationships": [],
+      "capabilities": "Map,Query,Data",
+      "maxRecordCount": 1000,
+      "supportsStatistics": false,
+      "supportsAdvancedQueries": false,
+      "supportedQueryFormats": "JSON, AMF",
+      "useStandardizedQueries": true,
+      "advancedQueryCapabilities": {
+        "useStandardizedQueries": true,
+        "supportsStatistics": false,
+        "supportsOrderBy": false,
+        "supportsDistinct": false,
+        "supportsPagination": false,
+        "supportsTrueCurve": false,
+        "supportsReturningQueryExtent": true,
+        "supportsQueryWithDistance": true,
+        "supportsSqlExpression": false
+      }
+    },
+    {
+      "currentVersion": 10.5,
+      "id": 2,
+      "name": "AllThree_PotHab_Connx2.txt",
+      "type": "Table",
+      "description": null,
+      "hasAttachments": false,
+      "htmlPopupType": "esriServerHTMLPopupTypeNone",
+      "displayField": "VALUE",
+      "typeIdField": null,
+      "fields": [
+        {
+          "name": "VALUE",
+          "type": "esriFieldTypeString",
+          "alias": "VALUE",
+          "length": 8000,
+          "domain": null
+        },
+        {
+          "name": "30 x 30",
+          "type": "esriFieldTypeString",
+          "alias": "30 x 30",
+          "length": 8000,
+          "domain": null
+        },
+        {
+          "name": "15 x '15",
+          "type": "esriFieldTypeString",
+          "alias": "15 x '15",
+          "length": 8000,
+          "domain": null
+        },
+        {
+          "name": "Field4",
+          "type": "esriFieldTypeString",
+          "alias": "Field4",
+          "length": 8000,
+          "domain": null
+        },
+        {
+          "name": "Field5",
+          "type": "esriFieldTypeString",
+          "alias": "Field5",
+          "length": 8000,
+          "domain": null
+        },
+        {
+          "name": "Field6",
+          "type": "esriFieldTypeInteger",
+          "alias": "Field6",
+          "domain": null
+        }
+      ],
+      "indexes": null,
+      "relationships": [],
+      "capabilities": "Map,Query,Data",
+      "maxRecordCount": 1000,
+      "supportsStatistics": false,
+      "supportsAdvancedQueries": false,
+      "supportedQueryFormats": "JSON, AMF",
+      "useStandardizedQueries": true,
+      "advancedQueryCapabilities": {
+        "useStandardizedQueries": true,
+        "supportsStatistics": false,
+        "supportsOrderBy": false,
+        "supportsDistinct": false,
+        "supportsPagination": false,
+        "supportsTrueCurve": false,
+        "supportsReturningQueryExtent": true,
+        "supportsQueryWithDistance": true,
+        "supportsSqlExpression": false
+      }
+    },
+    {
+      "currentVersion": 10.5,
+      "id": 3,
+      "name": "BearPanInd15.csv",
+      "type": "Table",
+      "description": null,
+      "hasAttachments": false,
+      "htmlPopupType": "esriServerHTMLPopupTypeNone",
+      "displayField": "Rowid_",
+      "typeIdField": null,
+      "fields": [
+        {
+          "name": "Rowid_",
+          "type": "esriFieldTypeString",
+          "alias": "Rowid_",
+          "length": 8000,
+          "domain": null
+        },
+        {
+          "name": "VALUE",
+          "type": "esriFieldTypeInteger",
+          "alias": "VALUE",
+          "domain": null
+        },
+        {
+          "name": "COUNT",
+          "type": "esriFieldTypeInteger",
+          "alias": "COUNT",
+          "domain": null
+        }
+      ],
+      "indexes": null,
+      "relationships": [],
+      "capabilities": "Map,Query,Data",
+      "maxRecordCount": 1000,
+      "supportsStatistics": false,
+      "supportsAdvancedQueries": false,
+      "supportedQueryFormats": "JSON, AMF",
+      "useStandardizedQueries": true,
+      "advancedQueryCapabilities": {
+        "useStandardizedQueries": true,
+        "supportsStatistics": false,
+        "supportsOrderBy": false,
+        "supportsDistinct": false,
+        "supportsPagination": false,
+        "supportsTrueCurve": false,
+        "supportsReturningQueryExtent": true,
+        "supportsQueryWithDistance": true,
+        "supportsSqlExpression": false
+      }
+    },
+    {
+      "currentVersion": 10.5,
+      "id": 4,
+      "name": "Connx_wide.csv",
+      "type": "Table",
+      "description": null,
+      "hasAttachments": false,
+      "htmlPopupType": "esriServerHTMLPopupTypeNone",
+      "displayField": "Rowid_",
+      "typeIdField": null,
+      "fields": [
+        {
+          "name": "Rowid_",
+          "type": "esriFieldTypeString",
+          "alias": "Rowid_",
+          "length": 8000,
+          "domain": null
+        },
+        {
+          "name": "VALUE",
+          "type": "esriFieldTypeInteger",
+          "alias": "VALUE",
+          "domain": null
+        },
+        {
+          "name": "COUNT",
+          "type": "esriFieldTypeInteger",
+          "alias": "COUNT",
+          "domain": null
+        }
+      ],
+      "indexes": null,
+      "relationships": [],
+      "capabilities": "Map,Query,Data",
+      "maxRecordCount": 1000,
+      "supportsStatistics": false,
+      "supportsAdvancedQueries": false,
+      "supportedQueryFormats": "JSON, AMF",
+      "useStandardizedQueries": true,
+      "advancedQueryCapabilities": {
+        "useStandardizedQueries": true,
+        "supportsStatistics": false,
+        "supportsOrderBy": false,
+        "supportsDistinct": false,
+        "supportsPagination": false,
+        "supportsTrueCurve": false,
+        "supportsReturningQueryExtent": true,
+        "supportsQueryWithDistance": true,
+        "supportsSqlExpression": false
+      }
+    }
+  ]
+}

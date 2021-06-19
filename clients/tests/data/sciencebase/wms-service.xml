@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?><WMS_Capabilities version="1.3.0" updateSequence="74" xmlns="http://www.opengis.net/wms" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wms https://www.sciencebase.gov:443/catalogMaps/schemas/wms/1.3.0/capabilities_1_3_0.xsd">
+  <Service>
+    <Name>WMS</Name>
+    <Title>North American Grid-Based Sampling Frame</Title>
+    <Abstract/>
+    <KeywordList/>
+    <OnlineResource xlink:type="simple" xlink:href="http://www.sciencebase.gov/catalog/item/5b7c364fe4b0f5d578860338"/>
+    <ContactInformation>
+      <ContactPersonPrimary>
+        <ContactPerson/>
+        <ContactOrganization/>
+      </ContactPersonPrimary>
+      <ContactPosition/>
+      <ContactAddress>
+        <AddressType/>
+        <Address/>
+        <City/>
+        <StateOrProvince/>
+        <PostCode/>
+        <Country/>
+      </ContactAddress>
+      <ContactVoiceTelephone/>
+      <ContactFacsimileTelephone/>
+      <ContactElectronicMailAddress/>
+    </ContactInformation>
+    <Fees>NONE</Fees>
+    <AccessConstraints>NONE</AccessConstraints>
+  </Service>
+  <Capability>
+    <Request>
+      <GetCapabilities>
+        <Format>text/xml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:type="simple" xlink:href="https://www.sciencebase.gov:443/catalogMaps/mapping/ows/5b7c364fe4b0f5d578860338?SERVICE=WMS&amp;"/>
+            </Get>
+            <Post>
+              <OnlineResource xlink:type="simple" xlink:href="https://www.sciencebase.gov:443/catalogMaps/mapping/ows/5b7c364fe4b0f5d578860338?SERVICE=WMS&amp;"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </GetCapabilities>
+      <GetMap>
+        <Format>image/png</Format>
+        <Format>application/atom+xml</Format>
+        <Format>application/pdf</Format>
+        <Format>application/vnd.google-earth.kml+xml</Format>
+        <Format>application/vnd.google-earth.kml+xml;mode=networklink</Format>
+        <Format>application/vnd.google-earth.kmz</Format>
+        <Format>image/geotiff</Format>
+        <Format>image/geotiff8</Format>
+        <Format>image/gif</Format>
+        <Format>image/jpeg</Format>
+        <Format>image/png; mode=8bit</Format>
+        <Format>image/svg+xml</Format>
+        <Format>image/tiff</Format>
+        <Format>image/tiff8</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:type="simple" xlink:href="https://www.sciencebase.gov:443/catalogMaps/mapping/ows/5b7c364fe4b0f5d578860338?SERVICE=WMS&amp;"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+      </GetMap>
+      <GetFeatureInfo>
+        <Format>text/html</Format>
+        <Format>text/plain</Format>
+        <Format>text/javascript</Format>
+        <Format>application/json</Format>
+        <Format>application/vnd.ogc.gml/3.1.1</Format>
+        <Format>application/vnd.ogc.gml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:type="simple" xlink:href="https://www.sciencebase.gov:443/catalogMaps/mapping/ows/5b7c364fe4b0f5d578860338?SERVICE=WMS&amp;"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+      </GetFeatureInfo>
+    </Request>
+    <Exception>
+      <Format>XML</Format>
+      <Format>INIMAGE</Format>
+      <Format>BLANK</Format>
+    </Exception>
+    <Layer>
+      <Title>North American Grid-Based Sampling Frame</Title>
+      <Abstract/>
+      <CRS>CRS:84</CRS>
+      <CRS>EPSG:4326</CRS>
+      <CRS>EPSG:3857</CRS>
+      <EX_GeographicBoundingBox>
+        <westBoundLongitude>-180.0</westBoundLongitude>
+        <eastBoundLongitude>180.0</eastBoundLongitude>
+        <southBoundLatitude>29.433153985785207</southBoundLatitude>
+        <northBoundLatitude>85.8844</northBoundLatitude>
+      </EX_GeographicBoundingBox>
+      <BoundingBox CRS="CRS:84" minx="-180.0" miny="29.433153985785207" maxx="180.0" maxy="85.8844"/>
+      <Layer queryable="1">
+        <Name>AKCAN_mastersample_50km</Name>
+        <Title>AKCAN Master Sample 50km</Title>
+        <Abstract/>
+        <KeywordList>
+          <Keyword>features</Keyword>
+          <Keyword>AKCAN_mastersample_50km</Keyword>
+        </KeywordList>
+        <CRS>EPSG:4326</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-180.0</westBoundLongitude>
+          <eastBoundLongitude>180.0</eastBoundLongitude>
+          <southBoundLatitude>29.433153985785207</southBoundLatitude>
+          <northBoundLatitude>84.413267742407</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-180.0" miny="29.433153985785207" maxx="180.0" maxy="84.413267742407"/>
+        <BoundingBox CRS="EPSG:4326" minx="29.433153985785207" miny="-180.0" maxx="84.413267742407" maxy="180.0"/>
+        <Style>
+          <Name>MultiPolygon</Name>
+          <Title/>
+          <Abstract/>
+          <LegendURL width="20" height="20">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://www.sciencebase.gov:443/catalogMaps/mapping/ows/5b7c364fe4b0f5d578860338?service=WMS&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=AKCAN_mastersample_50km"/>
+          </LegendURL>
+        </Style>
+        <Style>
+          <Name>highlight</Name>
+          <Title/>
+          <Abstract/>
+          <LegendURL width="20" height="20">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://www.sciencebase.gov:443/catalogMaps/mapping/ows/5b7c364fe4b0f5d578860338?service=WMS&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=AKCAN_mastersample_50km&amp;style=highlight"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+      <Layer queryable="1">
+        <Name>sb:boundingBox</Name>
+        <Title>Item bounding box</Title>
+        <Abstract/>
+        <KeywordList>
+          <Keyword>features</Keyword>
+          <Keyword>item</Keyword>
+        </KeywordList>
+        <CRS>EPSG:4326</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-177.9019</westBoundLongitude>
+          <eastBoundLongitude>179.1465</eastBoundLongitude>
+          <southBoundLatitude>29.433153985785207</southBoundLatitude>
+          <northBoundLatitude>85.8844</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-177.9019" miny="29.433153985785207" maxx="179.1465" maxy="85.8844"/>
+        <BoundingBox CRS="EPSG:4326" minx="29.433153985785207" miny="-177.9019" maxx="85.8844" maxy="179.1465"/>
+        <Style>
+          <Name>DashedLineStyle</Name>
+          <Title/>
+          <Abstract/>
+          <LegendURL width="20" height="20">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://www.sciencebase.gov:443/catalogMaps/mapping/ows/5b7c364fe4b0f5d578860338?service=WMS&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=boundingBox"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+      <Layer queryable="1">
+        <Name>sb:footprint</Name>
+        <Title>Item footprint.</Title>
+        <Abstract/>
+        <KeywordList>
+          <Keyword>features</Keyword>
+          <Keyword>item</Keyword>
+        </KeywordList>
+        <CRS>EPSG:4326</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-177.9019</westBoundLongitude>
+          <eastBoundLongitude>179.1465</eastBoundLongitude>
+          <southBoundLatitude>29.433153985785207</southBoundLatitude>
+          <northBoundLatitude>85.8844</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-177.9019" miny="29.433153985785207" maxx="179.1465" maxy="85.8844"/>
+        <BoundingBox CRS="EPSG:4326" minx="29.433153985785207" miny="-177.9019" maxx="85.8844" maxy="179.1465"/>
+        <Style>
+          <Name>DashedLineStyle</Name>
+          <Title/>
+          <Abstract/>
+          <LegendURL width="20" height="20">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://www.sciencebase.gov:443/catalogMaps/mapping/ows/5b7c364fe4b0f5d578860338?service=WMS&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=footprint"/>
+          </LegendURL>
+        </Style>
+        <Style>
+          <Name>highlight</Name>
+          <Title/>
+          <Abstract/>
+          <LegendURL width="20" height="20">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://www.sciencebase.gov:443/catalogMaps/mapping/ows/5b7c364fe4b0f5d578860338?service=WMS&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=footprint&amp;style=highlight"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+    </Layer>
+  </Capability>
+</WMS_Capabilities>

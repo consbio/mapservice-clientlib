@@ -1,0 +1,83 @@
+{
+  "currentVersion": 10.5,
+  "serviceDescription": "",
+  "mapName": "Layers",
+  "description": "",
+  "copyrightText": "",
+  "supportsDynamicLayers": true,
+  "layers": [
+    {
+      "id": 0,
+      "name": "Habitat for wide-ranging species in Connectivity PR",
+      "parentLayerId": -1,
+      "defaultVisibility": true,
+      "subLayerIds": null,
+      "minScale": 0,
+      "maxScale": 0
+    }
+  ],
+  "tables": [
+    {
+      "id": 1,
+      "name": "AllThree_PotentialHabitat.csv"
+    },
+    {
+      "id": 2,
+      "name": "AllThree_PotHab_Connx2.txt"
+    },
+    {
+      "id": 3,
+      "name": "BearPanInd15.csv"
+    },
+    {
+      "id": 4,
+      "name": "Connx_wide.csv"
+    }
+  ],
+  "spatialReference": {
+    "wkt": "PROJCS[\"FDEP Albers HARN\",GEOGCS[\"GCS_North_American_1983_HARN\",DATUM[\"D_North_American_1983_HARN\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",400000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-84.0],PARAMETER[\"Standard_Parallel_1\",24.0],PARAMETER[\"Standard_Parallel_2\",31.5],PARAMETER[\"Latitude_Of_Origin\",24.0],UNIT[\"Meter\",1.0]]"
+  },
+  "singleFusedMapCache": false,
+  "initialExtent": {
+    "xmin": 513260.3879679106,
+    "ymin": 7886090.999233324,
+    "xmax": 18518909.628708655,
+    "ymax": 13864251.221455548,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "fullExtent": {
+    "xmin": -19951753.9839,
+    "ymin": -1622986.231899999,
+    "xmax": 20021553.447300003,
+    "ymax": 11554273.714599997,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "minScale": 0,
+  "maxScale": 0,
+  "units": "esriMeters",
+  "supportedImageFormatTypes": "PNG32,PNG24,PNG,JPG,DIB,TIFF,EMF,PS,PDF,GIF,SVG,SVGZ,BMP",
+  "documentInfo": {
+    "Title": "Connectivity_CT_wideranging_sd.mxd",
+    "Author": "",
+    "Comments": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P><SPAN>The data layer represents the predicted distributions of three wide-ranging species in Florida -- the Florida Black Bear, Florida Panther, and the Eastern Indigo Snake.Wide-ranging species within the Connectivity PR are a potential Conservation Target.   PFLCC's Connectivity Priority Resource is based on the Florida Ecological Greenways Netword's Greenways layer -- Bear and Panther Connectivity are part of the consideration for the original layer. </SPAN></P><P><SPAN>For metadata on PFLCC's Connectivity Priority Resource, please see the data layer of the same name in PFLCC's Connectivity Gallery.</SPAN></P><P><SPAN>The predicted distribution for the Florida Black Bear and the Florida Panther were derived from the Wildlife Habitat Conservation Needs in Florida (see 2009 publication) but updated in 2016 with the Cooperative Land Cover Version 3.2. </SPAN><SPAN>Potential-habitat maps for each focal species identify all potential habitats in Florida. For each species, we generated a binary raster of potential habitat with 30- x 30-m resolution. For this analysis, predicted distributions were resampled to 15 m x 15 m to match other layers in the PFLCC Conservation Planning Atlas, however the actual resolution and uncertainty remain at 30 m x 30 m.</SPAN></P><P><SPAN>The Eastern Indigo Snake predicted distribution is part of a project delineating potential habitat of federally listed species (2015). The original data layer shows probability of occupancy, which was converted to a binary layer to match other potential habitat layers using the recommended threshold value of .5.</SPAN></P></DIV></DIV></DIV>",
+    "Subject": "The data layer represents the predicted distributions of three wide-ranging species in Florida -- the Florida Black Bear, Florida Panther, and the Eastern Indigo Snake.   Wide-ranging species within the Connectivity PR are a potential Conservation Target.   PFLCC's Connectivity Priority Resource is based on the Florida Ecological Greenways Netword's Greenways layer -- Bear and Panther Connectivity are part of the consideration for the original layer.",
+    "Category": "",
+    "AntialiasingMode": "None",
+    "TextAntialiasingMode": "Force",
+    "Keywords": "PFLCC, Priority Resource, Conservation Target, Connectivity, Wide-Ranging Species, Florida Black Bear, Florida Panther, Eastern Indigo Snake"
+  },
+  "capabilities": "Map,Query,Data",
+  "supportedQueryFormats": "JSON, AMF, geoJSON",
+  "exportTilesAllowed": false,
+  "supportsDatumTransformation": true,
+  "maxRecordCount": 1000,
+  "maxImageHeight": 8192,
+  "maxImageWidth": 8192,
+  "supportedExtensions": "KmlServer, WMSServer"
+}

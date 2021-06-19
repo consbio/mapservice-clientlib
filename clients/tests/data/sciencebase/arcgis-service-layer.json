@@ -1,0 +1,53 @@
+{
+  "currentVersion": 10.5,
+  "id": 0,
+  "name": "Habitat for wide-ranging species in Connectivity PR",
+  "type": "Raster Layer",
+  "description": "",
+  "geometryType": null,
+  "copyrightText": "",
+  "parentLayer": null,
+  "subLayers": [],
+  "minScale": 0,
+  "maxScale": 0,
+  "defaultVisibility": true,
+  "extent": {
+    "xmin": -19024325.925,
+    "ymin": -1622985.366700001,
+    "xmax": 16239651.735799998,
+    "ymax": 11554273.612999998,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "hasAttachments": false,
+  "htmlPopupType": "esriServerHTMLPopupTypeNone",
+  "displayField": "",
+  "typeIdField": null,
+  "fields": null,
+  "indexes": [],
+  "relationships": [],
+  "canModifyLayer": false,
+  "canScaleSymbols": false,
+  "hasLabels": false,
+  "capabilities": "Map,Query",
+  "supportsStatistics": false,
+  "supportsAdvancedQueries": false,
+  "supportedQueryFormats": "JSON, AMF, geoJSON",
+  "ownershipBasedAccessControlForFeatures": {
+    "allowOthersToQuery": true
+  },
+  "useStandardizedQueries": true,
+  "advancedQueryCapabilities": {
+    "useStandardizedQueries": true,
+    "supportsStatistics": false,
+    "supportsOrderBy": false,
+    "supportsDistinct": false,
+    "supportsPagination": false,
+    "supportsTrueCurve": false,
+    "supportsReturningQueryExtent": true,
+    "supportsQueryWithDistance": true,
+    "supportsSqlExpression": false
+  }
+}

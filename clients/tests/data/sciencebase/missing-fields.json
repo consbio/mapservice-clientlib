@@ -1,0 +1,189 @@
+{
+  "link": {
+    "rel": "self",
+    "url": "https://www.sciencebase.gov/catalog/item/missing_fields"
+  },
+  "relatedItems": {
+    "link": {
+      "url": "https://www.sciencebase.gov/catalog/itemLinks?itemId=missing_fields",
+      "rel": "related"
+    }
+  },
+  "id": "missing_fields",
+  "title": "SLAMM Sea Level Rise Model - A1Fi",
+  "provenance": {
+    "dataSource": "Input directly",
+    "dateCreated": "2013-03-04T20:45:59Z",
+    "lastUpdated": "2017-08-22T17:06:51Z"
+  },
+  "hasChildren": false,
+  "parentId": "555c9b0ce4b0a92fa7eb0db8",
+  "browseCategories": [
+    "Data"
+  ],
+  "browseTypes": [
+    "Downloadable",
+    "ArcGIS REST Map Service",
+    "ArcGIS Service Definition",
+    "ArcGIS Map Package",
+    "Map Service"
+  ],
+  "systemTypes": [
+    "Downloadable",
+    "Mappable"
+  ],
+  "facets": [
+    {
+      "boundingBox": {
+        "maxY": 38.1427395052301,
+        "maxX": -75.0075830381041,
+        "minX": -85.4596822526921,
+        "minY": 28.2927237412403
+      },
+      "name": "SLAMM Sea Level Rise Model A1FI.mpk",
+      "files": [
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "SLAMM Sea Level Rise Model A1FI.mpk",
+          "title": null,
+          "contentType": "x-gis/x-mpk",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__49/10/9b/49109be21d40d5c9cd278b9a15effab4e208611e",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 178213394,
+          "dateUploaded": null,
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/missing_fields?f=__disk__49%2F10%2F9b%2F49109be21d40d5c9cd278b9a15effab4e208611e",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/missing_fields?f=__disk__49%2F10%2F9b%2F49109be21d40d5c9cd278b9a15effab4e208611e"
+        }
+      ],
+      "className": "gov.sciencebase.catalog.item.facet.MapPackageFacet",
+      "facetName": "ArcGIS Map Package"
+    },
+    {
+      "filePathUsed": "__disk__45/0a/e1/450ae1318f6237398106b34f05c68c38411d3d80",
+      "boundingBox": {
+        "maxY": 38.1427395052301,
+        "maxX": -75.0075830381041,
+        "minX": -85.4596822526921,
+        "minY": 28.2927237412403
+      },
+      "processingState": "success",
+      "servicePath": "missing_fields",
+      "processingMessage": "",
+      "name": "SLAMM_Sea_Level_Rise_Model_A1FI.sd",
+      "files": [
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "SLAMM_Sea_Level_Rise_Model_A1FI.sd",
+          "title": null,
+          "contentType": "x-gis/x-arcgis-service-def",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__45/0a/e1/450ae1318f6237398106b34f05c68c38411d3d80",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 178229373,
+          "dateUploaded": null,
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/missing_fields?f=__disk__45%2F0a%2Fe1%2F450ae1318f6237398106b34f05c68c38411d3d80",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/missing_fields?f=__disk__45%2F0a%2Fe1%2F450ae1318f6237398106b34f05c68c38411d3d80"
+        }
+      ],
+      "enabledServices": [
+        "KmlServer",
+        "WMSServer"
+      ],
+      "serviceId": "missing_fields",
+      "className": "gov.sciencebase.catalog.item.facet.ServiceDefinitionFacet",
+      "facetName": "ArcGIS Service Definition"
+    }
+  ],
+  "distributionLinks": [
+    {
+      "uri": "https://www.sciencebase.gov/arcgis/rest/services/Catalog/missing_fields/MapServer",
+      "title": "ArcGIS REST Service",
+      "type": "serviceLink",
+      "typeLabel": "Service Link",
+      "rel": "alternate",
+      "name": "",
+      "files": ""
+    },
+    {
+      "uri": "https://www.sciencebase.gov/arcgis/rest/services/Catalog/missing_fields/MapServer/kml/mapImage.kmz",
+      "title": "KML Service",
+      "type": "kml",
+      "typeLabel": "KML Download",
+      "rel": "alternate",
+      "name": "",
+      "files": ""
+    },
+    {
+      "uri": "https://www.sciencebase.gov/arcgis/services/Catalog/missing_fields/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+      "title": "ArcGIS WMS Service",
+      "type": "serviceLink",
+      "typeLabel": "Service Link",
+      "rel": "alternate",
+      "name": "",
+      "files": ""
+    },
+    {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/missing_fields",
+      "title": "Download Attached Files",
+      "type": "downloadLink",
+      "typeLabel": "Download Link",
+      "rel": "alternate",
+      "name": "SLAMMSeaLevelRi.zip",
+      "files": [
+        {
+          "name": "SLAMM Sea Level Rise Model A1FI.mpk/SLAMM Sea Level Rise Model A1FI.mpk",
+          "title": null,
+          "contentType": "x-gis/x-mpk",
+          "size": 178213394
+        },
+        {
+          "name": "SLAMM_Sea_Level_Rise_Model_A1FI.sd/SLAMM_Sea_Level_Rise_Model_A1FI.sd",
+          "title": null,
+          "contentType": "x-gis/x-arcgis-service-def",
+          "size": 178229373
+        }
+      ]
+    }
+  ],
+  "previewImage": {
+    "from": "mapPreview",
+    "original": {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/missing_fields?f=__disk__cd%2F62%2F96%2Fcd6296088ad7f47dcbc8f58dfe0c94062ad4cd6e",
+      "viewUri": "https://www.sciencebase.gov/catalog/file/get/missing_fields?f=__disk__cd%2F62%2F96%2Fcd6296088ad7f47dcbc8f58dfe0c94062ad4cd6e&width=360&height=240",
+      "viewUrl": "https://www.sciencebase.gov/catalog/file/get/missing_fields?deprecated=__use__viewUri__instead__&f=__disk__cd%2F62%2F96%2Fcd6296088ad7f47dcbc8f58dfe0c94062ad4cd6e&width=360&height=240",
+      "width": 360,
+      "height": 240,
+      "size": 121758
+    },
+    "thumbnail": {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/missing_fields?f=__disk__cd%2F62%2F96%2Fcd6296088ad7f47dcbc8f58dfe0c94062ad4cd6e&width=150&height=100",
+      "width": 150,
+      "height": 100
+    }
+  }
+}

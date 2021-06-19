@@ -1,0 +1,69 @@
+{
+  "layers": [
+    {
+      "layerId": 0,
+      "layerName": "Habitat for wide-ranging species in Connectivity PR",
+      "layerType": "Raster Layer",
+      "minScale": 0,
+      "maxScale": 0,
+      "legend": [
+        {
+          "label": "bear",
+          "url": "4f160b4194f6e2163bedbce75c0481c8",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADpJREFUOI1jYaAyYKGlgf+pYB4jigvVisk36VYvhKapl0cNHDVw1MBRA7EbCCuCyASM6AYyUmQcFAAA2rQEuh/h3hIAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20
+        },
+        {
+          "label": "panther",
+          "url": "9d0f501b7a616519c2a9d030b4522752",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADhJREFUOI1jYaAyYKGlgf+pYB4jigv/U2AkIyOEpqmXRw0cNXDUwFEDsRsIK4LIBIzoBlJmHBQAAF8jA1XJU6ZXAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20
+        },
+        {
+          "label": "bear and panther",
+          "url": "43427280520330cc91f77a1c6702b675",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADpJREFUOI1jYaAyYKGlgf+pYB4jigtnPCPfpAwpCE1TL48aOGrgqIGjBmI3EFYEkQkY0Q1kpMg4KAAAi4oD1W+fTLQAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20
+        },
+        {
+          "label": "indigo snake",
+          "url": "298ca8775aa7d68b5fc098db93928579",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADlJREFUOI1jYaAyYKGlgf+pYB4jigv/r6LApDAITVMvjxo4auCogaMGYjcQVgSRCRjRDWSkyDgoAAB8WwOq40bSBAAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20
+        },
+        {
+          "label": "bear and indigo",
+          "url": "d21192eaa99fbacfc4fb6d2a2d00187f",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADpJREFUOI1jYaAyYKGlgf+pYB4jigsLVpBv0oQICE1TL48aOGrgqIGjBmI3EFYEkQkY0Q1kpMg4KAAArsIEO3cxsdsAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20
+        },
+        {
+          "label": "panther and indigo",
+          "url": "b1a044b9b75677bb157f05141990eff1",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADxJREFUOI1jYaAyYKGlgf+pYB4jigv/v95HvkmiTgwMDDT28qiBowaOGjhqIHYDYUUQmYAR3UBGSkyDAQDOvASrc8+0BwAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20
+        },
+        {
+          "label": "all three",
+          "url": "a0b613e23a278b60491f9d8aa1b07926",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADhJREFUOI1jYaAyYKGlgf+pYB4jiguLKTCpF0rT1MujBo4aOGrgqIHYDezFpYo4wIhuICNl5kEAADwsAuCsIenrAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "height": 20,
+          "width": 20
+        }
+      ]
+    }
+  ]
+}

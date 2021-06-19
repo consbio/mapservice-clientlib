@@ -5,9 +5,11 @@ from parserutils.urls import get_base_url, update_url_params
 from restle.fields import BooleanField, NumberField, TextField
 from sciencebasepy import SbSession
 
-from .arcgis import ArcGISSecureResource
-from .exceptions import ClientError, HTTPError, MissingFields, NoLayers, ValidationError
+from .arcgis import ArcGISSecureResource, MapServerResource
+from .exceptions import ClientError, HTTPError, MissingFields, NoLayers, ServiceError, ValidationError
+from .resources import ClientResource
 from .query.fields import DictField, ListField, ObjectField
+from .wms import WMSResource
 
 
 # List of contact types that we pull out for credits field, since ScienceBase doesn't have the same concept as us.
@@ -15,6 +17,7 @@ DATA_PROVIDER_CONTACT_TYPES = (
     "Author", "Co-Investigator", "Data Owner", "Lead Organization", "Originator", "Principal Investigator"
 )
 SCIENCE_BASE_CONTENT_TYPES = "text/html,application/json,application/xhtml+xml,application/xml"
+SCIENCE_BASE_TOKEN_IDS = {"arcgis": "token", "wms": "josso"}
 
 
 class ScienceBaseSession(SbSession, object):
@@ -27,30 +30,27 @@ class ScienceBaseSession(SbSession, object):
     _session_content_types = SCIENCE_BASE_CONTENT_TYPES
 
     def __init__(self, josso_session_id=None, username=None):
+        """ Overridden to reuse active login credentials without new login """
+
         super(ScienceBaseSession, self).__init__()
 
+        # Set private variables that are used in SbSession
+
+        self._username = username
         self._session.headers["Accept"] = self._session_content_types
-        self.has_session = bool(josso_session_id and username)
 
-        if self.has_session:
-            # These are private variables that are used in the parent: SbSession
+        if josso_session_id:
             self._jossosessionid = josso_session_id
-            self._session.params = {"josso": self._jossosessionid}
-            self._username = username
-
-    def login(self, username, password):
-        super(ScienceBaseSession, self).login(username, password)
-
-        self.has_session = True
+            self._session.params = {"josso": josso_session_id}
 
     def get_public_url(self, response):
         return self._remove_josso_param(response.url)
 
     def get_json(self, url, external_id=None):
-        """ Overridden to flexibly query ScienceBase items with session """
+        """ Overridden to improve error handling """
 
         url = update_url_params(url, format="json")
-        response = (self._session if self.has_session else requests).get(url)
+        response = self._session.get(url)
 
         try:
             response.raise_for_status()
@@ -135,19 +135,24 @@ class ScienceBaseSession(SbSession, object):
                     has_valid_layers = any(ext for ext in file_extensions if ext in ("shp", "tif", "tiff"))
 
         if not service_url:
-            error = "The ScienceBase item has not yet been published by ScienceBase: {0}"
-            raise ValidationError(f"The ScienceBase item has not yet been published by ScienceBase: {external_id}")
+            raise ValidationError(
+                f"The ScienceBase item has not yet been published by ScienceBase: {external_id}",
+                url=service_url
+            )
         elif not has_valid_layers:
-            error = "The ScienceBase item does not have any valid layers; shapefile or GeoTIFF are required: {}"
-            raise NoLayers(error.format(external_id), url=service_url)
+            raise NoLayers(
+                f"The ScienceBase item has no valid layers; shapefile or GeoTIFF are required: {external_id}",
+                url=service_url
+            )
 
+        item_settings["serviceTokenId"] = SCIENCE_BASE_TOKEN_IDS[service_type]
         item_settings["serviceType"] = service_type
         item_settings["serviceUrl"] = service_url
 
         return item_json
 
 
-class ScienceBaseResource(ArcGISSecureResource):
+class ScienceBaseResource(ClientResource):
 
     data_provider_contact_types = DATA_PROVIDER_CONTACT_TYPES
 
@@ -189,27 +194,96 @@ class ScienceBaseResource(ArcGISSecureResource):
     })
     _tags = ObjectField(name="tags", class_name="Tag")
 
+    _service_client = None
+
     class Meta:
         case_sensitive_fields = False
         get_parameters = {"format": "json"}
         match_fuzzy_keys = True
 
-    def _get(self, url, **kwargs):
-        """ Overridden to parse external_id from the URL """
+    @property
+    def full_extent(self):
+        """ :return: either the WMS or ArcGIS client's full extent """
+        return self.get_service_client().full_extent
 
-        super(ScienceBaseResource, self)._get(url, **kwargs)
+    @property
+    def service_version(self):
+        """ :return: either the WMS or ArcGIS client's version """
+        return self.get_service_client().version
+
+    def get_service_client(self):
+        """ Instantiates and manages the ArcGIS or WMS client backing the ScienceBase item """
+
+        if self._service_client:
+            return self._service_client
+
+        elif self.service_type == "wms":
+            self._service_client = WMSResource.get(self.service_url, lazy=True)
+            self._service_client._params[self.service_token_id] = self.service_token
+
+        elif self.service_type == "arcgis":
+            self._service_client = MapServerResource.get(self.service_url, lazy=True, **self.arcgis_credentials)
+            self.arcgis_credentials.update(self._service_client.arcgis_credentials)
+
+        else:
+            raise ServiceError(f"Invalid ScienceBaseResource.service_type: {self.service_type}")
+
+        if not self._lazy:
+            self._service_client._load_resource()
+
+        return self._service_client
+
+    def _get(self, url, username=None, password=None, token=None, **kwargs):
+        """
+        Overridden to parse external_id from the URL, and to manage ScienceBase credentials.
+        ScienceBase requires a USGS token (SbSession._jossosessionid) to access private items.
+        Each ScienceBase item is backed by either an ArcGIS or WMS map service.
+        A private WMS map service uses the same credentials as the base ScienceBase item,
+        while a private ArcGIS map service is accessed by a separate set of credentials.
+
+        :param username: an optional USGS username, required only for private items
+        :param password: an optional USGS password, used with a username to generate a token
+        :param token: an optional USGS session id, used instead of username/password if provided
+        :param arcgis_credentials: an optional dict with username and password, or token for ArcGIS access
+
+        If none of the above are provided, this resource will work only with public ScienceBase items.
+        """
+
         self._external_id = get_base_url(url, True).strip("/").split("/")[-1]
 
-    def _load_resource(self):
-        """ Overridden to make session handling compatible with SbSession """
+        # Prepare USGS (josso) session
 
-        if not isinstance(self._session, ScienceBaseSession):
-            if isinstance(self._session, type):
-                self._session = self._session(josso_session_id=self.token, username=self.username)
-            elif self.token and self.username:
-                self._session = ScienceBaseSession(josso_session_id=self.token, username=self.username)
-            else:
-                self._session = ScienceBaseSession()  # Assume a public item
+        self._session = ScienceBaseSession(josso_session_id=token, username=username)
+        self._username = username
+        self._token = token
+
+        if username and password and not token:
+            self._session.login(username, password)
+            self._token = self._session._jossosessionid
+            self._session._session.params["josso"] = self._token
+
+        self.josso_credentials = {"username": self._username, "token": self._token}
+
+        # Prepare ScienceBase ArcGIS session
+
+        arcgis_credentials = kwargs.pop("arcgis_credentials", None) or {}
+
+        if arcgis_credentials and not self.arcgis_credentials.get("token"):
+            arcgis_user = arcgis_credentials.get("username")
+            arcgis_pass = arcgis_credentials.get("password")
+
+            if arcgis_user and arcgis_pass:
+                server_admin = ArcGISSecureResource.generate_token(self._url, arcgis_user, arcgis_pass)
+                if server_admin.token:
+                    arcgis_credentials["token"] = server_admin.token
+
+        self.arcgis_credentials = {
+            "username": arcgis_credentials.get("username"),
+            "token": arcgis_credentials.get("token")
+        }
+
+    def _load_resource(self):
+        """ Overridden to improve error handling """
 
         try:
             self.populate_field_values(self._session.get_json(self._url, self._external_id))
@@ -239,8 +313,14 @@ class ScienceBaseResource(ArcGISSecureResource):
 
         self.private = self.settings.private
         self.permissions = self.settings.permissions
+        self.service_token_id = self.settings.service_token_id
         self.service_type = self.settings.service_type
         self.service_url = self.settings.service_url
+
+        if self.service_type == "arcgis":
+            self.service_token = self.arcgis_credentials["token"]
+        else:
+            self.service_token = self._token
 
         # Parse dates from provenance object
 
@@ -268,7 +348,7 @@ class ScienceBaseResource(ArcGISSecureResource):
             if any_facet_has_files and has_valid_browse_types:
                 # Note: ScienceBase escapes certain characters to underscores for WMS layer names
                 facet_names = (facet.name for facet in self.facets if hasattr(facet, "name"))
-                self.properties["wms_layer_name"] = facet_names.next().replace("/", "_")
+                self.properties["wms_layer_name"] = next(facet_names).replace("/", "_")
 
     def populate_contact_related_fields(self, valid_contacts=None):
         """ Populate contact_persons, contact_orgs and originators """
@@ -313,3 +393,6 @@ class ScienceBaseResource(ArcGISSecureResource):
                 elif originator.get("company"):
                     originator_txt += "({})".format(originator["company"])
                 self.originators.append(originator_txt)
+
+    def get_image(self, extent, width, height, **kwargs):
+        return self.get_service_client().get_image(extent=extent, width=width, height=height, **kwargs)

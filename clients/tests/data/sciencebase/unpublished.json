@@ -1,0 +1,5 @@
+{
+  "errors": {
+    "message": "Item not found for ID=unpublished. Either the item does not exist or the item is secured and requires authentication to access."
+  }
+}

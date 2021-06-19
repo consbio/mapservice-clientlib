@@ -1,0 +1,482 @@
+{
+  "link": {
+    "rel": "self",
+    "url": "https://www.sciencebase.gov/catalog/item/wms"
+  },
+  "relatedItems": {
+    "link": {
+      "url": "https://www.sciencebase.gov/catalog/itemLinks?itemId=wms",
+      "rel": "related"
+    }
+  },
+  "id": "wms_service",
+  "title": "Southwestern Willow Flycatcher Focal Area",
+  "summary": "The Southwestern Willow Flycatcher Focal Area represents an area of interest",
+  "body": "The Southwestern Willow Flycatcher Focal Area represents an area of interest pertaining to the southwestern willow flycatcher.",
+  "citation": "Southwestern Willow Flycatcher Focal Area (WLFW)",
+  "purpose": "This dataset is being used as part of the Conservation Blueprint 1.0.",
+  "provenance": {
+    "dataSource": "Input directly",
+    "dateCreated": "2015-08-29T17:46:44Z",
+    "lastUpdated": "2015-08-29T17:46:44Z"
+  },
+  "hasChildren": false,
+  "parentId": "parent-folder",
+  "contacts": [
+    {
+      "name": "Some Person",
+      "oldPartyId": 67547,
+      "type": "Distributor",
+      "contactType": "person",
+      "email": "person@freshwaterinstitute.org",
+      "active": true,
+      "jobTitle": "Senior Environmental Associate",
+      "firstName": "Some",
+      "middleName": "Other",
+      "lastName": "Person",
+      "organization": {},
+      "primaryLocation": {
+        "name": "Freshwater Institute",
+        "officePhone": "3048762815",
+        "streetAddress": {},
+        "mailAddress": {
+          "line1": "1098 Turner Road",
+          "city": "Shepherdstown",
+          "state": "WV",
+          "zip": "25443",
+          "country": "USA"
+        }
+      }
+    }
+  ],
+  "browseCategories": [
+    "Data",
+    "Publication"
+  ],
+  "browseTypes": [
+    "Shapefile",
+    "Downloadable",
+    "Map Service",
+    "OGC WMS Layer",
+    "OGC WFS Layer",
+    "Citation"
+  ],
+  "systemTypes": [
+    "Downloadable",
+    "Mappable"
+  ],
+  "tags": [
+    {
+      "type": "Theme",
+      "scheme": "None",
+      "name": "conservation"
+    },
+    {
+      "type": "Theme",
+      "scheme": "None",
+      "name": "Southwestern Willow Flycatcher"
+    },
+    {
+      "type": "Theme",
+      "scheme": "None",
+      "name": "Focal Area"
+    },
+    {
+      "type": "Theme",
+      "scheme": "None",
+      "name": "WLFW"
+    }
+  ],
+  "spatial": {
+    "boundingBox": {
+      "minX": -121.389762,
+      "maxX": -104.729403,
+      "minY": 29.803338,
+      "maxY": 39.322289
+    }
+  },
+  "facets": [
+    {
+      "boundingBox": {
+        "minX": -121.38976229221491,
+        "minY": 29.80333794238641,
+        "maxX": -104.72940289874478,
+        "maxY": 39.32228869647462
+      },
+      "name": "SouthwesternWillowFlycatcher_FocalArea",
+      "files": [
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "SouthwesternWillowFlycatcher_FocalArea.shp",
+          "title": "",
+          "contentType": "x-gis/x-shapefile",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__19/57/a9/1957a9972e9ce152ed3c3e0c4658f79905d0852a",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 2545048,
+          "dateUploaded": "2015-08-29T17:46:16Z",
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__19%2F57%2Fa9%2F1957a9972e9ce152ed3c3e0c4658f79905d0852a",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__19%2F57%2Fa9%2F1957a9972e9ce152ed3c3e0c4658f79905d0852a"
+        },
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "SouthwesternWillowFlycatcher_FocalArea.dbf",
+          "title": "",
+          "contentType": "text/plain",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__94/a5/b3/94a5b3ecc1d88fa501b3f10bc593ce1f487cce87",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 1417767,
+          "dateUploaded": "2015-08-29T17:46:16Z",
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__94%2Fa5%2Fb3%2F94a5b3ecc1d88fa501b3f10bc593ce1f487cce87",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__94%2Fa5%2Fb3%2F94a5b3ecc1d88fa501b3f10bc593ce1f487cce87",
+          "viewUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__94%2Fa5%2Fb3%2F94a5b3ecc1d88fa501b3f10bc593ce1f487cce87&allowOpen=true"
+        },
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "SouthwesternWillowFlycatcher_FocalArea.shx",
+          "title": "",
+          "contentType": "x-gis/x-shapefile",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__80/7b/d7/807bd7336ff1847dd1214ea5a662f856ed011c5e",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 8332,
+          "dateUploaded": "2015-08-29T17:46:16Z",
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__80%2F7b%2Fd7%2F807bd7336ff1847dd1214ea5a662f856ed011c5e",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__80%2F7b%2Fd7%2F807bd7336ff1847dd1214ea5a662f856ed011c5e"
+        },
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "SouthwesternWillowFlycatcher_FocalArea.prj",
+          "title": "",
+          "contentType": "text/plain",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__c6/f7/43/c6f7436ab90335410f1cab9a09448b9c46dcfafb",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 480,
+          "dateUploaded": "2015-08-29T17:46:16Z",
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__c6%2Ff7%2F43%2Fc6f7436ab90335410f1cab9a09448b9c46dcfafb",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__c6%2Ff7%2F43%2Fc6f7436ab90335410f1cab9a09448b9c46dcfafb",
+          "viewUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__c6%2Ff7%2F43%2Fc6f7436ab90335410f1cab9a09448b9c46dcfafb&allowOpen=true"
+        },
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "SouthwesternWillowFlycatcher_FocalArea.shp.xml",
+          "title": "",
+          "contentType": "application/xml",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__46/0a/ed/460aed8e2b2f295ec2c938ef2f273f6597dff3de",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 389190,
+          "dateUploaded": "2015-08-29T17:46:16Z",
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__46%2F0a%2Fed%2F460aed8e2b2f295ec2c938ef2f273f6597dff3de",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__46%2F0a%2Fed%2F460aed8e2b2f295ec2c938ef2f273f6597dff3de",
+          "viewUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__46%2F0a%2Fed%2F460aed8e2b2f295ec2c938ef2f273f6597dff3de&allowOpen=true"
+        },
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "SouthwesternWillowFlycatcher_FocalArea.sbn",
+          "title": "",
+          "contentType": "x-gis/x-shapefile",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__c4/64/f2/c464f2e33b68187f38f4d8f1060272073d2c1a14",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 10868,
+          "dateUploaded": "2015-08-29T17:46:16Z",
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__c4%2F64%2Ff2%2Fc464f2e33b68187f38f4d8f1060272073d2c1a14",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__c4%2F64%2Ff2%2Fc464f2e33b68187f38f4d8f1060272073d2c1a14"
+        },
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "SouthwesternWillowFlycatcher_FocalArea.sbx",
+          "title": "",
+          "contentType": "x-gis/x-shapefile",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__de/63/ef/de63ef1ee903b3edb8964da45816ba3560e9146d",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 692,
+          "dateUploaded": "2015-08-29T17:46:16Z",
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__de%2F63%2Fef%2Fde63ef1ee903b3edb8964da45816ba3560e9146d",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__de%2F63%2Fef%2Fde63ef1ee903b3edb8964da45816ba3560e9146d"
+        },
+        {
+          "cuid": null,
+          "key": null,
+          "bucket": null,
+          "published": null,
+          "node": null,
+          "name": "SouthwesternWillowFlycatcher_FocalArea.cpg",
+          "title": "",
+          "contentType": "text/plain",
+          "contentEncoding": null,
+          "pathOnDisk": "__disk__59/d5/5e/59d55e39803e05c9d3824413a2cbed1293b0061c",
+          "processed": null,
+          "processToken": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "size": 5,
+          "dateUploaded": "2015-08-29T17:46:16Z",
+          "originalMetadata": null,
+          "useForPreview": null,
+          "movedToS3": null,
+          "s3Object": null,
+          "checksum": null,
+          "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__59%2Fd5%2F5e%2F59d55e39803e05c9d3824413a2cbed1293b0061c",
+          "downloadUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__59%2Fd5%2F5e%2F59d55e39803e05c9d3824413a2cbed1293b0061c",
+          "viewUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__59%2Fd5%2F5e%2F59d55e39803e05c9d3824413a2cbed1293b0061c&allowOpen=true"
+        }
+      ],
+      "nativeCrs": "EPSG:5070",
+      "geometryType": "MultiLineString",
+      "className": "gov.sciencebase.catalog.item.facet.ShapefileFacet",
+      "facetName": "Shapefile"
+    },
+    {
+      "note": "",
+      "conference": "",
+      "journal": "",
+      "parts": [
+        {
+          "type": "FGDC Metadata Citation Facet",
+          "value": "Remove This Facet To Recreate From Metadata File"
+        }
+      ],
+      "edition": "",
+      "language": "",
+      "tableOfContents": "",
+      "citationType": "vector digital data",
+      "className": "gov.sciencebase.catalog.item.facet.CitationFacet",
+      "facetName": "Citation"
+    }
+  ],
+  "files": [
+    {
+      "cuid": null,
+      "key": null,
+      "bucket": null,
+      "published": null,
+      "node": null,
+      "name": "SouthwesternWillowFlycatcher_FocalArea_metadata.xml",
+      "title": "",
+      "contentType": "application/fgdc+xml",
+      "contentEncoding": null,
+      "pathOnDisk": "__disk__2e/44/5f/2e445f35f3fedc559c544bbc51a9b1178757ddec",
+      "processed": null,
+      "processToken": null,
+      "imageWidth": null,
+      "imageHeight": null,
+      "size": 10293,
+      "dateUploaded": "2015-08-29T17:46:16Z",
+      "originalMetadata": null,
+      "useForPreview": null,
+      "movedToS3": null,
+      "s3Object": null,
+      "checksum": null,
+      "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__id",
+      "downloadUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__id"
+    }
+  ],
+  "distributionLinks": [
+    {
+      "uri": "https://www.sciencebase.gov/catalogMaps/mapping/ows/wms?mode=download&request=kml&service=wms&layers=SouthwesternWillowFlycatcher_FocalArea",
+      "title": "KML Service",
+      "type": "kml",
+      "typeLabel": "KML Download",
+      "rel": "alternate",
+      "name": "",
+      "files": ""
+    },
+    {
+      "uri": "https://www.sciencebase.gov/catalogMaps/mapping/ows/wms?service=wms&request=getcapabilities&version=1.3.0",
+      "title": "ScienceBase WMS Service",
+      "type": "serviceCapabilitiesUrl",
+      "typeLabel": "OGC Service Capabilities URL",
+      "rel": "alternate",
+      "name": "",
+      "files": ""
+    },
+    {
+      "uri": "https://www.sciencebase.gov/catalogMaps/mapping/ows/wms?service=wfs&request=getcapabilities&version=1.0.0",
+      "title": "ScienceBase WFS Service",
+      "type": "serviceCapabilitiesUrl",
+      "typeLabel": "OGC Service Capabilities URL",
+      "rel": "alternate",
+      "name": "",
+      "files": ""
+    },
+    {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/wms",
+      "title": "Download Attached Files",
+      "type": "downloadLink",
+      "typeLabel": "Download Link",
+      "rel": "alternate",
+      "name": "SouthwesternWil.zip",
+      "files": [
+        {
+          "name": "SouthwesternWillowFlycatcher_FocalArea/SouthwesternWillowFlycatcher_FocalArea.shp",
+          "title": "",
+          "contentType": "x-gis/x-shapefile",
+          "size": 2545048
+        },
+        {
+          "name": "SouthwesternWillowFlycatcher_FocalArea/SouthwesternWillowFlycatcher_FocalArea.dbf",
+          "title": "",
+          "contentType": "text/plain",
+          "size": 1417767
+        },
+        {
+          "name": "SouthwesternWillowFlycatcher_FocalArea/SouthwesternWillowFlycatcher_FocalArea.shx",
+          "title": "",
+          "contentType": "x-gis/x-shapefile",
+          "size": 8332
+        },
+        {
+          "name": "SouthwesternWillowFlycatcher_FocalArea/SouthwesternWillowFlycatcher_FocalArea.prj",
+          "title": "",
+          "contentType": "text/plain",
+          "size": 480
+        },
+        {
+          "name": "SouthwesternWillowFlycatcher_FocalArea/SouthwesternWillowFlycatcher_FocalArea.shp.xml",
+          "title": "",
+          "contentType": "application/xml",
+          "size": 389190
+        },
+        {
+          "name": "SouthwesternWillowFlycatcher_FocalArea/SouthwesternWillowFlycatcher_FocalArea.sbn",
+          "title": "",
+          "contentType": "x-gis/x-shapefile",
+          "size": 10868
+        },
+        {
+          "name": "SouthwesternWillowFlycatcher_FocalArea/SouthwesternWillowFlycatcher_FocalArea.sbx",
+          "title": "",
+          "contentType": "x-gis/x-shapefile",
+          "size": 692
+        },
+        {
+          "name": "SouthwesternWillowFlycatcher_FocalArea/SouthwesternWillowFlycatcher_FocalArea.cpg",
+          "title": "",
+          "contentType": "text/plain",
+          "size": 5
+        },
+        {
+          "name": "SouthwesternWillowFlycatcher_FocalArea_metadata.xml",
+          "title": "",
+          "contentType": "application/fgdc+xml",
+          "size": 10293
+        }
+      ]
+    }
+  ],
+  "previewImage": {
+    "from": "mapPreview",
+    "original": {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__a6%2Faf%2F5c%2Fa6af5c067da0dcf72a9426cc6607e1dee2813451",
+      "viewUri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__a6%2Faf%2F5c%2Fa6af5c067da0dcf72a9426cc6607e1dee2813451&width=735&height=445",
+      "viewUrl": "https://www.sciencebase.gov/catalog/file/get/wms?deprecated=__use__viewUri__instead__&f=__disk__a6%2Faf%2F5c%2Fa6af5c067da0dcf72a9426cc6607e1dee2813451&width=735&height=445",
+      "width": 735,
+      "height": 445,
+      "size": 698960
+    },
+    "thumbnail": {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__a6%2Faf%2F5c%2Fa6af5c067da0dcf72a9426cc6607e1dee2813451&width=150&height=91",
+      "width": 150,
+      "height": 91
+    },
+    "small": {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__a6%2Faf%2F5c%2Fa6af5c067da0dcf72a9426cc6607e1dee2813451&width=350&height=212",
+      "width": 350,
+      "height": 212
+    },
+    "medium": {
+      "uri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__a6%2Faf%2F5c%2Fa6af5c067da0dcf72a9426cc6607e1dee2813451&width=580&height=351",
+      "width": 580,
+      "height": 351
+    }
+  }
+}
