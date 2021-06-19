@@ -1,5 +1,3 @@
-from hashlib import md5
-
 from clients.exceptions import ContentError, HTTPError, ImageError
 from clients.wms import WMSResource
 from clients.utils.geometry import Extent
@@ -13,13 +11,14 @@ class WMSTestCase(ResourceTestCase):
         super(WMSTestCase, self).setUp()
         self.wms_directory = self.data_directory / "wms"
 
-    def assert_ncwms_request(self, session, version):
+    def assert_ncwms_request(self, data_path, version):
 
         is_max_version = (version == "1.3.0")
 
+        session = self.mock_mapservice_session(data_path)
         headers = {"content-type": "application/json"}
-        wms_json = self.wms_directory / "ncwms-layer.json"
-        layer_session = self.mock_mapservice_session(wms_json, headers=headers)
+        ncwms_json = self.wms_directory / "ncwms-layer.json"
+        layer_session = self.mock_mapservice_session(ncwms_json, headers=headers)
 
         client = WMSResource.get(
             "http://tools.pacificclimate.org/ncWMS-PCIC/wms",
@@ -206,11 +205,15 @@ class WMSTestCase(ResourceTestCase):
         ])
         self.assertEqual(first_layer.supported_styles, ["boxfill"])
 
-    def assert_wms_request(self, session, version):
+    def assert_wms_request(self, data_path, version):
 
         is_max_version = (version == "1.3.0")
 
-        client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", session=session, lazy=False)
+        client = WMSResource.get(
+            "http://demo.mapserver.org/cgi-bin/wms",
+            session=self.mock_mapservice_session(data_path),
+            lazy=False
+        )
 
         # Test service level information
 
@@ -347,42 +350,23 @@ class WMSTestCase(ResourceTestCase):
             WMSResource.get("http://www.google.com", session=session, lazy=False)
 
     def test_valid_new_ncwms_request(self):
-
-        data_path = self.wms_directory / "ncwms-max.xml"
-
-        self.assert_ncwms_request(self.mock_mapservice_session(data_path), version="1.3.0")
+        self.assert_ncwms_request(self.wms_directory / "ncwms-max.xml", version="1.3.0")
 
     def test_valid_old_ncwms_request(self):
-
-        data_path = self.wms_directory / "ncwms-min.xml"
-
-        self.assert_ncwms_request(self.mock_mapservice_session(data_path), version="1.1.1")
+        self.assert_ncwms_request(self.wms_directory / "ncwms-min.xml", version="1.1.1")
 
     def test_valid_new_wms_request(self):
-
-        data_path = self.wms_directory / "demo-wms-max.xml"
-
-        self.assert_wms_request(self.mock_mapservice_session(data_path), "1.3.0")
+        self.assert_wms_request(self.wms_directory / "demo-wms-max.xml", "1.3.0")
 
     def test_valid_old_wms_request(self):
-
-        data_path = self.wms_directory / "demo-wms-min.xml"
-
-        self.assert_wms_request(self.mock_mapservice_session(data_path), "1.1.1")
+        self.assert_wms_request(self.wms_directory / "demo-wms-min.xml", "1.1.1")
 
     def test_valid_wms_image_request(self):
 
         session = self.mock_mapservice_session(self.wms_directory / "demo-wms-max.xml")
         client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", session=session, lazy=False)
 
-        client._session = self.mock_mapservice_session(
-            self.data_directory / "test.png", mode="rb", headers={"content-type": "image/png"}
-        )
-        img = client.get_image(client.full_extent, 32, 32, ["country_bounds"], ["default"])
-
-        self.assertEqual(img.size, (32, 32))
-        self.assertEqual(img.mode, "RGBA")
-        self.assertEqual(md5(img.tobytes()).hexdigest(), "93d44c4c38607ac0834c68fc2b3dc92b")
+        self.assert_get_image(client, layer_ids=["country_bounds"], style_ids=["default"])
 
     def test_invalid_wms_image_request(self):
 

@@ -195,7 +195,7 @@ class WMSLayerResource(ClientResource):
     styles = ListField(required=False)
     supported_spatial_refs = ListField(required=False)
 
-    # Optional ncWMS properties
+    # Optional NcWMS properties
 
     credits = TextField(required=False)
     copyright_text = TextField(required=False)
@@ -350,7 +350,7 @@ class WMSLayerResource(ClientResource):
         }
 
     def _populate_ncwms_names(self):
-        """ For ncWMS layers, group names are sometimes non-informative: use IDs to fill out the title """
+        """ For NcWMS layers, group names are sometimes non-informative: use IDs to fill out the title """
 
         def append_fragment(title, fragment):
             if fragment.lower().startswith(title.lower()):
@@ -417,7 +417,7 @@ class WMSLayerResource(ClientResource):
                 child._populate_ordered_layers(ordered_layers)
 
         elif self.is_ncwms:
-            # Attempt to query the ncWMS layer endpoint for more data
+            # Attempt to query the NcWMS layer endpoint for more data
 
             layer_url = self._ncwms_layer_url.format(layer_id=self.id)
             layer_data = {
@@ -437,7 +437,7 @@ class WMSLayerResource(ClientResource):
                     session=(self._layer_session or self._session)
                 )
             except ClientError:
-                pass  # No ncWMS data to query
+                pass  # No NcWMS data to query
             else:
                 self.credits = ncwms_layer.credits
                 self.copyright_text = ncwms_layer.copyright_text
@@ -480,6 +480,8 @@ class WMSResource(ClientResource):
     _minimum_version = WMS_KNOWN_VERSIONS[0]
     _supported_versions = WMS_KNOWN_VERSIONS
 
+    _wms_url = None
+
     class Meta:
         case_sensitive_fields = False
         match_fuzzy_keys = True
@@ -491,10 +493,12 @@ class WMSResource(ClientResource):
     def wms_url(self):
         """ Preserves required or custom WMS parameters through resource load cycle """
 
-        default_params = self._meta.get_parameters
-        service_params = {k: v for k, v in self._params.items() if k not in default_params}
+        if not self._wms_url:
+            default_params = self._meta.get_parameters
+            service_params = {k: v for k, v in self._params.items() if k not in default_params}
+            self._wms_url = update_url_params(self._url, replace_all=True, **service_params)
 
-        return update_url_params(self._url, replace_all=True, **service_params)
+        return self._wms_url
 
     @classmethod
     def get(cls, url, strict=True, lazy=True, session=None, version=None, spatial_ref=WMS_SRS_DEFAULT, **kwargs):
@@ -511,19 +515,25 @@ class WMSResource(ClientResource):
             strict=strict, lazy=lazy, session=session, version=version, spatial_ref=spatial_ref, **kwargs
         )
 
-    def _get(self, url, version=None, spatial_ref=WMS_SRS_DEFAULT, **kwargs):
+    def _get(self, url, token=None, version=None, spatial_ref=WMS_SRS_DEFAULT, **kwargs):
         """ Overridden to do some initialization and capture version and target coordinate reference """
 
         self._behind_proxy = self._url.rfind("http://") > 0 or self._url.rfind("https://") > 0
 
-        # Note: if ncWMS, initial request may take a VERY long time
+        # Note: if NcWMS, initial request may take a VERY long time
         # URL is trimmed of any query parameters at this point, so endswith is valid
         self._is_ncwms = ("ncwms" in self._url.lower() or self._url.endswith(".nc"))
         self._ordered_layers = []  # Populated before resource is loaded, or anytime afterwards if self._lazy
 
+        self._spatial_ref = spatial_ref
+
+        self._token = token
+        if token is not None:
+            self._meta.get_parameters["token"] = token
+
+        self._version = version
         if version is not None:
             self._meta.get_parameters["version"] = version
-        self._spatial_ref = spatial_ref
 
         # Populated before resource is loaded: must not be implemented as field definitions
         self.leaf_layers = {}
@@ -721,6 +731,9 @@ class WMSResource(ClientResource):
                 "styles": ",".join(wrap_value(style_ids)),
                 "version": self.version
             }
+            if self._token:
+                image_params["token"] = self._token
+
             if self.version == "1.3.0":
                 image_params["exceptions"] = "XML"
                 image_params["crs"] = self.spatial_ref
@@ -728,11 +741,12 @@ class WMSResource(ClientResource):
                 image_params["exceptions"] = WMS_EXCEPTION_FORMAT
                 image_params["srs"] = self.spatial_ref
 
-            # Note: time and custom params may require ordering to match layer - not clear from docs
             if time_range:
+                # Unclear in docs if time and custom params require ordering to match layer
                 image_params["time"] = time_range
 
             if params:
+                # Update from params last in order to override any of the above
                 image_params.update(params)
 
             response = self._make_request(self.wms_url, image_params, timeout=120)
@@ -788,7 +802,7 @@ class WMSResource(ClientResource):
 
 
 _STYLES_COLOR_MAP = {
-    # Custom ncWMS palettes
+    # Custom NcWMS palettes
     "alg": {"name": "Algorithmic", "colors": ["#CC00FF", "#00FFFF", "#CCFF33", "#FF9900", "#AA0000"]},
     "alg2": {"name": "Algorithmic 2", "colors": ["#000066", "#00CCFF", "#99FF00", "#FF9900", "#660000"]},
     "bugnyl": {"name": "Blue Green Yellow", "colors": ["#084081", "#2B8CBE", "#A8DDB5", "#E0F3DB", "#F7FCF0"]},
