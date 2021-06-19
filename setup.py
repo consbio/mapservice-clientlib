@@ -27,7 +27,7 @@ setup(
     description="Library to query geospatial dataset mapservices including ArcGIS, THREDDS, WMS and ScienceBase",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    keywords="arcgis,thredds,ncwms,wms,sciencebase,geospatial,gis,mapservice,clients,mapservice_clientlib",
+    keywords="arcgis,thredds,ncwms,wms,sciencebase,geospatial,gis,mapservice,map service,clients,mapservice_clientlib",
     version="0.1",
     packages=[
         "clients", "clients.tests"
