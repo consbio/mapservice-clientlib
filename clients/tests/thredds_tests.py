@@ -1,6 +1,5 @@
 import requests_mock
 
-from hashlib import md5
 from unittest import mock
 
 from clients.exceptions import ClientError, HTTPError, ImageError
@@ -180,23 +179,17 @@ class THREDDSTestCase(ResourceTestCase):
     @requests_mock.Mocker()
     @mock.patch('clients.thredds.get_remote_element')
     def test_valid_thredds_image_request(self, mock_request, mock_metadata):
+
         self.mock_thredds_client(mock_request, mock_metadata)
-
         client = ThreddsResource.get(self.catalog_url, lazy=False)
-        client._session = self.mock_mapservice_session(
-            self.data_directory / "test.png", mode="rb", headers={"content-type": "image/png"}
-        )
-        img = client.get_image(client.full_extent, 32, 32, [self.layer_name], ["ferret"])
 
-        self.assertEqual(img.size, (32, 32))
-        self.assertEqual(img.mode, "RGBA")
-        self.assertEqual(md5(img.tobytes()).hexdigest(), "93d44c4c38607ac0834c68fc2b3dc92b")
+        self.assert_get_image(client, layer_ids=[self.layer_name], style_ids=["ferret"])
 
     @requests_mock.Mocker()
     @mock.patch('clients.thredds.get_remote_element')
     def test_invalid_thredds_image_request(self, mock_request, mock_metadata):
-        self.mock_thredds_client(mock_request, mock_metadata)
 
+        self.mock_thredds_client(mock_request, mock_metadata)
         client = ThreddsResource.get(self.catalog_url, lazy=False)
 
         # Test with valid params and broken endpoint

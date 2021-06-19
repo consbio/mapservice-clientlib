@@ -201,13 +201,13 @@ class ResourceTestCase(BaseTestCase):
         super(ResourceTestCase, self).setUp()
         self.headers = {"content-type": WMS_EXCEPTION_FORMAT}
 
-    def assert_get_image(self, client):
+    def assert_get_image(self, client, **image_params):
         client._session = self.mock_mapservice_session(
             self.data_directory / "test.png",
             mode="rb",
             headers={"content-type": "image/png"}
         )
-        img = client.get_image(client.full_extent, 32, 32)
+        img = client.get_image(client.full_extent, 32, 32, **image_params)
 
         self.assertEqual(img.size, (32, 32))
         self.assertEqual(img.mode, "RGBA")
