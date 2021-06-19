@@ -194,7 +194,6 @@ class ClientResource(Resource):
                 super(ClientResource, self)._load_resource()
             else:
                 # Call with response.content to try ASCII serialization
-
                 response = self._make_request(self._url, self._params)
                 self.populate_field_values(self._meta.deserializer.to_dict(response.content))
 
