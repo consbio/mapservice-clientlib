@@ -104,7 +104,69 @@ class ArcGISResource(ClientResource):
         raise error_class(message, status_code=status_code, url=self._url, **error)
 
 
-class ArcGISServerResource(ArcGISResource):
+class ArcGISSecureResource(ClientResource):
+    """
+    Adds an ArcGIS token to Resource queries when provided, or when derived from username and password.
+    If token is not provided, or if either username or password are missing, a public query is sent.
+    """
+
+    @staticmethod
+    def generate_token(service_url, username, password, duration=None):
+        """
+        Returns a ServerAdmin object with a generated token. Use generate_token().token to get just the token text.
+        :param service_url: The URL of the map service
+        :param username: The ArcGIS server username
+        :param password: The ArcGIS server password
+        :param duration: The duration of the token in minutes
+        """
+
+        parsed_url = urlparse(service_url)
+
+        server_admin = ServerAdmin(
+            host=parsed_url.netloc,
+            username=username,
+            password=password,
+            secure=(parsed_url.scheme == "https")
+        )
+
+        try:
+            server_admin.generate_token(duration=duration)
+        except ags.HTTPError:
+            pass  # This happens when credentials are missing, invalid, or not needed
+        except Exception:
+            # Ignore all others: failure here for any reason should never stop an import
+            # Even if token is required, the same lack of access will stop the import later
+            logger.warning("ArcGIS map server client failed to generate token")
+
+        return server_admin
+
+    def _get(self, url, username=None, password=None, token=None, **kwargs):
+        """ Overridden to capture URL info, and manage optional secure ArcGIS credentials """
+
+        parsed_url = urlsplit(url)
+
+        self.hostname = parsed_url.netloc
+
+        # Extract the local ID of this service on the server, which includes its folder path in the services directory
+        service_pattern_match = ARCGIS_SERVICE_ID_PATTERN.search(parsed_url.path)
+        self.service_id = service_pattern_match.group() if service_pattern_match else None
+
+        self.arcgis_credentials = {}
+        self.arcgis_credentials["username"] = self._username = username
+
+        # Attempt to derive token, or assume service is public
+
+        if token:
+            self._params["token"] = token
+        elif username and password:
+            server_admin = ArcGISSecureResource.generate_token(self._url, username, password)
+            if server_admin.token:
+                self._params["token"] = server_admin.token
+
+        self.arcgis_credentials["token"] = self._token = self._params.get("token", token)
+
+
+class ArcGISServerResource(ArcGISResource, ArcGISSecureResource):
     """ Defines common fields for inheriting ArcGIS service resources """
 
     service_description = TextField()
@@ -128,7 +190,7 @@ class ArcGISServerResource(ArcGISResource):
         )
 
 
-class ArcGISLayerResource(ArcGISResource):
+class ArcGISLayerResource(ArcGISResource, ArcGISSecureResource):
     """ Defines common fields for inheriting ArcGIS layer service resources """
 
     id = IntegerField()
@@ -194,7 +256,8 @@ class ArcGISTiledImageResource(ArcGISServerResource):
             return self.get_tiled_image(extent, width, height)
 
         try:
-            # TODO: support more than just Web Mercator; validate bbox == bboxSR (imageSR is target)
+            # TODO: support more than just Web Mercator
+            # TODO: validate bbox == bboxSR (imageSR is target)
             image_url = "/".join(u.strip("/") for u in (self._url, image_path))
             image_params = {
                 "f": "image",
@@ -360,7 +423,7 @@ class ArcGISTiledImageResource(ArcGISServerResource):
             row=int(url_row),
             col=int(url_col)
         )
-        tile_params = {"token": self.token} if getattr(self, "token", None) else {}
+        tile_params = {"token": self._token} if self._token else {}
 
         try:
             response = self._make_request(tile_url, tile_params)
@@ -400,73 +463,7 @@ class ArcGISTiledImageResource(ArcGISServerResource):
             raise BadTileScheme(message=message, tile_info=tile_info, url=self._url)
 
 
-class ArcGISSecureResource(ClientResource):
-    """
-    Adds an ArcGIS token to Resource queries when provided, or when derived from username and password.
-    If token is not provided, or if either username or password are missing, a public query is sent.
-    This is only currently leveraged for ScienceBase items; there are implications in using it beyond that.
-    """
-
-    @staticmethod
-    def generate_token(service_url, username, password, duration=None):
-        """
-        Returns a ServerAdmin object with a generated token. Use generate_token().token to get just the token text.
-        :param service_url: The URL of the map service
-        :param username: The ArcGIS server username
-        :param password: The ArcGIS server password
-        :param duration: The duration of the token in minutes
-        """
-
-        parsed_url = urlparse(service_url)
-
-        server_admin = ServerAdmin(
-            host=parsed_url.netloc,
-            username=username,
-            password=password,
-            secure=(parsed_url.scheme == "https")
-        )
-
-        try:
-            server_admin.generate_token(duration=duration)
-        except ags.HTTPError:
-            pass  # This happens when credentials are missing, invalid, or not needed
-        except Exception:
-            # Ignore all others: failure here for any reason should never stop an import
-            # Even if token is required, the same lack of access will stop the import later
-            logger.warning("ArcGIS map server client failed to generate token")
-
-        return server_admin
-
-    def _get(self, url, username=None, password=None, token=None, **kwargs):
-        """ Overridden to capture URL info, and handle optional ArcGIS request token """
-
-        if not self._url.endswith("/"):
-            self._url += "/"
-
-        parsed_url = urlsplit(self._url)
-
-        self.hostname = parsed_url.netloc
-
-        # Extract the local ID of this service on the server, which includes its folder path in the services directory
-        service_pattern_match = ARCGIS_SERVICE_ID_PATTERN.search(parsed_url.path)
-        self.service_id = service_pattern_match.group() if service_pattern_match else None
-
-        self.username = username
-        self.password = password
-
-        # Attempt to derive token, or assume service is public
-
-        if token:
-            self._params["token"] = token
-        elif username and password:
-            server_admin = MapServerResource.generate_token(self._url, username, password)
-            if server_admin.token:
-                self._params["token"] = server_admin.token
-
-        self.token = self._params.get("token", token)
-
-
-class MapLayerResource(ArcGISLayerResource, ArcGISSecureResource):
+class MapLayerResource(ArcGISLayerResource):
     """ Compatible with ArcGIS map layer resources >= version 10.1 """
 
     parent = ObjectField(name="parentLayer", class_name="ParentLayer", required=False)
@@ -528,7 +525,7 @@ class MapLegendResource(ArcGISSecureResource):
         super(MapLegendResource, self).populate_field_values(data)
 
 
-class MapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
+class MapServerResource(ArcGISTiledImageResource):
     """ Compatible with ArcGIS map service resources >= version 10.1 """
 
     version = NumberField(name="currentVersion", required=False)  # Overridden not to require
@@ -562,8 +559,8 @@ class MapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
                 layer_url,
                 strict=self._strict, lazy=True,
                 session=(self._layer_session or self._session),
-                username=self.username, password=self.password, token=self.token,
-                bulk_key="layers", bulk_defaults={"currentVersion": self.version}
+                bulk_key="layers", bulk_defaults={"currentVersion": self.version},
+                **self.arcgis_credentials
             )
         elif "layers" in data:
             # Query each layer one by one to get full layer detail for each
@@ -589,8 +586,8 @@ class MapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
                 legend_url,
                 strict=self._strict, lazy=True,
                 session=(self._layer_session or self._session),
-                username=self.username, password=self.password, token=self.token,
-                bulk_key="layers.legend", bulk_defaults={"currentVersion": self.version}
+                bulk_key="layers.legend", bulk_defaults={"currentVersion": self.version},
+                **self.arcgis_credentials
             )
 
             # Assign separately queried legend elements to respective layers
@@ -638,8 +635,8 @@ class MapServerResource(ArcGISTiledImageResource, ArcGISSecureResource):
         }
         image_params.update(kwargs)
 
-        if self.token:
-            image_params["token"] = self.token
+        if self._token:
+            image_params["token"] = self._token
 
         if custom_renderers is not None:
             # To style and filter at the same time we need to switch to using dynamic layers
@@ -852,7 +849,7 @@ class FeatureLayerResource(ArcGISLayerResource):
         serializer=URLSerializer,
         deserializer=JSONSerializer,
         response_type=Action.DICT_RESPONSE
-    )  # TODO: custom response class/handling
+    )
 
     # Only applicable for Tablo datasets
     time_query = QueryAction(
@@ -997,7 +994,7 @@ class FeatureServerResource(ArcGISServerResource):
         params_via_post=True,
         serializer=URLSerializer,
         response_type=Action.DICT_RESPONSE
-    )  # TODO: custom response class/handling
+    )
 
     class Meta:
         case_sensitive_fields = False
