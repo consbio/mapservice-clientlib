@@ -16,34 +16,34 @@ class THREDDSTestCase(ResourceTestCase):
 
         self.thredds_directory = self.data_directory / "thredds"
 
-        base_url = "http://thredds.northwestknowledge.net:8080/thredds"
-        service_path = "NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN"
-        dataset_path = f"{service_path}/macav2metdata.nc"
-        layer_name = "macav2metdata_pr_ANN_20702099_rcp45_20CMIP5ModelMean"
+        self.base_url = "http://thredds.northwestknowledge.net:8080/thredds"
+        self.service_path = "NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN"
+        self.dataset_path = f"{self.service_path}/macav2metdata.nc"
+        self.base_wms_url = f"{self.base_url}/wms/{self.dataset_path}"
+        self.layer_name = "macav2metdata_pr_ANN_20702099_rcp45_20CMIP5ModelMean"
 
-        self.download_url = f"{base_url}/fileServer/{dataset_path}"
+        self.download_url = f"{self.base_url}/fileServer/{self.dataset_path}"
 
-        self.catalog_url = f"{base_url}/catalog/{service_path}/catalog.xml?dataset={dataset_path}"
+        self.catalog_url = (
+            f"{self.base_url}/catalog/{self.service_path}/catalog.xml?dataset={self.dataset_path}"
+        )
         self.catalog_path = self.thredds_directory / "thredds-catalog.xml"
 
-        self.metadata_url = f"{base_url}/iso/{dataset_path}?dataset={dataset_path}"
+        self.metadata_url = f"{self.base_url}/iso/{self.dataset_path}?dataset={self.dataset_path}"
         self.metadata_path = self.thredds_directory / "thredds-metadata.xml"
 
-        self.service_url = f"{base_url}/wms/{dataset_path}?service=WMS&version=1.3.0&request=GetCapabilities"
-        self.service_path = self.thredds_directory / "thredds-wms.xml"
+        self.wms_service_url = f"{self.base_wms_url}?service=WMS&version=1.3.0&request=GetCapabilities"
+        self.wms_service_path = self.thredds_directory / "thredds-wms.xml"
 
-        self.layer_menu_url = f"{base_url}/wms/{dataset_path}?item=menu&request=GetMetadata"
+        self.layer_menu_url = f"{self.base_wms_url}?item=menu&request=GetMetadata"
         self.layer_menu_path = self.thredds_directory / "thredds-layers.json"
 
-        self.layer_url = (
-            f"{base_url}/wms/{dataset_path}?item=layerDetails&layerName={layer_name}&request=GetMetadata"
-        )
+        self.layer_url = f"{self.base_wms_url}?item=layerDetails&layerName={self.layer_name}&request=GetMetadata"
         self.layer_path = self.thredds_directory / "thredds-layer.json"
-        self.layer_name = layer_name
 
         self.legend_url = (
-            f"{base_url}/wms/{dataset_path}?palette=ferret"
-            f"&request=GetLegendGraphic&layer={layer_name}&colorbaronly=True"
+            f"{self.base_wms_url}?palette=ferret"
+            f"&request=GetLegendGraphic&layer={self.layer_name}&colorbaronly=True"
         )
 
     def mock_thredds_client(self, mock_request, mock_metadata):
@@ -54,7 +54,7 @@ class THREDDSTestCase(ResourceTestCase):
 
         self.mock_mapservice_request(mock_request.get, self.catalog_url, self.catalog_path)
         self.mock_mapservice_request(mock_request.get, self.metadata_url, self.metadata_path)
-        self.mock_mapservice_request(mock_request.get, self.service_url, self.service_path)
+        self.mock_mapservice_request(mock_request.get, self.wms_service_url, self.wms_service_path)
         self.mock_mapservice_request(mock_request.get, self.layer_url, self.layer_path)
         self.mock_mapservice_request(mock_request.get, self.layer_menu_url, self.layer_menu_path)
 
@@ -128,6 +128,16 @@ class THREDDSTestCase(ResourceTestCase):
         ))
 
         self.assertEqual(client.styles, [])
+
+        # Private URL fields
+
+        self.assertEqual(client._wms_url, self.base_wms_url)
+        self.assertEqual(client._layers_url, self.layer_menu_url)
+        self.assertEqual(
+            client._layers_url_format,
+            self.base_wms_url + "?item=layerDetails&layerName={layer_id}&request=GetMetadata"
+        )
+        self.assertEqual(client._metadata_url, self.metadata_url)
 
         # Test layer level information for first child layer
 

@@ -67,6 +67,13 @@ class ThreddsResource(ClientResource):
     layers = ListField(default=[])
     styles = ListField(default=[])
 
+    # Private URL fields
+
+    _wms_url = None
+    _layers_url = None
+    _layers_url_format = None
+    _metadata_url = None
+
     class Meta:
         case_sensitive_fields = False
         match_fuzzy_keys = True

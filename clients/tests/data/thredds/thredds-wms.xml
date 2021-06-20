@@ -36,7 +36,7 @@
     <Request>
       <GetCapabilities>
         <Format>text/xml</Format>
-        <DCPType><HTTP><Get><OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc"/></Get></HTTP></DCPType>
+        <DCPType><HTTP><Get><OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc"/></Get></HTTP></DCPType>
       </GetCapabilities>
       <GetMap>
         <Format>image/png</Format>
@@ -44,12 +44,12 @@
         <Format>image/gif</Format>
         <Format>image/jpeg</Format>
         <Format>application/vnd.google-earth.kmz</Format>
-        <DCPType><HTTP><Get><OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc"/></Get></HTTP></DCPType>
+        <DCPType><HTTP><Get><OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc"/></Get></HTTP></DCPType>
       </GetMap>
       <GetFeatureInfo>
         <Format>image/png</Format>
         <Format>text/xml</Format>
-        <DCPType><HTTP><Get><OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc"/></Get></HTTP></DCPType>
+        <DCPType><HTTP><Get><OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc"/></Get></HTTP></DCPType>
       </GetFeatureInfo>
     </Request>
     <Exception>
@@ -85,7 +85,7 @@
             <Abstract>boxfill style, using the greens palette</Abstract>
             <LegendURL width="110" height="264">
               <Format>image/png</Format>
-              <OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc?REQUEST=GetLegendGraphic&amp;LAYER=macav2metdata_pr_ANN_20702099_rcp45_20CMIP5ModelMean&amp;PALETTE=greens"/>
+              <OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc?REQUEST=GetLegendGraphic&amp;LAYER=macav2metdata_pr_ANN_20702099_rcp45_20CMIP5ModelMean&amp;PALETTE=greens"/>
             </LegendURL>
           </Style>
           <Style>
@@ -94,7 +94,7 @@
             <Abstract>boxfill style, using the greys palette</Abstract>
             <LegendURL width="110" height="264">
               <Format>image/png</Format>
-              <OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc?REQUEST=GetLegendGraphic&amp;LAYER=macav2metdata_pr_SON_20702099_rcp45_20CMIP5ModelMean&amp;PALETTE=greys"/>
+              <OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc?REQUEST=GetLegendGraphic&amp;LAYER=macav2metdata_pr_SON_20702099_rcp45_20CMIP5ModelMean&amp;PALETTE=greys"/>
             </LegendURL>
           </Style>
           <Style>
@@ -103,7 +103,7 @@
             <Abstract>boxfill style, using the ferret palette</Abstract>
             <LegendURL width="110" height="264">
               <Format>image/png</Format>
-              <OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/projections/macav2metdata/DATABASIN/macav2metdata.nc?REQUEST=GetLegendGraphic&amp;LAYER=macav2metdata_pr_ANN_20702099_rcp45_20CMIP5ModelMean&amp;PALETTE=ferret"/>
+              <OnlineResource xlink:type="simple" xlink:href="http://thredds.northwestknowledge.net:8080/thredds/wms/NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc?REQUEST=GetLegendGraphic&amp;LAYER=macav2metdata_pr_ANN_20702099_rcp45_20CMIP5ModelMean&amp;PALETTE=ferret"/>
             </LegendURL>
           </Style>
           </Layer>
