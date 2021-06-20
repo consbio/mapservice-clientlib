@@ -12,7 +12,7 @@ from clients.utils.geometry import Extent, SpatialReference
 
 from .utils import BaseTestCase
 from .utils import get_extent, get_extent_dict, get_extent_list, get_extent_object
-from .utils import get_object, get_spatial_reference, get_spatial_reference_dict
+from .utils import get_object, get_spatial_reference, get_spatial_reference_dict, get_spatial_reference_object
 
 
 class FieldsTestCase(BaseTestCase):
@@ -210,9 +210,9 @@ class FieldsTestCase(BaseTestCase):
     def test_spatial_reference_field(self):
 
         data = (
-            # TODO: more types of spatial references
             get_spatial_reference(),
             get_spatial_reference_dict(),
+            get_spatial_reference_object()
         )
         for value in data:
             field = SpatialReferenceField(name="to_python")
