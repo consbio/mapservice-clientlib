@@ -9,35 +9,49 @@ class WMSTestCase(ResourceTestCase):
 
     def setUp(self):
         super(WMSTestCase, self).setUp()
+
         self.wms_directory = self.data_directory / "wms"
 
-    def assert_ncwms_request(self, data_path, version):
+        self.wms_url = "http://demo.mapserver.org/cgi-bin/wms"
+        self.wms_path = self.wms_directory / "ncwms-layer.json"
+
+        self.ncwms_url = "http://tools.pacificclimate.org/ncWMS-PCIC/wms?dataset=pr-tasmax-tasmin_day"
+        self.ncwms_path = self.wms_directory / "ncwms-layer.json"
+
+    def assert_ncwms_request(self, data_path, version, token=None):
 
         is_max_version = (version == "1.3.0")
 
-        session = self.mock_mapservice_session(data_path)
         headers = {"content-type": "application/json"}
-        ncwms_json = self.wms_directory / "ncwms-layer.json"
-        layer_session = self.mock_mapservice_session(ncwms_json, headers=headers)
+        session = self.mock_mapservice_session(data_path)
+        layer_session = self.mock_mapservice_session(self.ncwms_path, headers=headers)
 
         client = WMSResource.get(
-            "http://tools.pacificclimate.org/ncWMS-PCIC/wms",
-            lazy=False,
-            session=session,
-            layer_session=layer_session,
+            self.ncwms_url,
+            lazy=False, session=session, layer_session=layer_session,
+            token=token, version=version
         )
 
         # Test service level information
 
-        self.assertEqual(client.wms_url, "http://tools.pacificclimate.org/ncWMS-PCIC/wms")
+        if not token:
+            self.assertEqual(client.wms_url, self.ncwms_url)
+        else:
+            self.assertEqual(client.wms_url, f"{self.ncwms_url}&token={token}")
+
         self.assertEqual(client.title, "My ncWMS server")
         self.assertEqual(client.description, "")
         self.assertEqual(client.access_constraints, None)
+
         self.assertEqual(client.version, version)
+        self.assertEqual(client.version, client._version)
+        self.assertEqual(client._token, token)
+        self.assertEqual(client._params.get("token"), token)
+
         self.assertEqual(client.feature_info_formats, ["image/png", "text/xml"])
         self.assertEqual(client.map_formats, ["image/png", "image/gif", "image/jpeg"])
-        self.assertEqual(client.keywords, [""])
-        # self.assertEqual(client.layer_drawing_limit, 1)  None
+        self.assertEqual(client.keywords, ["ncwms", "server"])
+        self.assertEqual(client.layer_drawing_limit, 1 if is_max_version else None)
         self.assertEqual(
             client.full_extent.as_list(),
             [-15696047.830489751, 5012341.860907214, -5788613.783964222, 18295676.048854332]
@@ -205,23 +219,31 @@ class WMSTestCase(ResourceTestCase):
         ])
         self.assertEqual(first_layer.supported_styles, ["boxfill"])
 
-    def assert_wms_request(self, data_path, version):
+    def assert_wms_request(self, data_path, version, token=None):
 
         is_max_version = (version == "1.3.0")
 
         client = WMSResource.get(
-            "http://demo.mapserver.org/cgi-bin/wms",
-            session=self.mock_mapservice_session(data_path),
-            lazy=False
+            self.wms_url, lazy=False, session=self.mock_mapservice_session(data_path),
+            token=token, version=version
         )
 
         # Test service level information
 
-        self.assertEqual(client.wms_url, "http://demo.mapserver.org/cgi-bin/wms")
+        if not token:
+            self.assertEqual(client.wms_url, self.wms_url)
+        else:
+            self.assertEqual(client.wms_url, f"{self.wms_url}?token={token}")
+
         self.assertEqual(client.title, "WMS Demo Server for MapServer")
         self.assertEqual(client.description, "This demonstration server showcases MapServer")
         self.assertEqual(client.access_constraints, None)
+
         self.assertEqual(client.version, version)
+        self.assertEqual(client.version, client._version)
+        self.assertEqual(client._token, token)
+        self.assertEqual(client._params.get("token"), token)
+
         self.assertEqual(client.feature_info_formats, ["text/html", "application/vnd.ogc.gml", "text/plain"])
         self.assertEqual(client.map_formats, ["image/png", "image/jpeg", "application/json"])
         self.assertEqual(client.keywords, ["DEMO", "WMS"])
@@ -353,25 +375,25 @@ class WMSTestCase(ResourceTestCase):
         self.assert_ncwms_request(self.wms_directory / "ncwms-max.xml", version="1.3.0")
 
     def test_valid_old_ncwms_request(self):
-        self.assert_ncwms_request(self.wms_directory / "ncwms-min.xml", version="1.1.1")
+        self.assert_ncwms_request(self.wms_directory / "ncwms-min.xml", version="1.1.1", token="secure")
 
     def test_valid_new_wms_request(self):
-        self.assert_wms_request(self.wms_directory / "demo-wms-max.xml", "1.3.0")
+        self.assert_wms_request(self.wms_directory / "demo-wms-max.xml", version="1.3.0", token="secure")
 
     def test_valid_old_wms_request(self):
-        self.assert_wms_request(self.wms_directory / "demo-wms-min.xml", "1.1.1")
+        self.assert_wms_request(self.wms_directory / "demo-wms-min.xml", version="1.1.1")
 
     def test_valid_wms_image_request(self):
 
         session = self.mock_mapservice_session(self.wms_directory / "demo-wms-max.xml")
-        client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", session=session, lazy=False)
+        client = WMSResource.get(self.wms_url, session=session, lazy=False)
 
         self.assert_get_image(client, layer_ids=["country_bounds"], style_ids=["default"])
 
     def test_invalid_wms_image_request(self):
 
         session = self.mock_mapservice_session(self.wms_directory / "demo-wms-max.xml")
-        client = WMSResource.get("http://demo.mapserver.org/cgi-bin/wms", session=session, lazy=False)
+        client = WMSResource.get(self.wms_url, session=session, lazy=False)
 
         # Test with valid params and broken endpoint
 

@@ -494,7 +494,7 @@ class WMSResource(ClientResource):
         """ Preserves required or custom WMS parameters through resource load cycle """
 
         if not self._wms_url:
-            default_params = self._meta.get_parameters
+            default_params = self._meta.get_parameters.copy()
             service_params = {k: v for k, v in self._params.items() if k not in default_params}
             self._wms_url = update_url_params(self._url, replace_all=True, **service_params)
 
@@ -529,11 +529,11 @@ class WMSResource(ClientResource):
 
         self._token = token
         if token is not None:
-            self._meta.get_parameters["token"] = token
+            self._params["token"] = token
 
         self._version = version
         if version is not None:
-            self._meta.get_parameters["version"] = version
+            self._params["version"] = version
 
         # Populated before resource is loaded: must not be implemented as field definitions
         self.leaf_layers = {}
