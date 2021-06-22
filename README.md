@@ -53,13 +53,14 @@ arcgis_image = MapServerResource.get(service_url).get_image(
     custom_renderers={}  # Renderer JSON
 )
 
-# Query a secure map service
+# Query a secure map service (generates token from URL and credentials)
+client = MapServerResource.get(service_url, username="user", password="pass")
+
+# Query a secure map service with existing token
 token_obj = ArcGISSecureResource.generate_token(
     service_url, "user", "pass",  duration=15
 )
-client = MapServerResource.get(
-    service_url, username="user", password="pass", token=token_obj.token
-)
+client = MapServerResource.get(service_url, token=token_obj.token)
 
 # Reproject an ArcGIS extent to web mercator
 old_extent = Extent(
@@ -79,9 +80,16 @@ WMS services may be queried, with support for NcWMS
 ```python
 from clients.wms import WMSResource
 
-# Query a WMS service and generate an image (supports NcWMS as well)
-client = WMSResource.get(url=wms_url, version="1.3.0", spatial_ref="EPSG:3857")
-wms_image = client.get_image(
+
+# Query a secure WMS service
+client = WMSResource.get(
+    url=wms_url, token="token", token_id="josso", version="1.3.0", spatial_ref="EPSG:3857"
+)
+
+# Query a public WMS service and generate an image (supports NcWMS as well)
+wms_image = WMSResource.get(
+    wms_url
+).get_image(
     extent, width=400, height=200,
     layer_ids=[...],
     style_ids=[...],
@@ -97,9 +105,17 @@ wms_image = client.get_image(
 THREDDS resources may be queried, with metadata from related WMS endpoint:
 
 ```python
-from clients.thredds import WMSResource
+from clients.thredds import ThreddsResource
 
-client = ThreddsResource.get(url=self.import_obj.mapservice.public_url)
+
+client = ThreddsResource.get(url)
+
+# See gis-metadata-parser for more
+metadata = client._metadata_parser
+metadata.data_credits
+metadata.use_constraints
+
+# Makes a WMS image request
 thredds_image = client.get_image(
     extent, width, height,
     layer_ids=[...],
@@ -118,11 +134,12 @@ Public and private ScienceBase items may be queried:
 ```python
 from clients.sciencebase import ScienceBaseResource, ScienceBaseSession
 
-# Query a public ScienceBase service
+
+# Query a public ScienceBase item
 client = ScienceBaseResource.get(service_url, lazy=False)
 client.summary
 
-# Query a private ScienceBase service
+# Query a private WMS-backed ScienceBase item
 
 sb_session = ScienceBaseSession(
     josso_session_id="token",
@@ -132,8 +149,54 @@ sb_session.login("sciencebase_user", "pass")
 
 client = ScienceBaseResource.get(
     url=service_url,
-    token=sb_session._jossosessionid,
+    lazy=False,
     session=sb_session,
-    lazy=False
+    # Same token for WMS as for base item
+    token=sb_session._jossosessionid
 )
+client.service_client.full_extent  # WMSResource.full_extent
+
+# Query a private ArcGIS-backed ScienceBase item
+
+sb_session = ScienceBaseSession(
+    josso_session_id="token",
+    username="sciencebase_user"
+)
+sb_session.login("sciencebase_user", "pass")
+
+client = ScienceBaseResource.get(
+    url=service_url,
+    lazy=False,
+    session=sb_session,
+    token=sb_session._jossosessionid,
+    # Separate credentials for ArcGIS service
+    arcgis_credentials={
+        # Or just use "token": "existing_token"
+        "username": "arcgis_user",
+        "password": "arcgis_pass"
+    }
+)
+client.service_client.full_extent  # ArcGISResource.full_extent
+```
+
+
+### Extent Utilities
+
+Public and private ScienceBase items may be queried:
+
+```python
+from clients.utils.geometry import Extent
+
+
+extent_from_dict = Extent({
+    "xmin": -180.0, "ymin": -90.0, "xmax": 180.0, "ymax": 90.0,
+    "spatial_reference": {"wkid": 4326}
+})
+web_mercator_extent = extent_from_dict.project_to_web_mercator()
+
+extent_from_list = Extent(
+    [-20037508.342789244, -20037471.205137067, 20037508.342789244, 20037471.20513706],
+    spatial_reference="EPSG:3857"
+)
+geographic_extent = extent_from_dict.project_to_geographic()
 ```
