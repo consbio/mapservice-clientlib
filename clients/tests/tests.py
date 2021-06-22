@@ -1,15 +1,23 @@
-from clients.tests.geometry_test import ExtentTestCase
-from clients.tests.sciencebase_test import ScienceBaseTestCase
-from clients.tests.wms_test import WMSTestCase
+from .arcgis_tests import ArcGISTestCase
+from .sciencebase_tests import ScienceBaseTestCase
+from .thredds_tests import THREDDSTestCase
+from .wms_tests import WMSTestCase
+
+from .conversion_tests import ConversionTestCase
+from .geometry_tests import ExtentTestCase, SpatialReferenceTestCase, TileLevelsTestCase
+from .images_tests import ImagesTestCase
+from .query_tests import ActionsTestCase, FieldsTestCase, SerializersTestCase
 
 
-class FullGeometryTestCase(ExtentTestCase):
-    """ Consolidates all geometry_tests for ease of execution """
+class FullClientsTestCase(ArcGISTestCase, ScienceBaseTestCase, THREDDSTestCase, WMSTestCase):
+    """ Consolidates all client tests for ease of execution """
 
 
-class FullScienceBaseTestCase(ScienceBaseTestCase):
-    """ Consolidates all sciencebase_tests for ease of execution """
+class FullQueryTestCase(ActionsTestCase, FieldsTestCase, SerializersTestCase):
+    """ Consolidates all field related tests for ease of execution """
 
 
-class FullWMSTestCase(WMSTestCase):
-    """ Consolidates all wms_tests for ease of execution """
+class FullUtilsTestCase(
+    ConversionTestCase, ExtentTestCase, ImagesTestCase, SpatialReferenceTestCase, TileLevelsTestCase
+):
+    """ Consolidates all utility tests for ease of execution """
