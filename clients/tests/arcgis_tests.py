@@ -329,6 +329,28 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(first_legend_element.values, ["Estuarine and Marine Deepwater"])
 
     @requests_mock.Mocker()
+    @mock.patch('clients.arcgis.ServerAdmin.generate_token')
+    def test_secure_arcgis_mapservice_request(self, mock_request, mock_server_admin):
+
+        username, token = "arcgis_user", "arcgis_token"
+        mock_server_admin.return_value = get_object({"token": token})
+
+        self.map_url = f"{self.map_url}&token={token}"
+        self.map_layer_url = f"{self.map_layer_url}&token={token}"
+        self.map_layers_url = f"{self.map_layers_url}&token={token}"
+        self.map_legend_url = f"{self.map_legend_url}&token={token}"
+        self.mock_arcgis_client(mock_request, "map")
+
+        client = MapServerResource.get(
+            self.map_url, lazy=False,
+            username=username,
+            password="arcgis_pass"
+        )
+        self.assertEqual(client._token, token)
+        self.assertEqual(client._username, username)
+        self.assertEqual(client.arcgis_credentials, {"token": token, "username": username})
+
+    @requests_mock.Mocker()
     def test_valid_arcgis_mapservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "map")
         self.assert_get_image(MapServerResource.get(self.map_url, lazy=False))
@@ -468,6 +490,27 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(first_layer.types, [])
 
     @requests_mock.Mocker()
+    @mock.patch('clients.arcgis.ServerAdmin.generate_token')
+    def test_secure_arcgis_featureservice_request(self, mock_request, mock_server_admin):
+
+        username, token = "arcgis_user", "arcgis_token"
+        mock_server_admin.return_value = get_object({"token": token})
+
+        self.feature_url = f"{self.feature_url}&token={token}"
+        self.feature_layer_url = f"{self.feature_layer_url}&token={token}"
+        self.feature_layer_id_url = f"{self.feature_layer_id_url}&token={token}"
+        self.mock_arcgis_client(mock_request, "feature")
+
+        client = FeatureServerResource.get(
+            self.feature_url, lazy=False,
+            username=username,
+            password="arcgis_pass"
+        )
+        self.assertEqual(client._token, token)
+        self.assertEqual(client._username, username)
+        self.assertEqual(client.arcgis_credentials, {"token": token, "username": username})
+
+    @requests_mock.Mocker()
     @mock.patch('clients.arcgis.FeatureLayerResource.generate_sub_image')
     def test_valid_arcgis_featureservice_image_request(self, mock_request, mock_sub_image):
         mock_sub_image.return_value = get_default_image()
@@ -572,6 +615,25 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.standard_variation_values, [])
         self.assertEqual(client.supports_statistics, True)
         self.assertEqual(client.supports_advanced_queries, True)
+
+    @requests_mock.Mocker()
+    @mock.patch('clients.arcgis.ServerAdmin.generate_token')
+    def test_secure_arcgis_imageservice_request(self, mock_request, mock_server_admin):
+
+        username, token = "arcgis_user", "arcgis_token"
+        mock_server_admin.return_value = get_object({"token": token})
+
+        self.image_url = f"{self.image_url}&token={token}"
+        self.mock_arcgis_client(mock_request, "image")
+
+        client = ImageServerResource.get(
+            self.image_url, lazy=False,
+            username=username,
+            password="arcgis_pass"
+        )
+        self.assertEqual(client._token, token)
+        self.assertEqual(client._username, username)
+        self.assertEqual(client.arcgis_credentials, {"token": token, "username": username})
 
     @requests_mock.Mocker()
     def test_valid_arcgis_imageservice_image_request(self, mock_request):

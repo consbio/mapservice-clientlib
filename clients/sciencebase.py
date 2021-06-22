@@ -217,14 +217,14 @@ class ScienceBaseResource(ClientResource):
         if self._service_client:
             return self._service_client
 
-        elif self.service_type == "wms":
-            self._service_client = WMSResource.get(self.service_url, lazy=True)
-            self._service_client._params[self.service_token_id] = self.service_token
-
         elif self.service_type == "arcgis":
             self._service_client = MapServerResource.get(self.service_url, lazy=True, **self.arcgis_credentials)
             self.arcgis_credentials.update(self._service_client.arcgis_credentials)
 
+        elif self.service_type == "wms":
+            self._service_client = WMSResource.get(
+                self.service_url, lazy=True, token=self._token, token_id="josso"
+            )
         else:
             raise ServiceError(f"Invalid ScienceBaseResource.service_type: {self.service_type}")
 
@@ -262,13 +262,13 @@ class ScienceBaseResource(ClientResource):
             self._token = self._session._jossosessionid
             self._session._session.params["josso"] = self._token
 
-        self.josso_credentials = {"username": self._username, "token": self._token}
+        self.josso_credentials = {"username": self._username, "josso": self._token}
 
         # Prepare ScienceBase ArcGIS session
 
         arcgis_credentials = kwargs.pop("arcgis_credentials", None) or {}
 
-        if arcgis_credentials and not self.arcgis_credentials.get("token"):
+        if arcgis_credentials and not arcgis_credentials.get("token"):
             arcgis_user = arcgis_credentials.get("username")
             arcgis_pass = arcgis_credentials.get("password")
 

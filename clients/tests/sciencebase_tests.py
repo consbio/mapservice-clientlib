@@ -14,6 +14,8 @@ class ScienceBaseTestCase(ResourceTestCase):
 
         self.sciencebase_directory = self.data_directory / "sciencebase"
 
+        # ArcGIS-backed endpoints
+
         arcgis_service_url = "https://www.sciencebase.gov/arcgis/rest/services/Catalog/service/MapServer"
 
         self.arcgis_item_url = "https://www.sciencebase.gov/catalog/item/arcgis/?format=json"
@@ -27,15 +29,31 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.arcgis_service_legend_url = f"{arcgis_service_url}/legend/?f=json"
         self.arcgis_service_legend_path = self.sciencebase_directory / "arcgis-service-legend.json"
 
+        self.arcgis_service_data = (
+            (self.arcgis_service_url, self.arcgis_service_path),
+            (self.arcgis_service_layer_url, self.arcgis_service_layer_path),
+            (self.arcgis_service_layers_url, self.arcgis_service_layers_path),
+            (self.arcgis_service_legend_url, self.arcgis_service_legend_path)
+        )
+
+        # WMS-backed endpoints
+
         wms_service_url = "https://www.sciencebase.gov/catalogMaps/mapping/ows/wms"
 
         self.wms_item_url = "https://www.sciencebase.gov/catalog/item/wms/?format=json"
         self.wms_item_path = self.sciencebase_directory / "wms-item.json"
-        self.wms_service_url = f"{wms_service_url}?service=wms&request=getcapabilities&version=1.3.0"
+        self.wms_service_url = f"{wms_service_url}?version=1.3.0&service=wms&request=getcapabilities"
         self.wms_service_path = self.sciencebase_directory / "wms-service.xml"
-
-        self.wms_service_image_url = f"{wms_service_url}?service=wms&request=getcapabilities&version=1.3.0"
+        self.wms_service_image_url = f"{wms_service_url}?version=1.3.0&service=wms&request=getcapabilities"
         self.wms_service_image_path = self.sciencebase_directory / "wms-service.xml"
+
+        self.wms_service_data = (
+            (self.wms_item_url, self.wms_item_path),
+            (self.wms_service_url, self.wms_service_path),
+            (self.wms_service_image_url, self.wms_service_image_path),
+        )
+
+        # Invalid ScienceBase endpoints
 
         self.empty_error_url = "https://www.sciencebase.gov/catalog/item/empty/?format=json"
         self.empty_error_path = self.sciencebase_directory / "empty-error.json"
@@ -52,16 +70,41 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.unpublished_url = "https://www.sciencebase.gov/catalog/item/error/?format=json"
         self.unpublished_path = self.sciencebase_directory / "unpublished.json"
 
+    def mock_service_client(self, mock_request, service_type, token=None):
+
+        if service_type == "error":
+            self.mock_mapservice_request(mock_request.get, self.arcgis_item_url, self.arcgis_item_path, ok=False)
+            self.mock_mapservice_request(mock_request.get, self.wms_item_url, self.wms_item_path, ok=False)
+            self.mock_mapservice_request(mock_request.get, self.empty_error_url, self.empty_error_path, ok=False)
+            self.mock_mapservice_request(mock_request.get, self.json_error_url, self.json_error_path, ok=False)
+            self.mock_mapservice_request(mock_request.get, self.missing_fields_url, self.missing_fields_path)
+            self.mock_mapservice_request(mock_request.get, self.footprint_url, self.footprint_path)
+            self.mock_mapservice_request(mock_request.get, self.unpublished_url, self.unpublished_path)
+
+        elif service_type == "arcgis":
+
+            # Tests public ScienceBase item with unnecessary ArcGIS credentials
+            self.mock_mapservice_request(mock_request.get, self.arcgis_item_url, self.arcgis_item_path)
+
+            url_format = "{url}&token={token}" if token else "{url}"
+            for url, path in self.arcgis_service_data:
+                self.mock_mapservice_request(mock_request.get, url_format.format(url=url, token=token), path)
+
+        elif service_type == "wms":
+
+            # Tests private ScienceBase item with required WMS credentials
+            self.mock_mapservice_request(mock_request.get, self.wms_item_url, self.wms_item_path, ok=False)
+
+            url_format = "{url}&josso={token}" if token else "{url}"
+            for url, path in self.wms_service_data:
+                self.mock_mapservice_request(mock_request.get, url_format.format(url=url, token=token), path)
+
+        else:
+            raise AssertionError(f"Invalid service type: {service_type}")
+
     @requests_mock.Mocker()
     def test_invalid_sciencebase_urls(self, mock_request):
-
-        self.mock_mapservice_request(mock_request.get, self.arcgis_item_url, self.arcgis_item_path, ok=False)
-        self.mock_mapservice_request(mock_request.get, self.wms_item_url, self.wms_item_path, ok=False)
-        self.mock_mapservice_request(mock_request.get, self.empty_error_url, self.empty_error_path, ok=False)
-        self.mock_mapservice_request(mock_request.get, self.json_error_url, self.json_error_path, ok=False)
-        self.mock_mapservice_request(mock_request.get, self.missing_fields_url, self.missing_fields_path)
-        self.mock_mapservice_request(mock_request.get, self.footprint_url, self.footprint_path)
-        self.mock_mapservice_request(mock_request.get, self.unpublished_url, self.unpublished_path)
+        self.mock_service_client(mock_request, "error")
 
         # Generic errors
 
@@ -92,15 +135,32 @@ class ScienceBaseTestCase(ResourceTestCase):
 
     @requests_mock.Mocker()
     def test_valid_arcgis_sciencebase_request(self, mock_request):
-        self.mock_mapservice_request(mock_request.get, self.arcgis_item_url, self.arcgis_item_path)
-        self.mock_mapservice_request(mock_request.get, self.arcgis_service_url, self.arcgis_service_path)
+        self.mock_service_client(mock_request, "arcgis", token="arcgis_token")
 
+        token, username = "usgs_session.id", "usgs_session.uid"
+        arcgis_credentials = {
+            "token": "arcgis_token",
+            "username": "arcgis_user",
+            "password": "arcgis_pass"
+        }
         client = ScienceBaseResource.get(
-            self.arcgis_item_url,
-            token="usgs_session.id",
-            username="usgs_session.uid",
-            lazy=False
+            self.arcgis_item_url, lazy=False,
+            token=token, username=username,
+            arcgis_credentials=arcgis_credentials
         )
+
+        self.assertEqual(client._token, token)
+        self.assertEqual(client._username, username)
+        self.assertEqual(client.josso_credentials, {"josso": token, "username": username})
+        self.assertEqual(client.arcgis_credentials, {"token": "arcgis_token", "username": "arcgis_user"})
+
+        service_client = client.get_service_client()
+
+        self.assertIs(client.get_service_client(), service_client)
+        self.assertEqual(service_client._token, "arcgis_token")
+        self.assertEqual(service_client._username, "arcgis_user")
+        self.assertEqual(service_client._params.get("token"), "arcgis_token")
+        self.assertEqual(service_client.arcgis_credentials, {"token": "arcgis_token", "username": "arcgis_user"})
 
         self.assertEqual(client.id, "arcgis_service")
         self.assertEqual(client.title, "Testing ArcGIS Service")
@@ -189,11 +249,7 @@ class ScienceBaseTestCase(ResourceTestCase):
 
     @requests_mock.Mocker()
     def test_valid_arcgis_sciencebase_image_request(self, mock_request):
-        self.mock_mapservice_request(mock_request.get, self.arcgis_item_url, self.arcgis_item_path)
-        self.mock_mapservice_request(mock_request.get, self.arcgis_service_url, self.arcgis_service_path)
-        self.mock_mapservice_request(mock_request.get, self.arcgis_service_layer_url, self.arcgis_service_layer_path)
-        self.mock_mapservice_request(mock_request.get, self.arcgis_service_layers_url, self.arcgis_service_layers_path)
-        self.mock_mapservice_request(mock_request.get, self.arcgis_service_legend_url, self.arcgis_service_legend_path)
+        self.mock_service_client(mock_request, "arcgis")
 
         client = ScienceBaseResource.get(self.arcgis_item_url, lazy=False)
         client.get_service_client()._session = self.mock_mapservice_session(
@@ -205,10 +261,22 @@ class ScienceBaseTestCase(ResourceTestCase):
 
     @requests_mock.Mocker()
     def test_valid_wms_sciencebase_request(self, mock_request):
-        self.mock_mapservice_request(mock_request.get, self.wms_item_url, self.wms_item_path)
-        self.mock_mapservice_request(mock_request.get, self.wms_service_url, self.wms_service_path)
+        self.mock_service_client(mock_request, "wms", token="usgs_session.id")
 
-        client = ScienceBaseResource.get(self.wms_item_url, lazy=False)
+        token, username = "usgs_session.id", "usgs_session.uid"
+        client = ScienceBaseResource.get(
+            self.wms_item_url, token=token, username=username, lazy=False
+        )
+
+        self.assertEqual(client._token, token)
+        self.assertEqual(client._username, username)
+        self.assertEqual(client.josso_credentials, {"josso": token, "username": username})
+
+        service_client = client.get_service_client()
+        self.assertIs(client.get_service_client(), service_client)
+        self.assertEqual(service_client._token, token)
+        self.assertEqual(service_client._params.get("josso"), token)
+
         title = "Southwestern Willow Flycatcher Focal Area"
 
         self.assertEqual(client.id, "wms_service")
@@ -311,8 +379,7 @@ class ScienceBaseTestCase(ResourceTestCase):
 
     @requests_mock.Mocker()
     def test_valid_wms_sciencebase_image_request(self, mock_request):
-        self.mock_mapservice_request(mock_request.get, self.wms_item_url, self.wms_item_path)
-        self.mock_mapservice_request(mock_request.get, self.wms_service_url, self.wms_service_path)
+        self.mock_service_client(mock_request, "wms")
 
         client = ScienceBaseResource.get(self.wms_item_url, lazy=False)
         client.get_service_client()._session = self.mock_mapservice_session(
@@ -320,6 +387,11 @@ class ScienceBaseTestCase(ResourceTestCase):
             mode="rb",
             headers={"content-type": "image/png"}
         )
+
+        # Ensure WMS is public without token
+        self.assertEqual(client.private, False)
+        self.assertEqual(client.settings.get_data()["private"], False)
+
         self.assert_get_image(client, layer_ids=["AKCAN_mastersample_50km"], style_ids=["highlight"])
 
 
@@ -497,7 +569,7 @@ WMS_DIST_LINKS = [
 ]
 WMS_SETTINGS = {
     "permissions": {"read": None, "write": None},
-    "private": False,
+    "private": True,
     "service_token_id": "josso",
     "service_type": "wms",
     "service_url": (

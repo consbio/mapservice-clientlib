@@ -515,7 +515,7 @@ class WMSResource(ClientResource):
             strict=strict, lazy=lazy, session=session, version=version, spatial_ref=spatial_ref, **kwargs
         )
 
-    def _get(self, url, token=None, version=None, spatial_ref=WMS_SRS_DEFAULT, **kwargs):
+    def _get(self, url, token=None, token_id="token", version=None, spatial_ref=WMS_SRS_DEFAULT, **kwargs):
         """ Overridden to do some initialization and capture version and target coordinate reference """
 
         self._behind_proxy = self._url.rfind("http://") > 0 or self._url.rfind("https://") > 0
@@ -529,7 +529,7 @@ class WMSResource(ClientResource):
 
         self._token = token
         if token is not None:
-            self._params["token"] = token
+            self._params[token_id] = token
 
         self._version = version
         if version is not None:
