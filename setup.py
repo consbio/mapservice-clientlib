@@ -24,7 +24,7 @@ with open("README.md") as readme:
 
 setup(
     name="mapservice-clients",
-    description="Library to query geospatial dataset mapservices including ArcGIS, THREDDS, WMS and ScienceBase",
+    description="Library to query mapservices including ArcGIS, THREDDS, WMS and ScienceBase",
     long_description=long_description,
     long_description_content_type="text/markdown",
     keywords="arcgis,thredds,ncwms,wms,sciencebase,geospatial,gis,mapservice,map service,clients,mapservice_clientlib",
