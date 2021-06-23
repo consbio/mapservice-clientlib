@@ -1,0 +1,23 @@
+language: python
+python:
+  - "3.9"
+  - "3.8"
+  - "3.7"
+  - "3.6"
+
+install:
+  - "pip install Pillow==7.2.*"
+  - "pip install pyproj==2.6.1"
+  - "pip install gis-metadata-parser"
+  - "pip install python-ags==0.3.2"
+  - "pip install restle"
+  - "pip install sciencebasepy==1.6.4"
+  - "pip install mock"
+  - "pip install requests-mock"
+  - "pip install coveralls"
+
+script:
+  coverage run --source=clients -m unittest clients.tests.tests
+
+after_success:
+  coveralls
