@@ -6,7 +6,7 @@ from parserutils.collections import setdefaults
 
 from clients.arcgis import MapServerResource, FeatureServerResource, ImageServerResource
 from clients.arcgis import MapLayerResource, FeatureLayerResource, GeometryServiceClient
-from clients.exceptions import BadExtent, ContentError, HTTPError, ImageError, ServiceError
+from clients.exceptions import BadExtent, ContentError, HTTPError, ImageError, ServiceError, ValidationError
 from clients.query.fields import RENDERER_DEFAULTS
 
 from .utils import ResourceTestCase, get_extent_dict, get_spatial_reference_dict
@@ -53,15 +53,32 @@ class ArcGISTestCase(ResourceTestCase):
         )
         self.geometry_path = self.arcgis_directory / "geometry.json"
 
-        self.config_url = "https://services1.arcgis.com/errors/arcgis/rest/services/BadConfig/MapServer/?f=json"
+        self.map_version_error_url = "https://arcgis.com/errors/arcgis/rest/services/Version/MapServer/?f=json"
+        self.map_version_error_path = self.arcgis_directory / "map-version-error.json"
+        self.map_layer_version_error_url = (
+            "https://arcgis.com/errors/arcgis/rest/services/Version/FeatureServer/0/?f=json"
+        )
+        self.map_layer_version_error_path = self.arcgis_directory / "map-layer-version-error.json"
+
+        self.feature_version_error_url = "https://arcgis.com/errors/arcgis/rest/services/Version/FeatureServer/?f=json"
+        self.feature_version_error_path = self.arcgis_directory / "feature-version-error.json"
+        self.feature_layer_version_error_url = (
+            "https://arcgis.com/errors/arcgis/rest/services/Version/FeatureServer/0/?f=json"
+        )
+        self.feature_layer_version_error_path = self.arcgis_directory / "feature-layer-version-error.json"
+
+        self.image_version_error_url = "https://arcgis.com/errors/arcgis/rest/services/Version/ImageServer/?f=json"
+        self.image_version_error_path = self.arcgis_directory / "image-version-error.json"
+
+        self.config_url = "https://arcgis.com/errors/arcgis/rest/services/BadConfig/MapServer/?f=json"
         self.config_path = self.arcgis_directory / "config-error.json"
-        self.empty_url = "https://services1.arcgis.com/errors/arcgis/rest/services/Empty/MapServer/?f=json"
+        self.empty_url = "https://arcgis.com/errors/arcgis/rest/services/Empty/MapServer/?f=json"
         self.empty_path = self.arcgis_directory / "empty-error.json"
-        self.generic_url = "https://services1.arcgis.com/errors/arcgis/rest/services/599/MapServer/?f=json"
+        self.generic_url = "https://arcgis.com/errors/arcgis/rest/services/599/MapServer/?f=json"
         self.generic_path = self.arcgis_directory / "generic-error.json"
-        self.not_found_url = "https://services1.arcgis.com/errors/arcgis/rest/services/NotFound/MapServer/?f=json"
+        self.not_found_url = "https://arcgis.com/errors/arcgis/rest/services/NotFound/MapServer/?f=json"
         self.not_found_path = self.arcgis_directory / "not-found.json"
-        self.token_required_url = "https://services1.arcgis.com/errors/arcgis/rest/services/Token/MapServer/?f=json"
+        self.token_required_url = "https://arcgis.com/errors/arcgis/rest/services/Token/MapServer/?f=json"
         self.token_required_path = self.arcgis_directory / "token-required.json"
 
         self.error_path = self.arcgis_directory / "error.html"
@@ -74,6 +91,19 @@ class ArcGISTestCase(ResourceTestCase):
             self.mock_mapservice_request(mock_request.get, self.generic_url, self.generic_path)
             self.mock_mapservice_request(mock_request.get, self.not_found_url, self.not_found_path)
             self.mock_mapservice_request(mock_request.get, self.token_required_url, self.token_required_path)
+            self.mock_mapservice_request(mock_request.get, self.map_version_error_url, self.map_version_error_path)
+            self.mock_mapservice_request(
+                mock_request.get, self.map_layer_version_error_url, self.map_layer_version_error_path
+            )
+            self.mock_mapservice_request(
+                mock_request.get, self.feature_version_error_url, self.feature_version_error_path
+            )
+            self.mock_mapservice_request(
+                mock_request.get, self.feature_layer_version_error_url, self.feature_layer_version_error_path
+            )
+            self.mock_mapservice_request(
+                mock_request.get, self.image_version_error_url, self.image_version_error_path
+            )
         elif service_type == "feature":
             self.mock_mapservice_request(mock_request.get, self.feature_url, self.feature_path)
             self.mock_mapservice_request(mock_request.get, self.feature_layer_url, self.feature_layer_path)
@@ -93,6 +123,9 @@ class ArcGISTestCase(ResourceTestCase):
     @requests_mock.Mocker()
     def test_invalid_arcgis_urls(self, mock_request):
 
+        with self.assertRaises(AssertionError):
+            self.mock_arcgis_client(mock_request, "nope")
+
         # Map all service and layer urls to data
         self.mock_arcgis_client(mock_request, "error")
         self.mock_arcgis_client(mock_request, "map")
@@ -100,6 +133,18 @@ class ArcGISTestCase(ResourceTestCase):
         self.mock_arcgis_client(mock_request, "image")
 
         # Test service level errors
+
+        error_url = self.map_version_error_url
+        with self.assertRaises(ValidationError, msg=f"ValidationError not raised for map service: {error_url}"):
+            MapServerResource.get(error_url, lazy=False)
+
+        error_url = self.feature_version_error_url
+        with self.assertRaises(ValidationError, msg=f"ValidationError not raised for feature service: {error_url}"):
+            FeatureServerResource.get(error_url, lazy=False)
+
+        error_url = self.image_version_error_url
+        with self.assertRaises(ValidationError, msg=f"ValidationError not raised for image service: {error_url}"):
+            ImageServerResource.get(error_url, lazy=False)
 
         error_url = self.empty_url
 
@@ -120,6 +165,14 @@ class ArcGISTestCase(ResourceTestCase):
                 ImageServerResource.get(error_url, lazy=False)
 
         # Test layer level errors
+
+        error_url = self.map_layer_version_error_url
+        with self.assertRaises(ValidationError, msg=f"ValidationError not raised for map layer: {error_url}"):
+            MapLayerResource.get(error_url, lazy=False)
+
+        error_url = self.feature_layer_version_error_url
+        with self.assertRaises(ValidationError, msg=f"ValidationError not raised for feature layer: {error_url}"):
+            FeatureLayerResource.get(error_url, lazy=False)
 
         session = self.mock_mapservice_session(self.empty_path)
 

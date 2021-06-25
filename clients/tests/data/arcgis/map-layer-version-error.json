@@ -1,0 +1,59 @@
+{
+  "currentVersion": 10,
+  "id": 0,
+  "name": "bad_version",
+  "type": "Feature Layer",
+  "description": "This data set represents a bad version.",
+  "geometryType": "esriGeometryPolygon",
+  "sourceSpatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  },
+  "copyrightText": "",
+  "parentLayer": null,
+  "subLayers": [],
+  "minScale": 250000,
+  "maxScale": 0,
+  "defaultVisibility": false,
+  "extent": {
+    "xmin": -19024325.925,
+    "ymin": -1622985.366700001,
+    "xmax": 16239651.735799998,
+    "ymax": 11554273.612999998,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "hasAttachments": false,
+  "htmlPopupType": "esriServerHTMLPopupTypeNone",
+  "displayField": "",
+  "typeIdField": null,
+  "fields": [],
+  "indexes": [],
+  "relationships": [],
+  "canModifyLayer": false,
+  "canScaleSymbols": false,
+  "hasLabels": false,
+  "capabilities": "Map,Query,Data",
+  "maxRecordCount": 1000,
+  "supportsStatistics": false,
+  "supportsAdvancedQueries": false,
+  "supportedQueryFormats": "JSON,AMF,geoJSON",
+  "ownershipBasedAccessControlForFeatures": {
+    "allowOthersToQuery": false
+  },
+  "useStandardizedQueries": false,
+  "advancedQueryCapabilities": {
+    "useStandardizedQueries": false,
+    "supportsStatistics": false,
+    "supportsOrderBy": false,
+    "supportsDistinct": false,
+    "supportsPagination": false,
+    "supportsTrueCurve": false,
+    "supportsReturningQueryExtent": false,
+    "supportsQueryWithDistance": false,
+    "supportsSqlExpression": false
+  },
+  "supportsDatumTransformation": false
+}

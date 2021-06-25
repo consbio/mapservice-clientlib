@@ -1,0 +1,92 @@
+{
+  "currentVersion": 10.01,
+  "serviceDescription": "",
+  "name": "bad_version",
+  "description": "",
+  "extent": {
+    "xmin": -13852876.8488,
+    "ymin": 3828749.521800003,
+    "xmax": -12703715.8488,
+    "ymax": 5170873.521800003,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "initialExtent": {
+    "xmin": -13852876.8488,
+    "ymin": 3828749.521800003,
+    "xmax": -12703715.8488,
+    "ymax": 5170873.521800003,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "fullExtent": {
+    "xmin": -13852876.8488,
+    "ymin": 3828749.521800003,
+    "xmax": -12703715.8488,
+    "ymax": 5170873.521800003,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "pixelSizeX": 1,
+  "pixelSizeY": 1,
+  "bandCount": 3,
+  "pixelType": "U8",
+  "minPixelSize": 0,
+  "maxPixelSize": 0,
+  "copyrightText": "",
+  "serviceDataType": "esriImageServiceDataTypeRGB",
+  "minValues": [],
+  "maxValues": [],
+  "meanValues": [],
+  "stdvValues": [],
+  "objectIdField": "OBJECTID",
+  "fields": [],
+  "capabilities": "Image,Metadata,Catalog",
+  "defaultMosaicMethod": "Center",
+  "allowedMosaicMethods": "Center,NorthWest,Nadir,Viewpoint,Seamline",
+  "sortField": "",
+  "sortValue": null,
+  "mosaicOperator": "First",
+  "maxDownloadSizeLimit": 2048,
+  "defaultCompressionQuality": 75,
+  "defaultResamplingMethod": "Bilinear",
+  "maxImageHeight": 4100,
+  "maxImageWidth": 15000,
+  "maxRecordCount": 1000,
+  "maxDownloadImageCount": 20,
+  "maxMosaicImageCount": 20,
+  "allowRasterFunction": false,
+  "rasterFunctionInfos": [],
+  "rasterTypeInfos": [],
+  "mensurationCapabilities": "None",
+  "hasHistograms": false,
+  "hasColormap": false,
+  "hasRasterAttributeTable": false,
+  "minScale": 0,
+  "maxScale": 0,
+  "exportTilesAllowed": false,
+  "hasMultidimensions": false,
+  "supportsStatistics": false,
+  "supportsAdvancedQueries": false,
+  "editFieldsInfo": null,
+  "ownershipBasedAccessControlForRasters": null,
+  "allowComputeTiePoints": false,
+  "useStandardizedQueries": false,
+  "advancedQueryCapabilities": {
+    "useStandardizedQueries": false,
+    "supportsStatistics": false,
+    "supportsOrderBy": false,
+    "supportsDistinct": false,
+    "supportsPagination": false
+  },
+  "spatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  }
+}

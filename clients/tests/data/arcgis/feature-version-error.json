@@ -1,0 +1,78 @@
+{
+  "currentVersion": 10.0,
+  "serviceItemId": "bad_version",
+  "serviceDescription": "",
+  "hasVersionedData": false,
+  "supportsDisconnectedEditing": false,
+  "hasStaticData": false,
+  "hasSharedDomains": false,
+  "maxRecordCount": 2000,
+  "supportedQueryFormats": "JSON",
+  "supportsVCSProjection": false,
+  "supportedExportFormats": "sqlite,gpkg,shapefile,filegdb,featureCollection,geojson,csv,excel",
+  "capabilities": "Query",
+  "description": "",
+  "copyrightText": "",
+  "spatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  },
+  "initialExtent": {
+    "xmin": -13407041.172414886,
+    "ymin": 4623683.436859363,
+    "xmax": -13267891.808923297,
+    "ymax": 4838750.263348374,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "fullExtent": {
+    "xmin": -13407041.172414886,
+    "ymin": 4623683.436859363,
+    "xmax": -13267891.808923297,
+    "ymax": 4838750.263348374,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "allowGeometryUpdates": false,
+  "units": "esriMeters",
+  "supportsAppend": false,
+  "supportsSharedDomains": false,
+  "supportsWebHooks": false,
+  "supportsTemporalLayers": false,
+  "layerOverridesEnabled": false,
+  "size": 49152,
+  "syncEnabled": false,
+  "supportsApplyEditsWithGlobalIds": false,
+  "supportsReturnDeleteResults": false,
+  "supportsLayerOverrides": false,
+  "supportsTilesAndBasicQueriesMode": false,
+  "editorTrackingInfo": {
+    "enableEditorTracking": false,
+    "enableOwnershipAccessControl": false,
+    "allowOthersToQuery": false,
+    "allowOthersToUpdate": false,
+    "allowOthersToDelete": false
+  },
+  "xssPreventionInfo": {
+    "xssPreventionEnabled": false,
+    "xssPreventionRule": "InputOnly",
+    "xssInputRule": "rejectInvalid"
+  },
+  "layers": [
+    {
+      "id": 0,
+      "name": "bad_version",
+      "parentLayerId": -1,
+      "defaultVisibility": false,
+      "subLayerIds": null,
+      "minScale": 18489298,
+      "maxScale": 0,
+      "geometryType": "esriGeometryPoint"
+    }
+  ],
+  "tables": []
+}
