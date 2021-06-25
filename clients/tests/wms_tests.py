@@ -1,4 +1,4 @@
-from clients.exceptions import ContentError, HTTPError, ImageError
+from clients.exceptions import ContentError, HTTPError, ImageError, ValidationError
 from clients.wms import WMSResource
 from clients.utils.geometry import Extent
 
@@ -17,6 +17,9 @@ class WMSTestCase(ResourceTestCase):
 
         self.ncwms_url = "http://tools.pacificclimate.org/ncWMS-PCIC/wms?dataset=pr-tasmax-tasmin_day"
         self.ncwms_path = self.wms_directory / "ncwms-layer.json"
+
+        self.version_error_url = "http://demo.mapserver.org/version/wms"
+        self.version_error_path = self.wms_directory / "version-error.xml"
 
     def assert_ncwms_request(self, data_path, version, token=None):
 
@@ -367,9 +370,12 @@ class WMSTestCase(ResourceTestCase):
     def test_invalid_wms_url(self):
 
         session = self.mock_mapservice_session(self.data_directory / "test.html")
-
         with self.assertRaises(ContentError):
             WMSResource.get("http://www.google.com", session=session, lazy=False)
+
+        session = self.mock_mapservice_session(self.version_error_path)
+        with self.assertRaises(ValidationError):
+            WMSResource.get(self.version_error_url, session=session, lazy=False)
 
     def test_valid_new_ncwms_request(self):
         self.assert_ncwms_request(self.wms_directory / "ncwms-max.xml", version="1.3.0")
