@@ -104,9 +104,11 @@ class ScienceBaseTestCase(ResourceTestCase):
 
     @requests_mock.Mocker()
     def test_invalid_sciencebase_urls(self, mock_request):
-        self.mock_service_client(mock_request, "error")
 
-        # Generic errors
+        with self.assertRaises(AssertionError):
+            self.mock_service_client(mock_request, "nope")
+
+        self.mock_service_client(mock_request, "error")
 
         # ArcGIS server error
         with self.assertRaises(HTTPError):
@@ -125,7 +127,6 @@ class ScienceBaseTestCase(ResourceTestCase):
             ScienceBaseResource.get(self.json_error_url, lazy=False)
 
         # Specific ScienceBase errors
-
         with self.assertRaises(MissingFields):
             ScienceBaseResource.get(self.missing_fields_url, lazy=False)
         with self.assertRaises(NoLayers):
