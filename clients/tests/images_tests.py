@@ -59,6 +59,8 @@ class ImagesTestCase(BaseTestCase):
             image_to_bytes("")
         with self.assertRaises(ValueError):
             image_to_bytes([])
+        with self.assertRaises(ValueError):
+            image_to_bytes(self.test_png, image_format="nope")
 
         # Test PNG conversion
 
@@ -84,7 +86,6 @@ class ImagesTestCase(BaseTestCase):
 
         with self.assertRaises(ValueError):
             image_to_string("https://not/an/image.png")
-
         with self.assertRaises(ValueError):
             image_to_string(Image)
 
@@ -156,6 +157,11 @@ class ImagesTestCase(BaseTestCase):
         image_str = image_to_string(TEST_JPG_BASE64.decode(), prefix=False)
         self.assertEqual(image_str, target)
 
+        # Test conversion from JPG string with truncated prefix
+        target = TEST_JPG_BASE64.decode()
+        image_str = image_to_string((IMG_BASE64_PREFIX + TEST_JPG_BASE64).decode(), prefix=False)
+        self.assertEqual(image_str, target)
+
         # Test conversion from PNG bytes with prefix
         target = (IMG_BASE64_PREFIX + TEST_PNG_BASE64).decode()
         image_str = image_to_string(TEST_PNG_BASE64, prefix=True)
@@ -164,6 +170,11 @@ class ImagesTestCase(BaseTestCase):
         # Test conversion from JPG bytes without prefix
         target = TEST_JPG_BASE64.decode()
         image_str = image_to_string(TEST_JPG_BASE64, prefix=False)
+        self.assertEqual(image_str, target)
+
+        # Test conversion from JPG bytes with truncated prefix
+        target = TEST_JPG_BASE64.decode()
+        image_str = image_to_string((IMG_BASE64_PREFIX + TEST_JPG_BASE64), prefix=False)
         self.assertEqual(image_str, target)
 
     def test_count_colors(self):

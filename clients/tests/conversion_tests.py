@@ -98,6 +98,7 @@ class ConversionTestCase(GeometryTestCase):
         renderer_dict = {
             "symbol": copy.deepcopy(renderer_symbol),
             "default_label": None,
+            "default_symbol": copy.deepcopy(renderer_symbol),
             "description": "",
             "field_delimiter": ", ",
             "field": "field val",
@@ -117,6 +118,7 @@ class ConversionTestCase(GeometryTestCase):
         esri_renderer_dict = {
             "symbol": copy.deepcopy(renderer_symbol),
             "defaultLabel": None,
+            "defaultSymbol": copy.deepcopy(renderer_symbol),
             "description": "",
             "fieldDelimiter": ", ",
             "field": "field val",
@@ -142,6 +144,7 @@ class ConversionTestCase(GeometryTestCase):
         target = copy.deepcopy(esri_renderer_dict)
         target.update({}.fromkeys(test_defaults))
         target["symbol"] = target_symbol
+        target["defaultSymbol"] = target_symbol
         target["classBreakInfos"] = [target_symbol]
         target["uniqueValueInfos"] = [target_symbol]
 
@@ -158,6 +161,7 @@ class ConversionTestCase(GeometryTestCase):
         target = copy.deepcopy(renderer_dict)
         target.update({}.fromkeys(test_defaults))
         target["symbol"] = target_symbol
+        target["default_symbol"] = target_symbol
         target["class_breaks"] = [target_symbol]
         target["unique_values"] = [target_symbol]
 

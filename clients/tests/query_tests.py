@@ -18,6 +18,19 @@ from .utils import get_object, get_spatial_reference, get_spatial_reference_dict
 class FieldsTestCase(BaseTestCase):
 
     def test_dict_field(self):
+        # Test with simple flat values (no conversion)
+
+        flat_values = (
+            123, "456", [7, 8, 9], list("abc"),
+            {"a": "aaa", "b": "bbb", "c": "ccc"}
+        )
+        for value in flat_values:
+            target = value
+            result = DictField().to_python(value, None)
+            self.assertEqual(result, target)
+
+        # Test with complex dict values
+
         value = {
             "one": 1,
             "two": 2,
@@ -26,10 +39,13 @@ class FieldsTestCase(BaseTestCase):
             "def": {"g": "ggg", "h": "hhh", "i": "iii"}
         }
 
+        # Test without camel casing
         field = DictField(name="no_camel", convert_camel=False)
+        target = value
         result = field.to_python(value, None)
-        self.assertEqual(result, value)
+        self.assertEqual(result, target)
 
+        # Test with aliases
         aliases = {"one": "1", "two": "2", "twentyTwo": "22"}
         field = DictField(name="camel_aliases", aliases=aliases, convert_camel=True)
         target = {
@@ -42,6 +58,7 @@ class FieldsTestCase(BaseTestCase):
         result = field.to_python(value, None)
         self.assertEqual(result, target)
 
+        # Test with defaults
         defaults = {"three": "3", "four": "4", "ghi": None}
         field = DictField(name="defaults", defaults=defaults)
         target = {
@@ -170,30 +187,33 @@ class FieldsTestCase(BaseTestCase):
 
     def test_extent_field(self):
 
-        data = (
-            get_extent_dict(),
-            get_extent_object(),
-            get_extent_list(),
-            Extent(get_extent_list(), spatial_reference=get_spatial_reference()),
-        )
-        for value in data:
-            if not isinstance(value, list):
-                field = ExtentField(name="to_python")
-                target = Extent(value)
-            else:
-                field = ExtentField(name="to_python", default_spatial_ref="EPSG:4326")
-                target = Extent(value, "EPSG:4326")
-
-            result = field.to_python(value, None)
-            self.assert_objects_are_equal(
-                result, target,
-                "Testing to_python with {} data".format(type(value).__name__)
+        for web_mercator in (True, False):
+            extent_data = (
+                get_extent_dict(web_mercator),
+                get_extent_object(web_mercator),
+                get_extent_list(web_mercator),
+                Extent(
+                    get_extent_list(web_mercator),
+                    spatial_reference=get_spatial_reference(web_mercator)
+                ),
             )
+            for extent in extent_data:
+                if not isinstance(extent, list):
+                    field = ExtentField(name="to_python")
+                    target = Extent(extent)
+                else:
+                    field = ExtentField(name="to_python", default_spatial_ref="EPSG:4326")
+                    target = Extent(extent, "EPSG:4326")
 
-            obj = result
-            field = ExtentField(name="to_value")
-            result = field.to_value(obj, None)
-            self.assertEqual(result, target.as_dict())
+                result = field.to_python(extent, None)
+                self.assert_objects_are_equal(
+                    result, target,
+                    "Testing to_python with {} data".format(type(extent).__name__)
+                )
+                obj = result
+                field = ExtentField(name="to_value")
+                result = field.to_value(obj, None)
+                self.assertEqual(result, target.as_dict())
 
     def test_time_info_field(self):
 
@@ -232,25 +252,27 @@ class FieldsTestCase(BaseTestCase):
 class ActionsTestCase(BaseTestCase):
 
     def test_query_action_prepare_params(self):
-        extent = get_extent()
-        extent_dict = get_extent_dict()
-        extent_list = get_extent_list()
-        spatial_ref = get_spatial_reference()
 
-        action = QueryAction("/", deserializer=JSONSerializer)
+        for web_mercator in (True, False):
+            extent = get_extent(web_mercator)
+            extent_dict = get_extent_dict(web_mercator)
+            extent_list = get_extent_list(web_mercator)
+            spatial_ref = get_spatial_reference(web_mercator)
 
-        params = action.prepare_params({
-            "extent_obj": extent,
-            "extent_dict": extent_dict,
-            "extent_list": extent_list,
-            "spatial_reference": spatial_ref
-        })
-        target = {
-            "extent_obj": extent.as_json_string(),
-            "extent_dict": json.dumps(extent_dict),
-            "extent_list": json.dumps(extent_list),
-            "spatial_reference": spatial_ref.as_json_string()
-        }
+            action = QueryAction("/", deserializer=JSONSerializer)
+
+            params = action.prepare_params({
+                "extent_obj": extent,
+                "extent_dict": extent_dict,
+                "extent_list": extent_list,
+                "spatial_reference": spatial_ref
+            })
+            target = {
+                "extent_obj": extent.as_json_string(),
+                "extent_dict": json.dumps(extent_dict),
+                "extent_list": json.dumps(extent_list),
+                "spatial_reference": spatial_ref.as_json_string()
+            }
         self.assertEqual(params[0], URLSerializer.to_string(target))
 
 
