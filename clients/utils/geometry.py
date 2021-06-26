@@ -43,7 +43,7 @@ def extract_significant_digits(number):
 
 
 def union_extent(extents):
-    extents = [x for x in extents if x is not None]
+    extents = [e for e in (extents or "") if e]
     if not extents:
         return None
 
@@ -54,13 +54,11 @@ def union_extent(extents):
     extent = extents[0].clone()
 
     for next_extent in extents[1:]:
-        if not isinstance(next_extent, Extent):
-            invalid_type = type(next_extent)
-            raise ValueError(f"Invalid extent type: expected Extent, got {invalid_type}")
         extent.xmin = min(extent.xmin, next_extent.xmin)
         extent.ymin = min(extent.ymin, next_extent.ymin)
         extent.xmax = max(extent.xmax, next_extent.xmax)
         extent.ymax = max(extent.ymax, next_extent.ymax)
+
     return extent
 
 
@@ -155,6 +153,8 @@ class Extent(object):
             return self.as_dict(esri_format, precision)
         elif self._original_format == "list":
             return self.as_list(precision)
+        elif precision is not None:
+            return Extent(self.as_dict(esri_format, precision))
         else:
             return self
 
@@ -304,10 +304,6 @@ class Extent(object):
         elif self.spatial_reference.srs:
             # Convert deprecated CRS format to one more common
             self.spatial_reference.srs = self.spatial_reference.srs.replace("CRS:84", "EPSG:4326")
-        elif self.spatial_reference.wkt:
-            raise NotImplementedError("WKT Projection support not built yet!")
-        else:
-            raise ValueError("Projection must be defined for extent to reproject it")
 
         # Apply y-axis corrections to avoid singularities in projection at latitude -90 or 90
         if self.spatial_reference.srs == "EPSG:4326":
@@ -317,7 +313,7 @@ class Extent(object):
             if self.ymax >= 90:
                 self.ymax = 85.0511
 
-    def _get_projected_extent(self, target_srs, edge_points=9):
+    def _get_projected_extent(self, target_srs):
         """
         Densifies the edges with edge_points points between corners, and projects all of them.
         Geographic latitudes must first be bounded to the following or calculations will fail!
@@ -332,10 +328,7 @@ class Extent(object):
         source_proj = Proj(init=source_srs) if from_epsg else Proj(str(source_srs))
         target_proj = Proj(init=target_srs) if ":" in target_srs else Proj(str(target_srs))
 
-        if edge_points < 2:
-            # Cannot densify (calculations below will fail), just use corners
-            x_values, y_values = transform(source_proj, target_proj, [self.xmin, self.xmax], [self.ymin, self.ymax])
-            return x_values[0], y_values[0], x_values[1], y_values[1]
+        edge_points = 9
 
         samples = list(range(0, edge_points))
         x_diff, y_diff = self.get_dimensions()
@@ -471,10 +464,8 @@ class SpatialReference(object):
             return f"srs: {self.srs}"
         elif self.wkid:
             return f"wkid: {self.wkid}"
-        elif self.wkt:
-            return f"wkt: {self.wkt}"
         else:
-            return ""
+            return f"wkt: {self.wkt}"
 
     def clone(self):
         return copy.deepcopy(self)

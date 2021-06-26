@@ -134,6 +134,17 @@ class ExtentTestCase(GeometryTestCase):
             del extent_obj.spatial_reference
             Extent(extent_obj)
 
+    def test_extent_repr(self):
+        extent = get_extent()
+        target = extent.as_json_string()
+        result = extent.__repr__()
+        self.assertEqual(result, target)
+
+        extent = get_extent(web_mercator=True)
+        target = extent.as_json_string()
+        result = extent.__repr__()
+        self.assertEqual(result, target)
+
     def test_extent_clone(self):
         extent = get_extent()
         cloned = extent.clone()
@@ -224,6 +235,16 @@ class ExtentTestCase(GeometryTestCase):
         self.assertEqual(extent._original_format, "dict")
         self.assertEqual(extent.as_original(), extent.as_dict())
         self.assertEqual(extent.as_original(False, 2), extent.as_dict(False, 2))
+
+        # Test as_original when it is an object
+
+        extent = Extent(get_extent_object(web_mercator=True))
+        self.assertEqual(extent._original_format, "obj")
+        self.assertEqual(extent.as_original(), extent)
+
+        target = extent.as_dict(False, 2)
+        result = extent.as_original(False, 2).as_dict(False)
+        self.assertEqual(result, target)
 
     def test_extent_as_bbox_string(self):
         extent = Extent((-179.1234, -89.2345, 179.3456, 89.4567), "EPSG:4326")
@@ -469,6 +490,18 @@ class ExtentTestCase(GeometryTestCase):
         self.assertEqual(result, target)
 
     def test_extent_project_to_geographic(self):
+
+        # Test invalid cases
+
+        extent_dict = get_extent().as_dict()
+
+        # Non-proj4 extent
+        extent_dict["spatialReference"] = {"wkid": 44000}
+        with self.assertRaises(ValueError, msg="Spatial reference is not valid for proj4"):
+            Extent(extent_dict).project_to_geographic()
+
+        # Test success cases
+
         geographic_srs = "EPSG:4326"
 
         # Test reprojection when extent is already Geographic (unchanged)
@@ -490,7 +523,25 @@ class ExtentTestCase(GeometryTestCase):
         self.assertEqual(result.spatial_reference.srs, geographic_srs)
 
     def test_extent_project_to_web_mercator(self):
+
         extent = get_extent()
+
+        # Test invalid cases
+
+        extent_dict = extent.as_dict()
+
+        # Non-proj4 extent
+        extent_dict["spatialReference"] = {"wkid": 44000}
+        with self.assertRaises(ValueError, msg="Spatial reference is not valid for proj4"):
+            Extent(extent_dict).project_to_web_mercator()
+
+        # Invalid projection coordinates
+        extent_dict["spatialReference"] = "EPSG:9001"
+        with self.assertRaises(ValueError, msg="Invalid projection coordinates"):
+            Extent(extent_dict).project_to_web_mercator()
+
+        # Test success cases
+
         mercator_srs = "EPSG:3857"
 
         # Test reprojection of WGS84 extent to Web Mercator
@@ -577,6 +628,15 @@ class ExtentTestCase(GeometryTestCase):
         self.assertEqual(result, target)
 
     def test_union_extent(self):
+        # Test empty extent values
+        self.assertIsNone(union_extent(None))
+        self.assertIsNone(union_extent(""))
+        self.assertIsNone(union_extent([]))
+        self.assertIsNone(union_extent([None, "", []]))
+
+        with self.assertRaises(ValueError):
+            union_extent([get_extent(), "nope"])
+
         extent_1 = None
         extent_2 = Extent(get_extent_list(), spatial_reference="EPSG:4326")
         target = list(GLOBAL_EXTENT_WGS84)
@@ -632,6 +692,25 @@ class SpatialReferenceTestCase(GeometryTestCase):
             SpatialReference({})
         with self.assertRaises(BadSpatialReference):
             SpatialReference(get_object({"latest_wkid": 4326}))
+
+    def test_spatial_reference_repr(self):
+        data = {"wkt": WEB_MERCATOR_WKT}
+
+        target = f"wkt: {WEB_MERCATOR_WKT}"
+        result = SpatialReference(data).__repr__()
+        self.assertEqual(result, target)
+
+        data["wkid"] = 3857
+
+        target = "wkid: 3857"
+        result = SpatialReference(data).__repr__()
+        self.assertEqual(result, target)
+
+        data["srs"] = "EPSG:3857"
+
+        target = "srs: EPSG:3857"
+        result = SpatialReference(data).__repr__()
+        self.assertEqual(result, target)
 
     def test_spatial_reference_as_dict(self):
         data = {
@@ -825,7 +904,7 @@ class TileLevelsTestCase(BaseTestCase):
         )
         for data in geo_extent_data:
             target = [-282.4587061237935, -187.21100289600264, 282.4587061237935, 187.21100289600264]
-            result = tile_levels.snap_extent_to_nearest_tile_level(Extent(data), width, height).as_list()
+            result = tile_levels.snap_extent_to_nearest_tile_level(data, width, height).as_list()
             self.assertEqual(result, target)
 
         web_extent_data = (
@@ -836,5 +915,5 @@ class TileLevelsTestCase(BaseTestCase):
         )
         for data in web_extent_data:
             target = [-37022427.52397195, -24538120.56821397, 37022427.52397195, 24538120.568213962]
-            result = tile_levels.snap_extent_to_nearest_tile_level(Extent(data), width, height).as_list()
+            result = tile_levels.snap_extent_to_nearest_tile_level(data, width, height).as_list()
             self.assertEqual(result, target)
