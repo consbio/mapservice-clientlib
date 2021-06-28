@@ -15,6 +15,7 @@ from clients.wms import WMS_EXCEPTION_FORMAT
 
 BUILTIN_SIMPLE = (bool, str, int, float)
 BUILTIN_COMPLEX = (dict, list, set, tuple)
+BUILTIN_INDEXED = (list, tuple)
 BUILTIN_TYPES = BUILTIN_SIMPLE + BUILTIN_COMPLEX
 
 WEB_MERCATOR_WKT = """
@@ -115,26 +116,47 @@ class BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.data_directory = get_test_directory() / "data"
 
-    def assert_object_values(self, obj, target, props=None):
-
+    def _assert_props(self, target_data, props):
         if props is None:
-            props = set(target.keys())
+            props = set(target_data.keys())
         elif isinstance(props, str):
             props = set(props.split(","))
 
-        for prop in props:
-            self.assertTrue(not prop or prop in target, f'Invalid test property "{prop}"')
+        self.assertTrue(bool(props))
 
-        for prop in target:
+        for prop in props:
+            self.assertTrue(not prop or prop in target_data, f'Invalid test property "{prop}"')
+
+        return props
+
+    def assert_object_field(self, obj_or_objects, target_data, props=None):
+        if isinstance(target_data, BUILTIN_INDEXED):
+            self.assertEqual(len(obj_or_objects), len(target_data))
+            for idx, obj in enumerate(obj_or_objects):
+                self.assert_object_field(obj, target_data[idx])
+        else:
+            props = self._assert_props(target_data, props)
+            obj_data = {k: v for k, v in obj_or_objects.get_data().items() if k in props}
+
+            self.assertEqual(obj_data, target_data)
+
+    def assert_object_values(self, obj, target_data, props=None):
+
+        props = self._assert_props(target_data, props)
+
+        for prop in target_data:
             if prop not in props:
                 self.assertTrue(hasattr(obj, prop), f'Missing property "{prop}"')
             else:
                 test_val = getattr(obj, prop, None)
-                if prop != "get_data":
-                    self.assert_objects_are_equal(test_val, target[prop], f'Invalid value for "{prop}"')
-                else:
-                    self.assertTrue(callable(test_val), f'Uncallable value for "get_data"')
-                    self.assertEqual(obj.get_data(), target[prop])
+                if hasattr(test_val, "get_data"):
+                    test_val = test_val.get_data()
+
+                target_val = target_data[prop]
+                if hasattr(target_val, "get_data"):
+                    target_val = target_val.get_data()
+
+                self.assert_objects_are_equal(test_val, target_val, f'Invalid value for "{prop}"')
 
     def assert_objects_are_equal(self, first, second, msg=None):
 
@@ -157,18 +179,14 @@ class BaseTestCase(unittest.TestCase):
                 self.assert_objects_are_equal(first_val, second_val, msg)
 
         except ValueError:
-            if type(first) is not type(second):
+            if not isinstance(first, BUILTIN_INDEXED):
                 self.assertEqual(first, second, msg)
-            elif isinstance(first, BUILTIN_SIMPLE):
-                self.assertEqual(first, second, msg)
-            elif isinstance(first, (dict, set)):
-                self.assertEqual(first, second, msg)
-            elif isinstance(first, (list, tuple)):
+            else:
+                self.assertTrue(isinstance(second, BUILTIN_INDEXED))
                 self.assertEqual(len(first), len(second))
+
                 for idx, val in enumerate(first):
                     self.assert_objects_are_equal(val, second[idx], msg)
-            else:
-                self.assertEqual(first, second, msg)
 
 
 class GeometryTestCase(BaseTestCase):

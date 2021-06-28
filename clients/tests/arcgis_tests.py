@@ -242,7 +242,7 @@ class ArcGISTestCase(ResourceTestCase):
         # ArcGISServerResource
         self.assertEqual(client.service_description, "")
 
-        self.assert_object_values(client.document_info, {
+        self.assert_object_field(client.document_info, {
             "title": "National Wetlands Inventory",
             "author": "U.S. Fish and Wildlife Service, National Standards and Support Team",
             "comments": "For wetland information visit www.fws.gov/wetlands/",
@@ -263,7 +263,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.spatial_reference.wkid, 102100)
 
         self.assertEqual(len(client.tables), 1)
-        self.assert_object_values(client.tables[0], {
+        self.assert_object_field(client.tables[0], {
             "id": 2,
             "name": "NWI_Wetland_Codes"
         })
@@ -312,14 +312,10 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(first_layer.display_field, "Wetlands.ATTRIBUTE")
         self.assertEqual(first_layer.edit_fields_info, None)
 
-        self.assertEqual(len(first_layer.fields), len(MAP_LAYER_FIELDS))
-        for idx, field in enumerate(MAP_LAYER_FIELDS):
-            self.assert_object_values(first_layer.fields[idx], field)
-
-        self.assert_object_values(
-            first_layer.ownership_based_access_control_for_features,
-            {"allow_others_to_query": True}
-        )
+        self.assert_object_field(first_layer.fields, MAP_LAYER_FIELDS)
+        self.assert_object_field(first_layer.ownership_based_access_control_for_features, {
+            "allow_others_to_query": True
+        })
 
         self.assertEqual(first_layer.relationships, [])
         self.assertEqual(first_layer.default_visibility, True)
@@ -339,7 +335,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(first_layer.min_scale, 250000)
         self.assertEqual(first_layer.max_scale, 0)
 
-        self.assert_object_values(first_layer.drawing_info, MAP_LAYER_DRAWING_INFO)
+        self.assert_object_field(first_layer.drawing_info, MAP_LAYER_DRAWING_INFO)
 
         # MapLayerResource
         self.assertEqual(first_layer.parent, None)
@@ -435,8 +431,9 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.capabilities, "Query")
         self.assertEqual(client.supported_query_formats, "JSON")
         self.assertEqual(client.max_record_count, 2000)
-        self.assertEqual(client.time_enabled, False)
-        self.assertEqual(client.time_info, None)
+
+        self.assertEqual(client.time_enabled, True)
+        self.assert_object_field(client.time_info, FEATURE_TIME_INFO)
 
         # ArcGISServerResource
         self.assertEqual(client.service_description, "")
@@ -460,7 +457,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.has_versioned_data, False)
         self.assertEqual(client.allow_geometry_updates, True)
 
-        self.assert_object_values(client.editor_tracking_info, {
+        self.assert_object_field(client.editor_tracking_info, {
             "enable_editor_tracking": False,
             "enable_ownership_access_control": False,
             "allow_others_to_query": True,
@@ -486,8 +483,9 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(first_layer.capabilities, "Query")
         self.assertEqual(first_layer.supported_query_formats, "JSON,geoJSON,PBF")
         self.assertEqual(first_layer.max_record_count, 2000)
-        self.assertEqual(first_layer.time_enabled, False)
-        self.assertEqual(first_layer.time_info, None)
+
+        self.assertEqual(first_layer.time_enabled, True)
+        self.assert_object_field(first_layer.time_info, FEATURE_LAYER_TIME_INFO)
 
         # ArcGISLayerResource
         self.assertEqual(first_layer.id, 0)
@@ -495,9 +493,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(first_layer.type_id_field, "")
         self.assertEqual(first_layer.display_field, "")
 
-        self.assertEqual(len(first_layer.fields), len(FEATURE_LAYER_FIELDS))
-        for idx, field in enumerate(FEATURE_LAYER_FIELDS):
-            self.assert_object_values(first_layer.fields[idx], field)
+        self.assert_object_field(first_layer.fields, FEATURE_LAYER_FIELDS)
 
         self.assertEqual(first_layer.edit_fields_info, None)
         self.assertEqual(first_layer.ownership_based_access_control_for_features, None)
@@ -519,7 +515,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(first_layer.min_scale, 18489298)
         self.assertEqual(first_layer.max_scale, 0)
 
-        self.assert_object_values(first_layer.drawing_info, FEATURE_LAYER_DRAWING_INFO)
+        self.assert_object_field(first_layer.drawing_info, FEATURE_LAYER_DRAWING_INFO)
 
         # FeatureLayerResource
         self.assertEqual(first_layer.global_id_field, "")
@@ -536,9 +532,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(first_layer.time_interval, None)
         self.assertEqual(first_layer.time_interval_units, None)
 
-        self.assertEqual(len(first_layer.templates), len(FEATURE_LAYER_TEMPLATES))
-        for idx, template in enumerate(FEATURE_LAYER_TEMPLATES):
-            self.assert_object_values(first_layer.templates[idx], template)
+        self.assert_object_field(first_layer.templates, FEATURE_LAYER_TEMPLATES)
 
         self.assertEqual(first_layer.types, [])
 
@@ -641,9 +635,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.band_count, 3)
         self.assertEqual(client.default_resampling_method, "Bilinear")
 
-        self.assertEqual(len(client.fields), len(IMAGE_SERVICE_FIELDS))
-        for idx, field in enumerate(IMAGE_SERVICE_FIELDS):
-            self.assert_object_values(client.fields[idx], field)
+        self.assert_object_field(client.fields, IMAGE_SERVICE_FIELDS)
 
         self.assertEqual(client.edit_fields_info, None)
         self.assertEqual(
@@ -732,18 +724,18 @@ IMAGE_SERVICE_FIELDS = [
         "name": "Category",
         "type": "esriFieldTypeInteger",
         "alias": "Category",
-        "domain": get_object({
+        "domain": {
             "type": "codedValue",
             "name": "MosaicCatalogItemCategoryDomain",
             "coded_values": [
-                get_object({"name": "Unknown", "code": 0}),
-                get_object({"name": "Primary", "code": 1}),
-                get_object({"name": "Incomplete", "code": 254}),
-                get_object({"name": "Custom", "code": 255})
+                {"name": "Unknown", "code": 0},
+                {"name": "Primary", "code": 1},
+                {"name": "Incomplete", "code": 254},
+                {"name": "Custom", "code": 255}
             ],
             "merge_policy": "esriMPTDefaultValue",
             "split_policy": "esriSPTDefaultValue"
-        }),
+        },
     },
     {
         "name": "CenterX",
@@ -759,6 +751,15 @@ IMAGE_SERVICE_FIELDS = [
     }
 ]
 
+FEATURE_TIME_INFO = {
+    "time_extent": [0, 100],
+    "default_interval": 10,
+    "default_units": "esriTimeUnitsMilliseconds",
+    "time_reference": {
+        "time_zone": "UTC",
+        "respects_daylight_saving": False
+    }
+}
 FEATURE_LAYER_FIELDS = [
     {
         "name": "FID",
@@ -806,28 +807,38 @@ FEATURE_LAYER_FIELDS = [
     }
 ]
 FEATURE_LAYER_DRAWING_INFO = {
-    "renderer": get_object(setdefaults({
+    "renderer": setdefaults({
         "type": "simple",
-        "symbol": get_object({
+        "symbol": {
             "type": "esriPMS",
             "url": "RedSphere.png",
             "image": "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABGdBTUEAALGPC/6ZiGvGAAAAAASUVORK5CYII=",
             "content_type": "image/png",
             "width": 15,
             "height": 15
-        })
-    }, RENDERER_DEFAULTS))
+        }
+    }, RENDERER_DEFAULTS)
 }
 FEATURE_LAYER_TEMPLATES = [
     {
         "name": "New Feature",
         "description": "",
         "drawing_tool": "esriFeatureEditToolPoint",
-        "prototype": get_object({
-            "attributes": get_object({"point_x": None, "point_y": None})
-        })
+        "prototype": {
+            "attributes": {"point_x": None, "point_y": None}
+        }
     }
 ]
+FEATURE_LAYER_TIME_INFO = {
+    "time_extent": [0, 100],
+    "interval": 10,
+    "units": "esriTimeUnitsMilliseconds",
+    "time_reference": {
+        "time_zone": "UTC",
+        "respects_daylight_saving": False
+    }
+}
+
 
 MAP_LAYER_FIELDS = [
     {
@@ -871,7 +882,7 @@ MAP_LAYER_FIELDS = [
     },
 ]
 MAP_LAYER_DRAWING_INFO = {
-    "renderer": get_object(setdefaults({
+    "renderer": setdefaults({
         "type": "uniqueValue",
         "field1": "Wetlands.WETLAND_TYPE",
         "field2": None,
@@ -879,49 +890,49 @@ MAP_LAYER_DRAWING_INFO = {
         "default_symbol": None,
         "default_label": None,
         "unique_values": [
-            get_object({
-                "symbol": get_object({
+            {
+                "symbol": {
                     "type": "esriSFS",
                     "style": "esriSFSSolid",
                     "color": [0, 124, 136, 255],
-                    "outline": get_object({
+                    "outline": {
                         "type": "esriSLS",
                         "style": "esriSLSSolid",
                         "color": [0, 0, 0, 255],
                         "width": 0.4
-                    })
-                }),
+                    }
+                },
                 "value": "Estuarine and Marine Deepwater",
                 "label": "Estuarine and Marine Deepwater",
                 "description": ""
-            }),
-            get_object({
-                "symbol": get_object({
+            },
+            {
+                "symbol": {
                     "type": "esriSFS",
                     "style": "esriSFSSolid",
                     "color": [102, 194, 165, 255],
-                    "outline": get_object({
+                    "outline": {
                         "type": "esriSLS",
                         "style": "esriSLSSolid",
                         "color": [0, 0, 0, 255],
                         "width": 0.4
-                    })
-                }),
+                    }
+                },
                 "value": "Estuarine and Marine Wetland",
                 "label": "Estuarine and Marine Wetland",
                 "description": ""
-            })
+            }
         ],
         "field_delimiter": ","
-    }, RENDERER_DEFAULTS)),
+    }, RENDERER_DEFAULTS),
     "transparency": 0,
     "labeling": [
-        get_object({
+        {
             "placement": "esriServerPolygonPlacementAlwaysHorizontal",
             "where": None,
             "expression": "[Wetlands.ATTRIBUTE]",
             "use_coded_values": True,
-            "symbol": get_object({
+            "symbol": {
                 "type": "esriTS",
                 "color": [255, 255, 255, 255],
                 "background_color": None,
@@ -936,16 +947,16 @@ MAP_LAYER_DRAWING_INFO = {
                 "kerning": True,
                 "halo_color": None,
                 "halo_size": None,
-                "font": get_object({
+                "font": {
                     "family": "Arial",
                     "size": 10,
                     "style": "normal",
                     "weight": "normal",
                     "decoration": "none"
-                })
-            }),
+                }
+            },
             "min_scale": 50000,
             "max_scale": 0
-        })
+        }
     ]
 }

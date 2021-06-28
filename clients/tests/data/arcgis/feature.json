@@ -37,6 +37,15 @@
       "latestWkid": 3857
     }
   },
+  "timeInfo": {
+    "timeExtent": [0, 100],
+    "defaultTimeInterval": 10,
+    "defaultTimeIntervalUnits": "esriTimeUnitsMilliseconds",
+    "timeReference": {
+      "timeZone": "UTC",
+      "respectsDaylightSaving": false
+    }
+  },
   "allowGeometryUpdates": true,
   "units": "esriMeters",
   "supportsAppend": true,

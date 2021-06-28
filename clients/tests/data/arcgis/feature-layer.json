@@ -88,6 +88,15 @@
       }
     }
   },
+  "timeInfo": {
+    "timeExtent": [0, 100],
+    "interval": 10,
+    "units": "esriTimeUnitsMilliseconds",
+    "timeReference": {
+      "timeZone": "UTC",
+      "respectsDaylightSaving": false
+    }
+  },
   "allowGeometryUpdates": true,
   "hasAttachments": false,
   "htmlPopupType": "esriServerHTMLPopupTypeNone",

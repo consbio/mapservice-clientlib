@@ -175,37 +175,35 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertEqual(client.parent_id, "parent-folder")
         self.assertEqual(client.has_children, False)
 
-        self.assertEqual(len(client.distribution_links), len(ARCGIS_DIST_LINKS))
-        for idx, field in enumerate(ARCGIS_DIST_LINKS):
-            self.assertEqual(client.distribution_links[idx].get_data(), field)
+        self.assert_object_field(client.distribution_links, ARCGIS_DIST_LINKS)
+
+        facet_data = client.facets[0].get_data()
 
         self.assertEqual(len(client.facets), 1)
-
-        first_facet = client.facets[0].get_data()
-
-        self.assertEqual(len(first_facet), 12)
-        self.assertEqual(first_facet["name"], "ArcGIS.sd")
-        self.assertEqual(first_facet["facet_name"], "ArcGIS Service Definition")
-        self.assertEqual(first_facet["service_id"], "arcgis_service")
-        self.assertEqual(first_facet["service_path"], "arcgis_service")
-        self.assertEqual(first_facet["enabled_services"], ["KmlServer", "WMSServer"])
-        self.assertEqual(len(first_facet["files"]), 2)
+        self.assertEqual(len(facet_data), 12)
+        self.assertEqual(len(facet_data["files"]), 2)
         self.assertEqual(
-            Extent(first_facet.get("extent"), spatial_reference="102100").as_list(),
+            Extent(facet_data.get("extent"), spatial_reference="102100").as_list(),
             [-121.861000575342, 44.4967792744768, -115.403665323615, 49.0040515878564]
         )
+        self.assert_object_field(client.facets[0], {
+            "name": "ArcGIS.sd",
+            "facet_name": "ArcGIS Service Definition",
+            "service_id": "arcgis_service",
+            "service_path": "arcgis_service",
+            "enabled_services": ["KmlServer", "WMSServer"]
+        })
 
         self.assertEqual(client.files, [])
         self.assertEqual(client.links, [])
 
-        provenance = client.provenance.get_data()
-
-        self.assertEqual(len(provenance), 5)
-        self.assertEqual(provenance["data_source"], "Input directly")
-        self.assertEqual(provenance["date_created"], "2015-04-15T22:48:33Z")
-        self.assertEqual(provenance["date_updated"], "2016-04-08T23:42:46Z")
-        self.assertEqual(provenance["last_updated_by"], "daniel.harvey@consbio.org")
-        self.assertEqual(provenance["created_by"], "daniel.harvey@consbio.org")
+        self.assert_object_field(client.provenance, {
+            "data_source": "Input directly",
+            "date_created": "2015-04-15T22:48:33Z",
+            "date_updated": "2016-04-08T23:42:46Z",
+            "last_updated_by": "daniel.harvey@consbio.org",
+            "created_by": "daniel.harvey@consbio.org"
+        })
 
         self.assertEqual(client.browse_categories, ["Data"])
         self.assertEqual(
@@ -225,10 +223,11 @@ class ScienceBaseTestCase(ResourceTestCase):
         # Private resource properties
         self.assertEqual(client._contacts, [])
         self.assertEqual(len(client._dates), 1)
-        self.assertEqual(
-            client._dates[0].get_data(),
-            {'type': 'Reported', 'value': '2016', 'label': 'Date Reported'}
-        )
+        self.assert_object_field(client._dates[0], {
+            "type": "Reported",
+            "value": "2016",
+            "label": "Date Reported",
+        })
 
         permissions = client._permissions.get_data()
 
@@ -246,7 +245,7 @@ class ScienceBaseTestCase(ResourceTestCase):
         )
 
         self.assertEqual(len(client._tags), 1)
-        self.assertEqual(client._tags[0].get_data(), {"name": "test"})
+        self.assert_object_field(client._tags[0], {"name": "test"})
 
     @requests_mock.Mocker()
     def test_valid_arcgis_sciencebase_image_request(self, mock_request):
@@ -295,45 +294,42 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertEqual(client.parent_id, "parent-folder")
         self.assertEqual(client.has_children, False)
 
-        self.assertEqual(len(client.distribution_links), len(WMS_DIST_LINKS))
-        for idx, field in enumerate(WMS_DIST_LINKS):
-            self.assertEqual(client.distribution_links[idx].get_data(), field)
+        self.assert_object_field(client.distribution_links, WMS_DIST_LINKS)
+
+        facet_data = client.facets[0].get_data()
 
         self.assertEqual(len(client.facets), 2)
-        first_facet = client.facets[0].get_data()
-
-        self.assertEqual(len(first_facet), 7)
-        self.assertEqual(first_facet["name"], "SouthwesternWillowFlycatcher_FocalArea")
-        self.assertEqual(first_facet["facet_name"], "Shapefile")
-        self.assertEqual(first_facet["class_name"], "gov.sciencebase.catalog.item.facet.ShapefileFacet")
-        self.assertEqual(first_facet["geometry_type"], "MultiLineString")
-        self.assertEqual(first_facet["native_crs"], "EPSG:5070")
-        self.assertEqual(len(first_facet["files"]), 8)
+        self.assertEqual(len(facet_data), 7)
+        self.assertEqual(len(facet_data["files"]), 8)
         self.assertEqual(
-            Extent(first_facet.get("extent"), spatial_reference="EPSG:5070").as_list(),
+            Extent(facet_data.get("extent"), spatial_reference="EPSG:5070").as_list(),
             [-121.38976229221491, 29.80333794238641, -104.72940289874478, 39.32228869647462]
         )
+        self.assert_object_field(client.facets[0], {
+            "name": "SouthwesternWillowFlycatcher_FocalArea",
+            "facet_name": "Shapefile",
+            "class_name": "gov.sciencebase.catalog.item.facet.ShapefileFacet",
+            "geometry_type": "MultiLineString",
+            "native_crs": "EPSG:5070"
+        })
 
         self.assertEqual(len(client.files), 1)
-        first_file = client.files[0].get_data()
-
-        self.assertEqual(len(first_facet), 7)
-        self.assertEqual(first_file["name"], "SouthwesternWillowFlycatcher_FocalArea_metadata.xml")
-        self.assertEqual(first_file["title"], "")
-        self.assertEqual(first_file["content_type"], "application/fgdc+xml")
-        self.assertEqual(first_file["size"], 10293)
-        self.assertEqual(first_file["date_uploaded"], "2015-08-29T17:46:16Z")
-        self.assertEqual(first_file["url"], "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__id")
-        self.assertEqual(first_file["download_uri"], "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__id")
-
+        self.assert_object_field(client.files[0], {
+            "name": "SouthwesternWillowFlycatcher_FocalArea_metadata.xml",
+            "title": "",
+            "content_type": "application/fgdc+xml",
+            "size": 10293,
+            "date_uploaded": "2015-08-29T17:46:16Z",
+            "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__id",
+            "download_uri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__id"
+        })
         self.assertEqual(client.links, [])
 
-        provenance = client.provenance.get_data()
-
-        self.assertEqual(len(provenance), 3)
-        self.assertEqual(provenance["data_source"], "Input directly")
-        self.assertEqual(provenance["date_created"], "2015-08-29T17:46:44Z")
-        self.assertEqual(provenance["date_updated"], "2015-08-29T17:46:44Z")
+        self.assert_object_field(client.provenance, {
+            "data_source": "Input directly",
+            "date_created": "2015-08-29T17:46:44Z",
+            "date_updated": "2015-08-29T17:46:44Z"
+        })
 
         self.assertEqual(client.browse_categories, ["Data", "Publication"])
         self.assertEqual(
@@ -353,30 +349,28 @@ class ScienceBaseTestCase(ResourceTestCase):
         # Private resource properties
 
         self.assertEqual(len(client._contacts), 1)
-        first_contact = client._contacts[0].get_data()
-
-        self.assertEqual(len(first_contact), 12)
-        self.assertEqual(first_contact["name"], "Some Person")
-        self.assertEqual(first_contact["type"], "Distributor")
-        self.assertEqual(first_contact["contact_type"], "person")
-        self.assertEqual(first_contact["email"], "person@freshwaterinstitute.org")
-        self.assertEqual(first_contact["active"], True)
-        self.assertEqual(first_contact["job_title"], "Senior Environmental Associate")
-        self.assertEqual(first_contact["first_name"], "Some")
-        self.assertEqual(first_contact["middle_name"], "Other")
-        self.assertEqual(first_contact["last_name"], "Person")
-        self.assertEqual(len(first_contact["primary_location"]), 4)
+        self.assertEqual(len(client._contacts[0].get_data()["primary_location"]), 4)
+        self.assert_object_field(client._contacts[0], {
+            "name": "Some Person",
+            "type": "Distributor",
+            "contact_type": "person",
+            "email": "person@freshwaterinstitute.org",
+            "active": True,
+            "job_title": "Senior Environmental Associate",
+            "first_name": "Some",
+            "middle_name": "Other",
+            "last_name": "Person"
+        })
 
         self.assertEqual(client._dates, [])
         self.assertEqual(client._permissions, [])
-        self.assertEqual(len(client._tags), 4)
-        self.assertEqual(client._tags[0].get_data(), {"type": "Theme", "scheme": "None", "name": "conservation"})
-        self.assertEqual(
-            client._tags[1].get_data(),
-            {"type": "Theme", "scheme": "None", "name": "Southwestern Willow Flycatcher"}
-        )
-        self.assertEqual(client._tags[2].get_data(), {"type": "Theme", "scheme": "None", "name": "Focal Area"})
-        self.assertEqual(client._tags[3].get_data(), {"type": "Theme", "scheme": "None", "name": "WLFW"})
+
+        self.assert_object_field(client._tags, [
+            {"type": "Theme", "scheme": "None", "name": "conservation"},
+            {"type": "Theme", "scheme": "None", "name": "Southwestern Willow Flycatcher"},
+            {"type": "Theme", "scheme": "None", "name": "Focal Area"},
+            {"type": "Theme", "scheme": "None", "name": "WLFW"}
+        ])
 
     @requests_mock.Mocker()
     def test_valid_wms_sciencebase_image_request(self, mock_request):
