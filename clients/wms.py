@@ -22,7 +22,7 @@ from parserutils.urls import has_trailing_slash, update_url_params, url_to_parts
 from restle.fields import TextField, BooleanField, IntegerField
 
 from .exceptions import BadExtent, ClientError, ContentError, HTTPError, ImageError
-from .exceptions import MissingFields, NoLayers, UnsupportedVersion, ValidationError
+from .exceptions import MissingFields, NoLayers, ValidationError
 from .query.fields import DictField, ExtentField, ListField
 from .query.serializers import XMLToJSONSerializer
 from .resources import ClientResource
@@ -238,7 +238,7 @@ class WMSLayerResource(ClientResource):
         self.child_layers = []
         self.leaf_layers = {}
 
-        data["old_version"] = (data["version"] == self.wms._minimum_version)
+        data["old_version"] = (data["version"] == self.wms._supported_versions[0])
         data["queryable"] = (data.get("queryable", "").lower() in {"1", "true"})
         data["is_ncwms"] = self.wms._is_ncwms
 
@@ -477,7 +477,6 @@ class WMSResource(ClientResource):
     supported_spatial_refs = ListField(required=False)
     spatial_ref = TextField(required=False)
 
-    _minimum_version = WMS_KNOWN_VERSIONS[0]
     _supported_versions = WMS_KNOWN_VERSIONS
 
     _wms_url = None
@@ -556,9 +555,8 @@ class WMSResource(ClientResource):
         elif "Capability" not in data:
             raise NoLayers("The WMS service does not have any layers", url=self.wms_url)
 
-        elif data["version"] not in self._supported_versions:
-            invalid, supported = data["version"], self._supported_versions
-            raise UnsupportedVersion("The WMS service version is not supported", invalid, supported, url=self.wms_url)
+        else:
+            self.validate_version(data["version"])
 
         service = data["Service"]
         capabilities = data["Capability"]

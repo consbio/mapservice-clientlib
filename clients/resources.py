@@ -272,21 +272,18 @@ class ClientResource(Resource):
         class_name = self.__class__.__name__
         raise NotImplementedError(f"{class_name}.get_image")
 
-    def validate_version(self):
+    def validate_version(self, version=None):
         """ Validates version against min and max defined on resource """
 
+        version = version or self.version
         invalid, supported = None, None
 
-        if not self.version:
-            return
-
-        elif self._supported_versions and self.version not in self._supported_versions:
-            supported = ", ".join(self._supported_versions)
-            invalid = self.version
-
-        elif self._minimum_version and self.version < self._minimum_version:
+        if self._minimum_version and version < self._minimum_version:
             supported = self._minimum_version
-            invalid = self.version
+            invalid = version
+        elif self._supported_versions and version not in self._supported_versions:
+            supported = ", ".join(self._supported_versions)
+            invalid = version
 
         if invalid:
             raise UnsupportedVersion(
