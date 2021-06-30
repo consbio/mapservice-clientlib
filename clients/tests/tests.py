@@ -7,9 +7,10 @@ from .conversion_tests import ConversionTestCase
 from .geometry_tests import ExtentTestCase, SpatialReferenceTestCase, TileLevelsTestCase
 from .images_tests import ImagesTestCase
 from .query_tests import ActionsTestCase, FieldsTestCase, SerializersTestCase
+from .resource_tests import ClientResourceTestCase
 
 
-class FullClientsTestCase(ArcGISTestCase, ScienceBaseTestCase, THREDDSTestCase, WMSTestCase):
+class FullClientsTestCase(ArcGISTestCase, ClientResourceTestCase, ScienceBaseTestCase, THREDDSTestCase, WMSTestCase):
     """ Consolidates all client tests for ease of execution """
 
 

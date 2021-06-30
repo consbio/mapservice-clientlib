@@ -1,0 +1,91 @@
+{
+  "objects": [
+    {
+      "id": "first",
+      "version": 10.2,
+      "commaSeparated": "one,two,three",
+      "dictField": {
+        "a": "aaa",
+        "b": "bbb",
+        "c": "ccc"
+      },
+      "extent": {
+        "xmin": -180.0,
+        "ymin": -90.0,
+        "xmax": 180.0,
+        "ymax": 90.0,
+        "spatialReference": {
+          "srs": "EPSG:4326"
+        }
+      },
+      "listField": [
+        "ddd",
+        "eee",
+        "fff"
+      ],
+      "objectField": {
+        "type": "object",
+        "prop": "val",
+        "method": "callable",
+        "parent": {
+          "type": "object",
+          "prop": "inherited"
+        },
+        "children": [
+          {"type": "specialized"},
+          {"type": "aggregated"}
+        ]
+      },
+      "spatialReference": {
+        "latestWkid": "4326",
+        "srs": "EPSG:4326",
+        "wkid": 4326
+      }
+    },
+    {
+      "id": "second",
+      "version": 40.5,
+      "commaSeparated": "four,five,six",
+      "dictField": {
+        "x": "xxx",
+        "y": "yyy",
+        "z": "zzz"
+      },
+      "extent": {
+        "xmin": -20037508.342789244,
+        "ymin": -20037471.205137067,
+        "xmax": 20037508.342789244,
+        "ymax": 20037471.20513706,
+        "spatialReference": {
+          "srs": "EPSG:3857"
+        }
+      },
+      "listField": [
+        "ttt",
+        "uuu",
+        "vvv"
+      ],
+      "objectField": {
+        "type": "parent",
+        "prop": "inhertiable",
+        "parent": null,
+        "children": [
+          {
+            "type": "object",
+            "prop": "val",
+            "method": "callable",
+            "children": [
+              {"type": "specialized"},
+              {"type": "aggregated"}
+            ]
+          }
+        ]
+      },
+      "spatialReference": {
+        "latestWkid": "3857",
+        "srs": "EPSG:3857",
+        "wkid": 3857
+      }
+    }
+  ]
+}
