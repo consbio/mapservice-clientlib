@@ -34,6 +34,8 @@ class ClientResourceTestCase(ResourceTestCase):
 
     def assert_bulk_clients(self, clients):
 
+        self.assertEqual(len(clients), 3)
+
         client = clients[0]
 
         self.assertEqual(client._minimum_version, 10)
@@ -100,6 +102,19 @@ class ClientResourceTestCase(ResourceTestCase):
         self.assertEqual(client.spatial_reference.srs, "EPSG:3857")
         self.assertEqual(client.spatial_reference.wkid, 3857)
         self.assertEqual(client.spatial_reference.latest_wkid, "3857")
+
+        client = clients[2]
+
+        self.assertEqual(client._minimum_version, 10)
+        self.assertEqual(client._supported_versions, (10.2, 30, 40.5))
+        self.assertEqual(client.id, None)
+        self.assertEqual(client.version, 30)
+        self.assertEqual(client.comma_separated, None)
+        self.assertEqual(client.dict_field, {})
+        self.assertEqual(client.extent, None)
+        self.assertEqual(client.list_field, [])
+        self.assertEqual(client.object_field, None)
+        self.assertEqual(client.spatial_reference, None)
 
     def mock_bulk_session(self, data_path, mode="r", ok=True, headers=None):
         session = self.mock_mapservice_session(data_path, mode, ok, headers)
@@ -257,11 +272,11 @@ class TestClientResource(ClientResource):
     version = FloatField(default=30)
 
     comma_separated = CommaSeparatedField(required=False)
-    dict_field = DictField(required=False)
-    extent = ExtentField(default={})
+    dict_field = DictField(default={})
+    extent = ExtentField(required=False)
     list_field = ListField(default=[])
     object_field = ObjectField(class_name="Field", required=False)
-    spatial_reference = SpatialReferenceField(default={})
+    spatial_reference = SpatialReferenceField(required=False)
 
     class Meta:
         case_sensitive_fields = False

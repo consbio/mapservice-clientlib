@@ -85,5 +85,9 @@
       "srs": "EPSG:3857",
       "wkid": 3857
     }
-  }
+  },
+  {
+    "nope": null
+  },
+  null
 ]
