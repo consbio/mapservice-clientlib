@@ -1,7 +1,7 @@
 import copy
 import requests
 
-from parserutils.collections import setdefaults
+from parserutils.collections import setdefaults, wrap_value
 from parserutils.strings import ALPHANUMERIC, snake_to_camel
 from restle.resources import Resource
 from restle.exceptions import HTTPException, MissingFieldException, NotFoundException
@@ -57,37 +57,37 @@ class ClientResource(Resource):
         self._service_url = value
 
     @classmethod
-    def bulk_get(cls, url, strict=True, lazy=True, session=None, bulk_key=None, bulk_defaults=None, **kwargs):
+    def bulk_get(cls, url, strict=True, session=None, bulk_key=None, bulk_defaults=None, **kwargs):
         """ Populates a list of resources with only one external map service request """
 
         self = cls.get(url, strict=strict, lazy=True, session=session, **kwargs)
 
         try:
-            response = self._make_request(url, self._params)
+            response = self._make_request()
         except requests.exceptions.HTTPError as ex:
+            response = getattr(ex, "response", None)
+
+            reason = getattr(response, "reason", None)
+            status_code = getattr(response, "status_code", None)
+
             raise HTTPError(
-                "The map service did not respond correctly",
-                params=self._params, underlying=ex, url=self._url
+                f"The map service returned {status_code} ({reason})",
+                params=self._params, status_code=status_code, underlying=ex, url=self._url
             )
         except requests.exceptions.Timeout as ex:
-            timeout_error = type(ex).__name__  # This may be a Connect or Read timeout
+            status_code = getattr(getattr(ex, "response", None), "status_code", None)
+            timeout_error = type(ex).__name__
+
             raise ServiceTimeout(
                 f"{timeout_error}: the map service did not respond in time",
-                status_code=response.status_code, underlying=ex, url=self._url
+                status_code=status_code, underlying=ex, url=self._url
             )
         except requests.exceptions.RequestException as ex:
-            network_error = type(ex).__name__  # HTTPError is handled above: this represents everything else
+            network_error = type(ex).__name__
+
             raise NetworkError(
                 f"{network_error}: the map service is unavailable",
                 underlying=ex, url=self._url
-            )
-
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as ex:
-            raise HTTPError(
-                f"The map service returned {response.status_code} ({response.reason})",
-                params=self._params, status_code=response.status_code, underlying=ex, url=url
             )
 
         try:
@@ -98,7 +98,9 @@ class ClientResource(Resource):
                 params=self._params, underlying=ex, url=self._url
             )
 
-        return cls._bulk_get(self._url, bulk_data, bulk_key.split("."), bulk_defaults=bulk_defaults)
+        bulk_keys = bulk_key.split(".") if bulk_key else None
+
+        return cls._bulk_get(self._url, bulk_data, bulk_keys, bulk_defaults=bulk_defaults)
 
     @classmethod
     def _bulk_get(cls, url, bulk_data, bulk_keys, objects=None, obj=None, fields=None, bulk_defaults=None):
@@ -123,9 +125,6 @@ class ClientResource(Resource):
 
         def simplify(string_or_strings):
             """ Helper to strip non-alphanumeric characters from field names """
-
-            if not isinstance(string_or_strings, str):
-                return [simplify(s) for s in string_or_strings]
             return "".join(x for x in string_or_strings if x in ALPHANUMERIC).lower()
 
         if objects is None:
@@ -136,22 +135,19 @@ class ClientResource(Resource):
             fields = {simplify(f.name) for f in cls._meta.fields}
 
         if not bulk_keys:
-            return objects
+            bulk_key = None
+        else:
+            bulk_key = bulk_keys.pop(0)
+            bulk_data = bulk_data.get(bulk_key, bulk_data)
 
-        bulk_key = bulk_keys.pop(0)
-        bulk_data = bulk_data.get(bulk_key, bulk_data)
-        bulk_data = bulk_data if isinstance(bulk_data, list) else [bulk_data]
-
-        for data in copy.deepcopy(bulk_data):
-            if not data:
-                continue
-            elif bulk_keys:
+        for data in copy.deepcopy(wrap_value(bulk_data)):
+            if bulk_keys:
                 obj.update({k: v for k, v in data.items() if simplify(k) in fields})
                 cls._bulk_get(url, data, list(bulk_keys), objects, obj, fields, bulk_defaults)
             else:
                 if isinstance(data, dict):
                     data.update(obj)
-                else:
+                elif bulk_key:
                     data = {bulk_key: data}
 
                 if bulk_defaults is not None:
@@ -174,8 +170,6 @@ class ClientResource(Resource):
         self._strict = strict
         self._layer_session = kwargs.pop("layer_session", None)
 
-        self.service_url = self._url
-
         self._get(url, strict=strict, lazy=lazy, session=session, **kwargs)
 
         if not self._lazy:
@@ -193,8 +187,8 @@ class ClientResource(Resource):
             if as_unicode:
                 super(ClientResource, self)._load_resource()
             else:
-                # Call with response.content to try ASCII serialization
-                response = self._make_request(self._url, self._params)
+                # Uses response.content (not response.text) for ASCII serialization
+                response = self._make_request()
                 self.populate_field_values(self._meta.deserializer.to_dict(response.content))
 
         except ClientError:
@@ -217,31 +211,38 @@ class ClientResource(Resource):
                 params=self._params, underlying=ex, url=self._url
             )
         except requests.exceptions.Timeout as ex:
-            timeout_error = type(ex).__name__  # This may be a Connect or Read timeout
+            status_code = getattr(getattr(ex, "response", None), "status_code", None)
+            timeout_error = type(ex).__name__
+
             raise ServiceTimeout(
                 f"{timeout_error}: the map service did not respond in time",
-                status_code=response.status_code, underlying=ex, url=self._url
+                status_code=status_code, underlying=ex, url=self._url
             )
         except requests.exceptions.RequestException as ex:
-            network_error = type(ex).__name__  # HTTPError and timeouts are handled above: this is anything else
+            network_error = type(ex).__name__
+
             raise NetworkError(
                 f"{network_error}: the map service is unavailable",
                 underlying=ex, url=self._url
             )
         except (SyntaxError, ValueError) as ex:
-            # Handles invalid JSON or XML content
-            raise ContentError(
-                "The map service returned unparsable content",
-                params=self._params, underlying=ex, url=self._url
-            )
+            unicode_error = isinstance(ex, UnicodeEncodeError)
 
-        except UnicodeEncodeError:
-            if not as_unicode:
+            if unicode_error and as_unicode:
+                self._load_resource(as_unicode=False)
+            elif unicode_error:
                 raise  # Already tried ASCII (response.content)
-            self._load_resource(as_unicode=False)
+            else:
+                raise ContentError(
+                    "The map service returned unparsable content",
+                    params=self._params, underlying=ex, url=self._url
+                )
 
-    def _make_request(self, url, params=None, **kwargs):
+    def _make_request(self, url=None, params=None, **kwargs):
         """ Encapsulates adding Data Basin user-agent to header for all requests """
+
+        url = self._url if url is None else url
+        params = self._params if params is None else params
 
         headers = kwargs.pop("headers", self._session.headers)
         headers["User-agent"] = self._client_user_agent
@@ -282,7 +283,7 @@ class ClientResource(Resource):
             supported = self._minimum_version
             invalid = version
         elif self._supported_versions and version not in self._supported_versions:
-            supported = ", ".join(self._supported_versions)
+            supported = ", ".join(str(v) for v in self._supported_versions)
             invalid = version
 
         if invalid:

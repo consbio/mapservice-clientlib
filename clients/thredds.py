@@ -307,7 +307,7 @@ class ThreddsResource(ClientResource):
 
         if data is None:
             try:
-                data = JSONSerializer.to_dict(self._make_request(self._layers_url, timeout=120).text)
+                data = JSONSerializer.to_dict(self._make_request(self._layers_url, {}, timeout=120).text)
             except requests.exceptions.HTTPError as ex:
                 raise HTTPError(
                     "The THREDDS layer id query did not respond correctly",
