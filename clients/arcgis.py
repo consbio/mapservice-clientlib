@@ -19,8 +19,8 @@ from restle.serializers import URLSerializer, JSONSerializer
 
 from .exceptions import BadExtent, BadTileScheme, ContentError, HTTPError, ImageError, NoLayers, ServiceError
 from .query.actions import QueryAction
-from .query.fields import CommaSeparatedField, DrawingInfoField, ObjectField
-from .query.fields import ExtentField, SpatialReferenceField, TimeInfoField
+from .query.fields import CommaSeparatedField, DrawingInfoField, ExtentField
+from .query.fields import ObjectField, SpatialReferenceField, TimeInfoField
 from .resources import ClientResource, DEFAULT_USER_AGENT
 from .utils.conversion import to_renderer
 from .utils.geometry import Extent, TileLevels, SpatialReference
@@ -557,7 +557,7 @@ class MapServerResource(ArcGISTiledImageResource):
             layer_url = "{0}/layers".format(self._url.strip("/"))
             self.layers = MapLayerResource.bulk_get(
                 layer_url,
-                strict=self._strict, lazy=True,
+                strict=self._strict,
                 session=(self._layer_session or self._session),
                 bulk_key="layers", bulk_defaults={"currentVersion": self.version},
                 **self.arcgis_credentials
@@ -584,7 +584,7 @@ class MapServerResource(ArcGISTiledImageResource):
             legend_url = "{0}/legend/".format(self._url.strip("/"))
             legend_elements = MapLegendResource.bulk_get(
                 legend_url,
-                strict=self._strict, lazy=True,
+                strict=self._strict,
                 session=(self._layer_session or self._session),
                 bulk_key="layers.legend", bulk_defaults={"currentVersion": self.version},
                 **self.arcgis_credentials
@@ -1027,7 +1027,7 @@ class ImageServerResource(ArcGISTiledImageResource):
     allowed_mosaic_methods = CommaSeparatedField(required=False)
     allow_raster_function = BooleanField(default=False)
     band_count = IntegerField()
-    default_resampling_method = TextField()
+    default_resampling_method = TextField(required=False)
 
     fields = ObjectField(class_name="Field", required=False)
     edit_fields_info = ObjectField(class_name="EditFieldsInfo", required=False)
