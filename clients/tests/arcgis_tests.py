@@ -148,11 +148,11 @@ class ArcGISTestCase(ResourceTestCase):
 
         error_url = self.empty_url
 
-        with self.assertRaises(ContentError, msg=f"ServiceError not raised for map service: {error_url}"):
+        with self.assertRaises(ContentError, msg=f"ContentError not raised for map service: {error_url}"):
             MapServerResource.get(error_url, lazy=False)
-        with self.assertRaises(ContentError, msg=f"ServiceError not raised for feature service: {error_url}"):
+        with self.assertRaises(ContentError, msg=f"ContentError not raised for feature service: {error_url}"):
             FeatureServerResource.get(error_url, lazy=False)
-        with self.assertRaises(ContentError, msg=f"ServiceError not raised for image service: {error_url}"):
+        with self.assertRaises(ContentError, msg=f"ContentError not raised for image service: {error_url}"):
             ImageServerResource.get(error_url, lazy=False)
 
         for error_url in (self.config_url, self.generic_url, self.not_found_url, self.token_required_url):
@@ -176,9 +176,9 @@ class ArcGISTestCase(ResourceTestCase):
 
         session = self.mock_mapservice_session(self.empty_path)
 
-        with self.assertRaises(ContentError, msg=f"ServiceError not raised for map layer: {error_url}"):
+        with self.assertRaises(ContentError, msg=f"ContentError not raised for map layer: {error_url}"):
             MapLayerResource.get(self.map_layer_url, lazy=False, session=session)
-        with self.assertRaises(ContentError, msg=f"ServiceError not raised for feature layer: {error_url}"):
+        with self.assertRaises(ContentError, msg=f"ContentError not raised for feature layer: {error_url}"):
             FeatureLayerResource.get(self.feature_layer_url, lazy=False, session=session)
 
         for error_path in (self.config_path, self.generic_path, self.not_found_path, self.token_required_path):
