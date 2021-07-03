@@ -2,15 +2,16 @@ import requests_mock
 
 from unittest import mock
 
+from ags import exceptions as ags
 from parserutils.collections import setdefaults
 
-from clients.arcgis import MapServerResource, FeatureServerResource, ImageServerResource
+from clients.arcgis import ArcGISSecureResource, MapServerResource, FeatureServerResource, ImageServerResource
 from clients.arcgis import MapLayerResource, FeatureLayerResource, GeometryServiceClient
 from clients.exceptions import BadExtent, ContentError, HTTPError, ImageError, ServiceError, ValidationError
 from clients.query.fields import RENDERER_DEFAULTS
 
 from .utils import ResourceTestCase, get_extent_dict, get_spatial_reference_dict
-from .utils import get_default_image, get_extent, get_object, get_spatial_reference
+from .utils import get_default_image, get_extent, get_spatial_reference
 
 
 class ArcGISTestCase(ResourceTestCase):
@@ -223,6 +224,20 @@ class ArcGISTestCase(ResourceTestCase):
         with self.assertRaises(HTTPError):
             client.project_extent(extent, get_spatial_reference(web_mercator=True))
 
+    @mock.patch("clients.arcgis.ServerAdmin.generate_token")
+    def test_invalid_generate_token(self, mock_generate_token):
+        client, username, password = ArcGISSecureResource(), "arcgis_user", "arcgis_pass"
+
+        # Test AGS HTTP exception (no error)
+        mock_generate_token.side_effect = ags.HTTPError
+        server_admin = client.generate_token(self.map_url, username, password)
+        self.assertEqual(server_admin.token, None)
+
+        # Test generic exception (log entry, but no error)
+        mock_generate_token.side_effect = Exception
+        server_admin = client.generate_token(self.map_url, username, password)
+        self.assertEqual(server_admin.token, None)
+
     @requests_mock.Mocker()
     def test_valid_arcgis_mapservice_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "map")
@@ -378,12 +393,15 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(first_legend_element.values, ["Estuarine and Marine Deepwater"])
 
     @requests_mock.Mocker()
-    @mock.patch('clients.arcgis.ServerAdmin.generate_token')
+    @mock.patch("clients.arcgis.ServerAdmin")
     def test_secure_arcgis_mapservice_request(self, mock_request, mock_server_admin):
 
         username, token = "arcgis_user", "arcgis_token"
-        mock_server_admin.return_value = get_object({"token": token})
 
+        mock_server_admin.return_value = mock.Mock(
+            token=token,
+            generate_token=mock.Mock()
+        )
         self.map_url = f"{self.map_url}&token={token}"
         self.map_layer_url = f"{self.map_layer_url}&token={token}"
         self.map_layers_url = f"{self.map_layers_url}&token={token}"
@@ -537,12 +555,15 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(first_layer.types, [])
 
     @requests_mock.Mocker()
-    @mock.patch('clients.arcgis.ServerAdmin.generate_token')
+    @mock.patch("clients.arcgis.ServerAdmin")
     def test_secure_arcgis_featureservice_request(self, mock_request, mock_server_admin):
 
         username, token = "arcgis_user", "arcgis_token"
-        mock_server_admin.return_value = get_object({"token": token})
 
+        mock_server_admin.return_value = mock.Mock(
+            token=token,
+            generate_token=mock.Mock()
+        )
         self.feature_url = f"{self.feature_url}&token={token}"
         self.feature_layer_url = f"{self.feature_layer_url}&token={token}"
         self.feature_layer_id_url = f"{self.feature_layer_id_url}&token={token}"
@@ -662,12 +683,15 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.supports_advanced_queries, True)
 
     @requests_mock.Mocker()
-    @mock.patch('clients.arcgis.ServerAdmin.generate_token')
+    @mock.patch("clients.arcgis.ServerAdmin")
     def test_secure_arcgis_imageservice_request(self, mock_request, mock_server_admin):
 
         username, token = "arcgis_user", "arcgis_token"
-        mock_server_admin.return_value = get_object({"token": token})
 
+        mock_server_admin.return_value = mock.Mock(
+            token=token,
+            generate_token=mock.Mock()
+        )
         self.image_url = f"{self.image_url}&token={token}"
         self.mock_arcgis_client(mock_request, "image")
 
