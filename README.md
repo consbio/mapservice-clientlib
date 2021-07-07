@@ -62,7 +62,7 @@ token_obj = ArcGISSecureResource.generate_token(
 )
 client = MapServerResource.get(service_url, token=token_obj.token)
 
-# Reproject an ArcGIS extent to web mercator
+# Reproject an ArcGIS extent to Web Mercator
 old_extent = Extent(
     {'xmin': -180.0000, 'xmax': 180.0000, 'ymin': -90.0000, 'ymax': 90.0000},
     spatial_reference={'wkid': 4326}

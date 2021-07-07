@@ -167,7 +167,7 @@ class Extent(object):
     def limit_to_global_extent(self):
 
         if not self.spatial_reference.is_web_mercator():
-            raise ValueError("Extent must be web mercator in order to limit global extent")
+            raise ValueError("Extent must be Web Mercator in order to limit global extent")
 
         new_extent = self.clone()
         new_extent.xmin = max(GLOBAL_EXTENT_WEB_MERCATOR[0], new_extent.xmin)
@@ -180,7 +180,7 @@ class Extent(object):
     def limit_to_global_width(self):
 
         if not self.spatial_reference.is_web_mercator():
-            raise ValueError("Extent must be web mercator in order to limit global width")
+            raise ValueError("Extent must be Web Mercator in order to limit global width")
 
         new_extent = self.clone()
         new_extent.xmin = max(GLOBAL_EXTENT_WEB_MERCATOR[0], new_extent.xmin)
@@ -191,14 +191,14 @@ class Extent(object):
     def crosses_anti_meridian(self):
 
         if not self.spatial_reference.is_web_mercator():
-            raise ValueError("Extent must be web mercator in order to test antimeridian")
+            raise ValueError("Extent must be Web Mercator in order to test antimeridian")
 
         return self.xmin < GLOBAL_EXTENT_WEB_MERCATOR[0] or self.xmax > GLOBAL_EXTENT_WEB_MERCATOR[2]
 
     def has_negative_extent(self):
 
         if not self.spatial_reference.is_web_mercator():
-            raise ValueError("Extent must be web mercator in order to test for negative extent")
+            raise ValueError("Extent must be Web Mercator in order to test for negative extent")
 
         return self.xmin < GLOBAL_EXTENT_WEB_MERCATOR[0]
 
@@ -265,7 +265,7 @@ class Extent(object):
         return sqrt((x_diff * y_diff) / (width * height))
 
     def project_to_web_mercator(self):
-        """ Project self to web mercator (only some ESRI extents are valid here) """
+        """ Project self to Web Mercator (only some ESRI extents are valid here) """
 
         new_extent = self.clone()
         if self.spatial_reference.is_web_mercator():

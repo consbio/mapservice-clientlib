@@ -840,7 +840,7 @@ class TileLevelsTestCase(BaseTestCase):
             tile_levels.get_matching_resolutions("nope")
 
         # Resolutions overlap by the middle 10 (20 in all)
-        overlapping_resolutions = set(Decimal(res) for res in ARCGIS_RESOLUTIONS[-15:15])
+        overlapping_resolutions = {Decimal(res) for res in ARCGIS_RESOLUTIONS[-15:15]}
 
         target = {round(res) for res in overlapping_resolutions}
         result = tile_levels.get_matching_resolutions(target_resolutions, None)
