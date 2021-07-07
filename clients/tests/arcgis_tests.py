@@ -7,11 +7,12 @@ from parserutils.collections import setdefaults
 
 from clients.arcgis import ArcGISSecureResource, MapServerResource, FeatureServerResource, ImageServerResource
 from clients.arcgis import MapLayerResource, FeatureLayerResource, GeometryServiceClient
-from clients.exceptions import BadExtent, ContentError, HTTPError, ImageError, ServiceError, ValidationError
+from clients.exceptions import BadExtent, BadTileScheme, ValidationError
+from clients.exceptions import ContentError, HTTPError, ImageError, ServiceError
 from clients.query.fields import RENDERER_DEFAULTS
 
 from .utils import MAPSERVICE_IMG_DIMS, ResourceTestCase, mock_thread
-from .utils import get_default_image, get_extent, get_extent_dict
+from .utils import get_default_image, get_extent, get_extent_dict, get_object
 from .utils import get_spatial_reference, get_spatial_reference_dict
 
 
@@ -85,6 +86,26 @@ class ArcGISTestCase(ResourceTestCase):
 
         self.error_path = self.arcgis_directory / "error.html"
 
+    def assert_tile_scheme(self, client):
+
+        client.tile_info.spatial_reference.wkid = None
+        with self.assertRaises(BadTileScheme):
+            client.validate_tile_scheme()
+
+        client.tile_info.spatial_reference.wkid = 102100
+        client.tile_info.rows = 512
+        with self.assertRaises(BadTileScheme):
+            client.validate_tile_scheme()
+
+        client.tile_info.rows = 1024
+        with self.assertRaises(BadTileScheme):
+            client.validate_tile_scheme()
+
+        client.tile_info.rows = 256
+        client.tile_info.lods = [get_object({"resolution": res}) for res in (12345.6789, 98765.4321)]
+        with self.assertRaises(BadTileScheme):
+            client.validate_tile_scheme()
+
     def mock_arcgis_client(self, mock_request, service_type):
 
         if service_type == "error":
@@ -123,7 +144,7 @@ class ArcGISTestCase(ResourceTestCase):
             raise AssertionError(f"Invalid service type: {service_type}")
 
     @requests_mock.Mocker()
-    def test_invalid_arcgis_urls(self, mock_request):
+    def test_invalid_urls(self, mock_request):
 
         with self.assertRaises(AssertionError):
             self.mock_arcgis_client(mock_request, "nope")
@@ -192,7 +213,7 @@ class ArcGISTestCase(ResourceTestCase):
                 FeatureLayerResource.get(self.feature_layer_url, lazy=False, session=session)
 
     @requests_mock.Mocker()
-    def test_valid_arcgis_geometry_request(self, mock_request):
+    def test_valid_geometry_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "geometry")
 
         extent_dict = get_extent_dict(web_mercator=False)
@@ -208,7 +229,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(projected.spatial_reference.wkid, 3857)
 
     @requests_mock.Mocker()
-    def test_invalid_arcgis_geometry_request(self, mock_request):
+    def test_invalid_geometry_request(self, mock_request):
 
         client = GeometryServiceClient(self.geometry_url)
         extent = get_extent(web_mercator=False)
@@ -240,7 +261,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(server_admin.token, None)
 
     @requests_mock.Mocker()
-    def test_valid_arcgis_mapservice_request(self, mock_request):
+    def test_valid_mapservice_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "map")
 
         client = MapServerResource.get(self.map_url, lazy=False)
@@ -406,7 +427,7 @@ class ArcGISTestCase(ResourceTestCase):
 
     @requests_mock.Mocker()
     @mock.patch("clients.arcgis.ServerAdmin")
-    def test_secure_arcgis_mapservice_request(self, mock_request, mock_server_admin):
+    def test_secure_mapservice_request(self, mock_request, mock_server_admin):
 
         username, token = "arcgis_user", "arcgis_token"
 
@@ -430,16 +451,19 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.arcgis_credentials, {"token": token, "username": username})
 
     @requests_mock.Mocker()
-    def test_valid_arcgis_mapservice_image_request(self, mock_request):
+    def test_valid_mapservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "map")
+
+        client = MapServerResource.get(self.map_url, lazy=False)
+
         self.assert_get_image(
-            MapServerResource.get(self.map_url, lazy=False),
+            client,
             dimensions=MAPSERVICE_IMG_DIMS,
             target_hash="34595cff458cf8a204df84c5ef959984"
         )
 
     @requests_mock.Mocker()
-    def test_invalid_arcgis_mapservice_image_request(self, mock_request):
+    def test_invalid_mapservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "map")
 
         client = MapServerResource.get(self.map_url, lazy=False)
@@ -454,8 +478,10 @@ class ArcGISTestCase(ResourceTestCase):
             with self.assertRaises(ImageError):
                 client.get_image(client.full_extent, *MAPSERVICE_IMG_DIMS)
 
+        self.assert_tile_scheme(client)
+
     @requests_mock.Mocker()
-    def test_valid_arcgis_featureservice_request(self, mock_request):
+    def test_valid_featureservice_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "feature")
 
         client = FeatureServerResource.get(self.feature_url, lazy=False)
@@ -574,7 +600,7 @@ class ArcGISTestCase(ResourceTestCase):
 
     @requests_mock.Mocker()
     @mock.patch("clients.arcgis.ServerAdmin")
-    def test_secure_arcgis_featureservice_request(self, mock_request, mock_server_admin):
+    def test_secure_featureservice_request(self, mock_request, mock_server_admin):
 
         username, token = "arcgis_user", "arcgis_token"
 
@@ -598,14 +624,14 @@ class ArcGISTestCase(ResourceTestCase):
 
     @requests_mock.Mocker()
     @mock.patch('clients.arcgis.FeatureLayerResource.generate_sub_image')
-    def test_valid_arcgis_featureservice_image_request(self, mock_request, mock_sub_image):
+    def test_valid_featureservice_image_request(self, mock_request, mock_sub_image):
         mock_sub_image.return_value = get_default_image()
 
         self.mock_arcgis_client(mock_request, "feature")
         self.assert_get_image(FeatureServerResource.get(self.feature_url, lazy=False))
 
     @requests_mock.Mocker()
-    def test_invalid_arcgis_featureservice_image_request(self, mock_request):
+    def test_invalid_featureservice_image_request(self, mock_request):
 
         self.mock_arcgis_client(mock_request, "feature")
 
@@ -628,7 +654,7 @@ class ArcGISTestCase(ResourceTestCase):
             client.get_image(get_extent(web_mercator=True).as_dict(), 100, 100)
 
     @requests_mock.Mocker()
-    def test_valid_arcgis_imageservice_request(self, mock_request):
+    def test_valid_imageservice_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "image")
 
         client = ImageServerResource.get(self.image_url, lazy=False)
@@ -713,7 +739,7 @@ class ArcGISTestCase(ResourceTestCase):
 
     @requests_mock.Mocker()
     @mock.patch("clients.arcgis.ServerAdmin")
-    def test_secure_arcgis_imageservice_request(self, mock_request, mock_server_admin):
+    def test_secure_imageservice_request(self, mock_request, mock_server_admin):
 
         username, token = "arcgis_user", "arcgis_token"
 
@@ -734,16 +760,19 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.arcgis_credentials, {"token": token, "username": username})
 
     @requests_mock.Mocker()
-    def test_valid_arcgis_imageservice_image_request(self, mock_request):
+    def test_valid_imageservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "image")
+
+        client = ImageServerResource.get(self.image_url, lazy=False)
+
         self.assert_get_image(
-            ImageServerResource.get(self.image_url, lazy=False),
+            client,
             dimensions=MAPSERVICE_IMG_DIMS,
             target_hash="b8d5c1253903b53c2aaf55b50d47c928"
         )
 
     @requests_mock.Mocker()
-    def test_invalid_arcgis_imageservice_image_request(self, mock_request):
+    def test_invalid_imageservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "image")
 
         client = ImageServerResource.get(self.image_url, lazy=False)
@@ -757,6 +786,8 @@ class ArcGISTestCase(ResourceTestCase):
             client._session = self.mock_mapservice_session(self.error_path, ok=False)
             with self.assertRaises(ImageError):
                 client.get_image(client.full_extent, *MAPSERVICE_IMG_DIMS)
+
+        self.assert_tile_scheme(client)
 
 
 IMAGE_SERVICE_FIELDS = [

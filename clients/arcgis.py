@@ -249,13 +249,18 @@ class ArcGISTiledImageResource(ArcGISServerResource):
 
     def generate_image_from_query(self, extent, width, height, image_path, params):
 
-        if not isinstance(extent, Extent):
-            extent = Extent(extent)
-
-        if self.tile_info is not None:
-            return self.get_tiled_image(extent, width, height)
-
         try:
+            if self.tile_info is not None:
+                tiled_image = self._get_tiled_image(extent, width, height)
+
+                # Paste image for extent left of the central meridian, if it exists
+                if extent.has_negative_extent():
+                    negative_extent = extent.get_negative_extent()
+                    negative_image = self._get_tiled_image(negative_extent, width, height)
+                    tiled_image.paste(negative_image, (0, 0), negative_image)
+
+                return tiled_image
+
             # TODO: support more than just Web Mercator
             # TODO: validate bbox == bboxSR (imageSR is target)
             image_url = "/".join(u.strip("/") for u in (self._url, image_path))
@@ -275,11 +280,15 @@ class ArcGISTiledImageResource(ArcGISServerResource):
             # Paste image for extent left of the central meridian, if it exists
             if extent.has_negative_extent():
                 image_params["bbox"] = extent.get_negative_extent().as_bbox_string()
-                negative_data = io.BytesIO(self._make_request(image_url, image_params).content)
+                response = self._make_request(image_url, image_params)
+                negative_data = io.BytesIO(response.content)
                 negative_image = Image.open(negative_data).convert("RGBA")
                 image_object.paste(negative_image, (0, 0), negative_image)
 
             return image_object
+
+        except (BadExtent, HTTPError, ImageError):
+            raise  # Caught from self._get_tiled_image
 
         except requests.exceptions.HTTPError as ex:
             raise HTTPError(
@@ -291,21 +300,6 @@ class ArcGISTiledImageResource(ArcGISServerResource):
                 "The ArcGIS service did not return a valid image",
                 params=image_params, underlying=ex, url=image_url
             )
-
-    def get_tiled_image(self, extent, width, height):
-
-        if not isinstance(extent, Extent):
-            extent = Extent(extent)
-
-        tiled_image = self._get_tiled_image(extent, width, height)
-
-        # Paste image for extent left of the central meridian, if it exists
-        if extent.has_negative_extent():
-            negative_extent = extent.get_negative_extent()
-            negative_image = self._get_tiled_image(negative_extent, width, height)
-            tiled_image.paste(negative_image, (0, 0), negative_image)
-
-        return tiled_image
 
     def _get_tiled_image(self, extent, width, height):
 
@@ -439,29 +433,26 @@ class ArcGISTiledImageResource(ArcGISServerResource):
             (int(col * tile_width), int(row * tile_height))
         )
 
-    def validate_tile_scheme(self, tile_info=None):
+    def validate_tile_scheme(self):
         """
-        If service is tiled, it must be in web mercator and tiled according to ArcGIS scheme hard-coded above.
+        If service is tiled, it must be in Web Mercator and tiled according to ArcGIS scheme hard-coded above.
         Service properties must already have been fetched.
         """
 
-        if tile_info is None:
-            tile_info = self.tile_info
-
-        if tile_info is None:
+        if self.tile_info is None:
             return  # No tile scheme is a valid tile scheme
 
         message = None
 
-        if getattr(tile_info.spatial_reference, "wkid", None) not in WEB_MERCATOR_WKIDs:
+        if getattr(self.tile_info.spatial_reference, "wkid", None) not in WEB_MERCATOR_WKIDs:
             message = "ArcGIS tiled service missing required wkid for mercator"
-        elif tile_info.rows != tile_info.cols or tile_info.rows not in (256, 512):
+        elif self.tile_info.rows != self.tile_info.cols or self.tile_info.rows not in (256, 512):
             message = "ArcGIS tiled service missing required dimensions"
-        elif not ARCGIS_TILEINFO_RESOLUTIONS.get_matching_resolutions([lod.resolution for lod in tile_info.lods]):
+        elif not ARCGIS_TILEINFO_RESOLUTIONS.get_matching_resolutions([lod.resolution for lod in self.tile_info.lods]):
             message = "ArcGIS tiled service LODs do not match at least one of the base map LODs"
 
         if message is not None:
-            raise BadTileScheme(message=message, tile_info=tile_info, url=self._url)
+            raise BadTileScheme(message=message, tile_info=self.tile_info, url=self._url)
 
 
 class MapLayerResource(ArcGISLayerResource):
