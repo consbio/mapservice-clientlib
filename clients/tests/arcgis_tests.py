@@ -10,8 +10,9 @@ from clients.arcgis import MapLayerResource, FeatureLayerResource, GeometryServi
 from clients.exceptions import BadExtent, ContentError, HTTPError, ImageError, ServiceError, ValidationError
 from clients.query.fields import RENDERER_DEFAULTS
 
-from .utils import ResourceTestCase, get_extent_dict, get_spatial_reference_dict
-from .utils import get_default_image, get_extent, get_spatial_reference
+from .utils import MAPSERVICE_IMG_DIMS, ResourceTestCase, mock_thread
+from .utils import get_default_image, get_extent, get_extent_dict
+from .utils import get_spatial_reference, get_spatial_reference_dict
 
 
 class ArcGISTestCase(ResourceTestCase):
@@ -267,12 +268,12 @@ class ArcGISTestCase(ResourceTestCase):
         })
         self.assertEqual(
             client.full_extent.as_list(),
-            [-19951753.9839, -1622986.231899999, 20021553.447300002, 11554273.714599997]
+            [-13534626.345112057, 3780698.8404716593, -12377675.484987943, 4547515.108228341]
         )
         self.assertEqual(client.full_extent.spatial_reference.wkid, 102100)
         self.assertEqual(
             client.initial_extent.as_list(),
-            [513260.3879679106, 7886090.999233324, 18518909.628708653, 13864251.221455548]
+            [-13534626.345112057, 3780698.8404716593, -12377675.484987943, 4547515.108228341]
         )
         self.assertEqual(client.initial_extent.spatial_reference.wkid, 102100)
         self.assertEqual(client.spatial_reference.wkid, 102100)
@@ -288,7 +289,18 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.max_scale, 0)
         self.assertEqual(client.max_image_height, 4096)
         self.assertEqual(client.max_image_width, 4096)
-        self.assertEqual(client.tile_info, None)
+
+        self.assertEqual(len(client.tile_info.lods), 20)
+        self.assert_object_field(client.tile_info, {
+            "rows": 256,
+            "cols": 256,
+            "dpi": 96,
+            "format": "PNG",
+            "origin": {
+                "x": -2.0037508342787E7,
+                "y": 2.0037508342787E7
+            }
+        })
 
         # MapServerResource + ArcGISTiledImageResource + ArcGISServerResource + ArcGISResource
         self.assertEqual(client.name, "Wetlands")
@@ -420,21 +432,27 @@ class ArcGISTestCase(ResourceTestCase):
     @requests_mock.Mocker()
     def test_valid_arcgis_mapservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "map")
-        self.assert_get_image(MapServerResource.get(self.map_url, lazy=False))
+        self.assert_get_image(
+            MapServerResource.get(self.map_url, lazy=False),
+            dimensions=MAPSERVICE_IMG_DIMS,
+            target_hash="34595cff458cf8a204df84c5ef959984"
+        )
 
     @requests_mock.Mocker()
     def test_invalid_arcgis_mapservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "map")
 
         client = MapServerResource.get(self.map_url, lazy=False)
+
         client._session = self.mock_mapservice_session(self.error_path)
+        with self.assertRaises(BadExtent):
+            extent = get_extent(web_mercator=True)
+            client.get_image(extent, *extent.get_dimensions())
 
-        with self.assertRaises(ImageError):
-            client.get_image(get_extent(web_mercator=True).as_dict(), 100, 100)
-
-        client._session = self.mock_mapservice_session(self.error_path, ok=False)
-        with self.assertRaises(HTTPError):
-            client.get_image(get_extent(web_mercator=True).as_dict(), 100, 100)
+        with mock.patch("clients.arcgis.Thread", mock_thread):
+            client._session = self.mock_mapservice_session(self.error_path, ok=False)
+            with self.assertRaises(ImageError):
+                client.get_image(client.full_extent, *MAPSERVICE_IMG_DIMS)
 
     @requests_mock.Mocker()
     def test_valid_arcgis_featureservice_request(self, mock_request):
@@ -630,12 +648,12 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.document_info, None)
         self.assertEqual(
             client.full_extent.as_list(),
-            [-13852876.8488, 3828749.521800003, -12703715.8488, 5170873.521800003]
+            [-13988954.3035, 5108134.6819, -12832003.4433, 5874950.9497]
         )
         self.assertEqual(client.full_extent.spatial_reference.wkid, 102100)
         self.assertEqual(
             client.initial_extent.as_list(),
-            [-13852876.8488, 3828749.521800003, -12703715.8488, 5170873.521800003]
+            [-13988954.3035, 5108134.6819, -12832003.4433, 5874950.9497]
         )
         self.assertEqual(client.initial_extent.spatial_reference.wkid, 102100)
         self.assertEqual(client.spatial_reference.wkid, 102100)
@@ -646,7 +664,18 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.max_scale, 0)
         self.assertEqual(client.max_image_height, 4100)
         self.assertEqual(client.max_image_width, 15000)
-        self.assertEqual(client.tile_info, None)
+
+        self.assertEqual(len(client.tile_info.lods), 19)
+        self.assert_object_field(client.tile_info, {
+            "rows": 256,
+            "cols": 256,
+            "dpi": 96,
+            "format": "PNG",
+            "origin": {
+                "x": -2.0037508342787E7,
+                "y": 2.0037508342787E7
+            }
+        })
 
         # ImageServerResource
         self.assertEqual(client.id, 0)
@@ -661,7 +690,7 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.edit_fields_info, None)
         self.assertEqual(
             client.extent.as_list(),
-            [-13852876.8488, 3828749.521800003, -12703715.8488, 5170873.521800003]
+            [-13988954.3035, 5108134.6819, -12832003.4433, 5874950.9497]
         )
         self.assertEqual(client.extent.spatial_reference.wkid, 102100)
         self.assertEqual(client.spatial_reference.wkid, 102100)
@@ -707,21 +736,27 @@ class ArcGISTestCase(ResourceTestCase):
     @requests_mock.Mocker()
     def test_valid_arcgis_imageservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "image")
-        self.assert_get_image(ImageServerResource.get(self.image_url, lazy=False))
+        self.assert_get_image(
+            ImageServerResource.get(self.image_url, lazy=False),
+            dimensions=MAPSERVICE_IMG_DIMS,
+            target_hash="b8d5c1253903b53c2aaf55b50d47c928"
+        )
 
     @requests_mock.Mocker()
     def test_invalid_arcgis_imageservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "image")
 
         client = ImageServerResource.get(self.image_url, lazy=False)
+
         client._session = self.mock_mapservice_session(self.error_path)
+        with self.assertRaises(BadExtent):
+            extent = get_extent(web_mercator=True)
+            client.get_image(extent, *extent.get_dimensions())
 
-        with self.assertRaises(ImageError):
-            client.get_image(get_extent(web_mercator=True).as_dict(), 100, 100)
-
-        client._session = self.mock_mapservice_session(self.error_path, ok=False)
-        with self.assertRaises(HTTPError):
-            client.get_image(get_extent(web_mercator=True).as_dict(), 100, 100)
+        with mock.patch("clients.arcgis.Thread", mock_thread):
+            client._session = self.mock_mapservice_session(self.error_path, ok=False)
+            with self.assertRaises(ImageError):
+                client.get_image(client.full_extent, *MAPSERVICE_IMG_DIMS)
 
 
 IMAGE_SERVICE_FIELDS = [

@@ -31,6 +31,10 @@ GEOGCS["WGS 84",
     AUTHORITY["EPSG","4326"]]
 """
 
+DEFAULT_IMG_HASH = "93d44c4c38607ac0834c68fc2b3dc92b"
+DEFAULT_IMG_DIMS = (32, 32)
+MAPSERVICE_IMG_DIMS = (946, 627)
+
 
 def get_default_image():
     test_png = get_test_directory() / "data" / "test.png"
@@ -109,6 +113,10 @@ def get_spatial_reference_object(web_mercator=False):
     spatial_reference_dict["latest_wkid"] = spatial_reference_dict.pop("latestWkid")
 
     return get_object(spatial_reference_dict)
+
+
+def mock_thread(target, args, kwargs=None):
+    target(*args, **(kwargs or {}))
 
 
 class BaseTestCase(unittest.TestCase):
@@ -219,17 +227,20 @@ class ResourceTestCase(BaseTestCase):
         super(ResourceTestCase, self).setUp()
         self.headers = {"content-type": WMS_EXCEPTION_FORMAT}
 
-    def assert_get_image(self, client, **image_params):
+    def assert_get_image(self, client, target_hash=DEFAULT_IMG_HASH, extent=None, dimensions=None, **image_params):
         client._session = self.mock_mapservice_session(
             self.data_directory / "test.png",
             mode="rb",
             headers={"content-type": "image/png"}
         )
-        img = client.get_image(client.full_extent, 32, 32, **image_params)
 
-        self.assertEqual(img.size, (32, 32))
+        if dimensions is None:
+            dimensions = DEFAULT_IMG_DIMS
+        img = client.get_image(extent or client.full_extent, *dimensions, **image_params)
+
+        self.assertEqual(img.size, dimensions)
         self.assertEqual(img.mode, "RGBA")
-        self.assertEqual(md5(img.tobytes()).hexdigest(), "93d44c4c38607ac0834c68fc2b3dc92b")
+        self.assertEqual(md5(img.tobytes()).hexdigest(), target_hash)
 
     def mock_mapservice_request(self, mock_method, service_url, data_path, mode="r", ok=True, headers=None):
 

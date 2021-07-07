@@ -428,9 +428,10 @@ class ArcGISTiledImageResource(ArcGISServerResource):
         try:
             response = self._make_request(tile_url, tile_params)
         except requests.exceptions.HTTPError as ex:
+            status_code = getattr(getattr(ex, "response", None), "status_code", None)
             raise HTTPError(
                 "The ArcGIS single tile query did not respond correctly",
-                params=tile_params, status_code=response.status_code, underlying=ex, url=tile_url
+                params=tile_params, status_code=status_code, underlying=ex, url=tile_url
             )
 
         base_image.paste(
@@ -456,7 +457,7 @@ class ArcGISTiledImageResource(ArcGISServerResource):
             message = "ArcGIS tiled service missing required wkid for mercator"
         elif tile_info.rows != tile_info.cols or tile_info.rows not in (256, 512):
             message = "ArcGIS tiled service missing required dimensions"
-        elif not ARCGIS_TILEINFO_RESOLUTIONS.get_matching_resolutions(lod.resolution for lod in tile_info.lods):
+        elif not ARCGIS_TILEINFO_RESOLUTIONS.get_matching_resolutions([lod.resolution for lod in tile_info.lods]):
             message = "ArcGIS tiled service LODs do not match at least one of the base map LODs"
 
         if message is not None:
