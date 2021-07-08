@@ -9,7 +9,7 @@ from math import cos, fabs, radians, sqrt
 from parserutils.numbers import is_number
 from pyproj import Proj, transform
 
-from clients.exceptions import BadExtent, BadSpatialReference
+from ..exceptions import BadExtent, BadSpatialReference
 
 
 EXTENT_KEYS = ("xmin", "ymin", "xmax", "ymax")

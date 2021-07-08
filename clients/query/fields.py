@@ -4,8 +4,8 @@ from restle import fields
 from parserutils.collections import setdefaults
 from parserutils.strings import camel_to_snake
 
-from clients.utils.geometry import Extent, SpatialReference
-from clients.exceptions import BadSpatialReference
+from ..utils.geometry import Extent, SpatialReference
+from ..exceptions import BadSpatialReference
 
 
 class DictField(fields.DictField):

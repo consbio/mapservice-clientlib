@@ -3,11 +3,11 @@ import json
 from decimal import Decimal
 from statistics import mean
 
-from clients.arcgis import ARCGIS_RESOLUTIONS
-from clients.exceptions import BadExtent, BadSpatialReference
-from clients.utils.geometry import Extent, SpatialReference, TileLevels
-from clients.utils.geometry import extract_significant_digits, union_extent
-from clients.utils.geometry import GLOBAL_EXTENT_WEB_MERCATOR, GLOBAL_EXTENT_WGS84, GLOBAL_EXTENT_WGS84_CORRECTED
+from ..arcgis import ARCGIS_RESOLUTIONS
+from ..exceptions import BadExtent, BadSpatialReference
+from ..utils.geometry import Extent, SpatialReference, TileLevels
+from ..utils.geometry import extract_significant_digits, union_extent
+from ..utils.geometry import GLOBAL_EXTENT_WEB_MERCATOR, GLOBAL_EXTENT_WGS84, GLOBAL_EXTENT_WGS84_CORRECTED
 
 from .utils import BaseTestCase, GeometryTestCase, WEB_MERCATOR_WKT
 from .utils import get_extent, get_extent_dict, get_extent_list, get_extent_object, get_object

@@ -1,6 +1,6 @@
-from clients.exceptions import ContentError, HTTPError, ImageError, ValidationError
-from clients.wms import WMSResource
-from clients.utils.geometry import Extent
+from ..exceptions import ContentError, HTTPError, ImageError, ValidationError
+from ..wms import WMSResource
+from ..utils.geometry import Extent
 
 from .utils import ResourceTestCase, get_extent
 

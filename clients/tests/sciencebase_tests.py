@@ -1,8 +1,8 @@
 import requests_mock
 
-from clients.sciencebase import ScienceBaseResource
-from clients.exceptions import HTTPError, MissingFields, NoLayers, ValidationError
-from clients.utils.geometry import Extent
+from ..sciencebase import ScienceBaseResource
+from ..exceptions import HTTPError, MissingFields, NoLayers, ValidationError
+from ..utils.geometry import Extent
 
 from .utils import ResourceTestCase
 

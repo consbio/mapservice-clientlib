@@ -2,13 +2,13 @@ import json
 
 from restle.serializers import JSONSerializer, URLSerializer
 
-from clients.query.actions import QueryAction
-from clients.query.fields import DictField, ListField, ObjectField
-from clients.query.fields import ExtentField, SpatialReferenceField
-from clients.query.fields import CommaSeparatedField, DrawingInfoField, TimeInfoField
-from clients.query.fields import DRAWING_INFO_ALIASES, TIME_INFO_ALIASES
-from clients.query.serializers import XMLToJSONSerializer
-from clients.utils.geometry import Extent, SpatialReference
+from ..query.actions import QueryAction
+from ..query.fields import DictField, ListField, ObjectField
+from ..query.fields import ExtentField, SpatialReferenceField
+from ..query.fields import CommaSeparatedField, DrawingInfoField, TimeInfoField
+from ..query.fields import DRAWING_INFO_ALIASES, TIME_INFO_ALIASES
+from ..query.serializers import XMLToJSONSerializer
+from ..utils.geometry import Extent, SpatialReference
 
 from .utils import BaseTestCase
 from .utils import get_extent, get_extent_dict, get_extent_list, get_extent_object

@@ -9,8 +9,8 @@ from io import BytesIO
 from PIL import Image
 from unittest import mock
 
-from clients.utils.geometry import Extent, SpatialReference
-from clients.wms import WMS_EXCEPTION_FORMAT
+from ..utils.geometry import Extent, SpatialReference
+from ..wms import WMS_EXCEPTION_FORMAT
 
 
 BUILTIN_SIMPLE = (bool, str, int, float)

@@ -5,10 +5,10 @@ from base64 import b64decode, b64encode
 from PIL import Image
 from unittest import mock
 
-from clients.utils.images import base64_to_image, image_to_bytes, image_to_base64, image_to_string
-from clients.utils.images import count_colors, make_color_transparent
-from clients.utils.images import overlay_images, stack_images_vertically
-from clients.utils.images import IMG_BASE64_PREFIX
+from ..utils.images import base64_to_image, image_to_bytes, image_to_base64, image_to_string
+from ..utils.images import count_colors, make_color_transparent
+from ..utils.images import overlay_images, stack_images_vertically
+from ..utils.images import IMG_BASE64_PREFIX
 
 from .utils import BaseTestCase
 

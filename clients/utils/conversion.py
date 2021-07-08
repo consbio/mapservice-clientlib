@@ -2,8 +2,8 @@ import json
 
 from parserutils.numbers import is_number
 
-from clients.query.fields import RENDERER_ALIASES
-from clients.query.fields import DictField, ObjectField
+from ..query.fields import RENDERER_ALIASES
+from ..query.fields import DictField, ObjectField
 
 from .geometry import Extent
 

@@ -3,11 +3,11 @@ import json
 from requests import exceptions
 from restle.fields import FloatField, TextField
 
-from clients.exceptions import ContentError, HTTPError, NetworkError
-from clients.exceptions import ServiceError, ServiceTimeout, UnsupportedVersion
-from clients.query.fields import CommaSeparatedField, DictField, ExtentField
-from clients.query.fields import ListField, ObjectField, SpatialReferenceField
-from clients.resources import ClientResource
+from ..exceptions import ContentError, HTTPError, NetworkError
+from ..exceptions import ServiceError, ServiceTimeout, UnsupportedVersion
+from ..query.fields import CommaSeparatedField, DictField, ExtentField
+from ..query.fields import ListField, ObjectField, SpatialReferenceField
+from ..resources import ClientResource
 
 from .utils import ResourceTestCase, get_extent
 

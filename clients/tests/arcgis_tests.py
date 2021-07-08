@@ -5,11 +5,11 @@ from unittest import mock
 from ags import exceptions as ags
 from parserutils.collections import setdefaults
 
-from clients.arcgis import ArcGISSecureResource, MapServerResource, FeatureServerResource, ImageServerResource
-from clients.arcgis import MapLayerResource, FeatureLayerResource, GeometryServiceClient
-from clients.exceptions import BadExtent, BadTileScheme, ValidationError
-from clients.exceptions import ContentError, HTTPError, ImageError, ServiceError
-from clients.query.fields import RENDERER_DEFAULTS
+from ..arcgis import ArcGISSecureResource, MapServerResource, FeatureServerResource, ImageServerResource
+from ..arcgis import MapLayerResource, FeatureLayerResource, GeometryServiceClient
+from ..exceptions import BadExtent, BadTileScheme, ValidationError
+from ..exceptions import ContentError, HTTPError, ImageError, ServiceError
+from ..query.fields import RENDERER_DEFAULTS
 
 from .utils import MAPSERVICE_IMG_DIMS, ResourceTestCase, mock_thread
 from .utils import get_default_image, get_extent, get_extent_dict, get_object

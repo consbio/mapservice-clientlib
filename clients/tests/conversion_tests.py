@@ -2,10 +2,10 @@ import copy
 import json
 import types
 
-from clients.query.fields import ObjectField
-from clients.utils.conversion import to_extent, to_object, to_renderer, to_symbol, is_symbol
-from clients.utils.conversion import extent_to_polygon_wkt, polygon_to_wkt, polyline_to_wkt
-from clients.utils.conversion import multipoint_to_wkt, point_to_wkt
+from ..query.fields import ObjectField
+from ..utils.conversion import to_extent, to_object, to_renderer, to_symbol, is_symbol
+from ..utils.conversion import extent_to_polygon_wkt, polygon_to_wkt, polyline_to_wkt
+from ..utils.conversion import multipoint_to_wkt, point_to_wkt
 
 from .utils import GeometryTestCase
 from .utils import get_extent, get_extent_dict, get_extent_object

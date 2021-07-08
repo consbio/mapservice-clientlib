@@ -1,8 +1,8 @@
 import json
 from restle import actions
 
-from clients.utils.geometry import Extent
-from clients.utils.geometry import SpatialReference
+from ..utils.geometry import Extent
+from ..utils.geometry import SpatialReference
 
 
 class QueryAction(actions.Action):
