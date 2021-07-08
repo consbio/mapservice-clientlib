@@ -10,15 +10,15 @@ from .query_tests import ActionsTestCase, FieldsTestCase, SerializersTestCase
 from .resource_tests import ClientResourceTestCase
 
 
-class FullClientsTestCase(ArcGISTestCase, ClientResourceTestCase, ScienceBaseTestCase, THREDDSTestCase, WMSTestCase):
-    """ Consolidates all client tests for ease of execution """
-
-
-class FullQueryTestCase(ActionsTestCase, FieldsTestCase, SerializersTestCase):
-    """ Consolidates all field related tests for ease of execution """
-
-
-class FullUtilsTestCase(
-    ConversionTestCase, ExtentTestCase, ImagesTestCase, SpatialReferenceTestCase, TileLevelsTestCase
-):
-    """ Consolidates all utility tests for ease of execution """
+# class FullClientsTestCase(ArcGISTestCase, ClientResourceTestCase, ScienceBaseTestCase, THREDDSTestCase, WMSTestCase):
+#     """ Consolidates all client tests for ease of execution """
+#
+#
+# class FullQueryTestCase(ActionsTestCase, FieldsTestCase, SerializersTestCase):
+#     """ Consolidates all field related tests for ease of execution """
+#
+#
+# class FullUtilsTestCase(
+#     ConversionTestCase, ExtentTestCase, ImagesTestCase, SpatialReferenceTestCase, TileLevelsTestCase
+# ):
+#     """ Consolidates all utility tests for ease of execution """
