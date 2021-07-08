@@ -696,7 +696,7 @@ class GeometryServiceClient(object):
     _client_user_agent = DEFAULT_USER_AGENT
 
     def __init__(self, service_url):
-        self.service_url = get_base_url(service_url, True).strip("/")
+        self.service_url = get_base_url(service_url, True)
         if self.service_url.endswith("/project"):
             self.service_url = self.service_url[:self.service_url.index("/project")]
 

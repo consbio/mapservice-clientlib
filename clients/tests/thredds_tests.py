@@ -1,10 +1,11 @@
 import requests_mock
 
 from unittest import mock
+from parserutils.urls import get_base_url, url_to_parts
 
-from clients.exceptions import ClientError, HTTPError, ImageError
-from clients.utils.geometry import Extent
-from clients.thredds import ThreddsResource
+from ..exceptions import ClientError, HTTPError, ImageError
+from ..utils.geometry import Extent
+from ..thredds import ThreddsResource
 
 from .utils import ResourceTestCase, get_extent
 
@@ -130,6 +131,10 @@ class THREDDSTestCase(ResourceTestCase):
         self.assertEqual(client.styles, [])
 
         # Private URL fields
+
+        wms_url = ThreddsResource.to_wms_url(self.catalog_url)
+        self.assertEqual(get_base_url(wms_url, True), self.base_wms_url)
+        self.assertEqual(url_to_parts(wms_url).query, url_to_parts(self.wms_service_url).query)
 
         self.assertEqual(client._wms_url, self.base_wms_url)
         self.assertEqual(client._layers_url, self.layer_menu_url)

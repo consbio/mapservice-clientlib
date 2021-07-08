@@ -33,7 +33,8 @@ setup(
         "clients", "clients.tests"
     ],
     install_requires=[
-        "gis-metadata-parser", "restle", "Pillow==7.2.*", "pyproj==2.6.1", "python-ags==0.3.2", "sciencebasepy==1.6.4"
+        "gis-metadata-parser", "parserutils>=1.2.4", "restle",
+        "Pillow==7.2.*", "pyproj==2.6.1", "python-ags==0.3.2", "sciencebasepy==1.6.4"
     ],
     tests_require=["mock", "requests-mock"],
     url="https://github.com/consbio/mapservice-clients",
