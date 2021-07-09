@@ -244,8 +244,18 @@ class THREDDSTestCase(ResourceTestCase):
         client = ThreddsResource.get(self.catalog_url, lazy=False)
 
         self.assert_get_image(client, layer_ids=[self.layer_name], style_ids=["ferret"])
+
+        self.assert_get_image(
+            client, layer_ids=[self.layer_name], style_ids=["ferret"], params={"version": "1.1.1"}
+        )
+
+        extent = get_extent(web_mercator=True)
+        extent.xmin -= 10
+        extent.xmax += 10
+
         self.assert_get_image(
             client,
+            extent=extent,
             layer_ids=[self.layer_name],
             style_ids=["ferret"],
             params={"version": "1.1.1"}
