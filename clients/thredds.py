@@ -401,9 +401,9 @@ class ThreddsResource(ClientResource):
                 "bbox": extent.as_bbox_string(),
                 "layers": ",".join(wrap_value(layer_ids)),
                 "styles": ",".join(wrap_value(style_ids)),
-                "version": self.wms_version
+                "version": (params or {}).get("version") or self.wms_version
             }
-            if self.wms_version == WMS_KNOWN_VERSIONS[1]:
+            if image_params["version"] == WMS_KNOWN_VERSIONS[1]:
                 image_params["exceptions"] = "XML"
                 image_params["crs"] = self.spatial_ref
             else:
