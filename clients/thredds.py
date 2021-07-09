@@ -10,7 +10,7 @@ from gis_metadata.utils import format_xpaths, ParserProperty
 from parserutils.collections import reduce_value, wrap_value
 from parserutils.elements import get_remote_element
 from parserutils.urls import has_trailing_slash, url_to_parts, parts_to_url
-from restle.fields import TextField, BooleanField
+from restle.fields import TextField
 from restle.serializers import JSONSerializer
 
 from .exceptions import HTTPError, ImageError, ValidationError
@@ -37,7 +37,6 @@ class ThreddsResource(ClientResource):
     title = TextField(name="name")
     credits = TextField(name="authority")
     version = TextField()
-    is_ncwms = BooleanField(default=False)
 
     # Hard-coded base field values
 
@@ -52,7 +51,6 @@ class ThreddsResource(ClientResource):
     data_type = TextField()
     download_url = TextField(required=False)
     modified_date = TextField(name="modified")
-    wms_version = TextField()
 
     _services = DictField()
 
@@ -125,6 +123,8 @@ class ThreddsResource(ClientResource):
         parts["path"][-1] = "catalog.xml"
         self._service_url = parts_to_url(parts, trailing_slash=has_trailing)
 
+        self.wms_version = kwargs.get("wms_version", WMS_KNOWN_VERSIONS[-1])
+
     def populate_field_values(self, data):
         """ Overridden to populate from multiple end points """
 
@@ -133,9 +133,9 @@ class ThreddsResource(ClientResource):
         dataset_info = data.pop("dataset")
         dataset_detail = reduce_value(dataset_info.pop("dataset", None))
 
-        if isinstance(dataset_detail, dict):
+        if dataset_detail and isinstance(dataset_detail, dict):
             dataset_info.update(dataset_detail)
-        elif isinstance(dataset_detail, (list, tuple)):
+        else:
             raise ValidationError(
                 message="THREDDS resource must specify one dataset",
                 datasets=dataset_info,
@@ -154,11 +154,15 @@ class ThreddsResource(ClientResource):
         data["services"] = services = {s["name"]: s for s in data.pop("service")["service"]}
 
         url_path = data["urlPath"].split("/")
-        iso_base = (services.get("iso") or {}).get("base")
-        wms_base = (services.get("wms") or {}).get("base")
 
+        # Construct file server endpoint by prepending path in services to dataset
+        file_base = (services.get("ftp") or services.get("http") or {}).get("base")
+        self._file_path = file_base.strip("/").split("/") + url_path if file_base else ""
+
+        # Construct metadata endpoint by prepending path in services to dataset
+
+        iso_base = (services.get("iso") or {}).get("base")
         if iso_base:
-            # Update in case its different than thredds/iso
             self._iso_path = iso_base.strip("/").split("/") + url_path
         else:
             raise ValidationError(
@@ -167,6 +171,9 @@ class ThreddsResource(ClientResource):
                 url=self._url
             )
 
+        # Construct WMS endpoint for image requests by prepending path in services to dataset
+
+        wms_base = (services.get("wms") or {}).get("base")
         if wms_base:
             # Update in case its different than thredds/wms
             self._wms_path = wms_base.strip("/").split("/") + url_path
@@ -176,21 +183,6 @@ class ThreddsResource(ClientResource):
                 services=services,
                 url=self._url
             )
-
-        # Capture download file endpoint in case its different than thredds/fileServer
-        file_base = (services.get("http") or {}).get("base")
-        self._file_path = file_base.strip("/").split("/") + url_path if file_base else ""
-
-        data["is_ncwms"] = url_path[-1].endswith(".nc")
-
-        # THREDDS version is different from WMS version, which is needed for image requests
-
-        if data["version"] in WMS_KNOWN_VERSIONS:
-            data["wms_version"] = data["version"]
-        elif data["version"] < WMS_KNOWN_VERSIONS[0]:
-            data["wms_version"] = WMS_KNOWN_VERSIONS[0]
-        else:
-            data["wms_version"] = WMS_KNOWN_VERSIONS[1]
 
         # Service data is ready: populate base resource fields
         super(ThreddsResource, self).populate_field_values(data)
@@ -275,11 +267,8 @@ class ThreddsResource(ClientResource):
                 y=raster_info["y_resolution"]
             )
 
-    def _query_layer(self, layer_id, layer_order=0, layer_metadata=None):
+    def _query_layer(self, layer_id, layer_order, layer_metadata):
         """ Allows this resource to query one layer at a time instead of all at once """
-
-        if layer_metadata is None:
-            layer_metadata = {d["id"]: d for d in self._metadata_parser.dimensions}
 
         layer_info = layer_metadata[layer_id]
         layer_data = {

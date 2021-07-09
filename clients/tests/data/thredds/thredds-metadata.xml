@@ -130,6 +130,9 @@
    </gmd:spatialRepresentationInfo>
    <gmd:identificationInfo>
       <gmd:MD_DataIdentification id="DataIdentification">
+         <credit>
+           <CharacterString>NKN Northwest Knowledge Network</CharacterString>
+         </credit>
          <gmd:citation>
             <gmd:CI_Citation>
                <gmd:title>

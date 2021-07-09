@@ -3,7 +3,7 @@ import requests_mock
 from unittest import mock
 from parserutils.urls import get_base_url, url_to_parts
 
-from ..exceptions import ClientError, HTTPError, ImageError
+from ..exceptions import HTTPError, ImageError, ValidationError
 from ..utils.geometry import Extent
 from ..thredds import ThreddsResource
 
@@ -60,14 +60,39 @@ class THREDDSTestCase(ResourceTestCase):
         self.mock_mapservice_request(mock_request.get, self.layer_menu_url, self.layer_menu_path)
 
     @requests_mock.Mocker()
-    @mock.patch('clients.thredds.get_remote_element')
+    @mock.patch("clients.thredds.get_remote_element")
     def test_invalid_thredds_url(self, mock_request, mock_metadata):
 
         # Test with invalid url
 
         session = self.mock_mapservice_session(self.data_directory / "test.html")
-        with self.assertRaises(ClientError):
+        with self.assertRaises(HTTPError):
             ThreddsResource.get("http://www.google.com/test", session=session, lazy=False)
+
+        # Test with invalid catalog url
+
+        session = self.mock_mapservice_session(self.catalog_path)
+        with self.assertRaises(HTTPError):
+            broken_url = f"{self.base_url}/catalog/{self.service_path}/catalog.xml"
+            ThreddsResource.get(broken_url, session=session, lazy=False)
+
+        # Test with missing catalog dataset
+
+        session = self.mock_mapservice_session(self.thredds_directory / "invalid-catalog.xml")
+        with self.assertRaises(ValidationError):
+            ThreddsResource.get(self.catalog_url, session=session, lazy=False)
+
+        # Test with missing metadata endpoint
+
+        session = self.mock_mapservice_session(self.thredds_directory / "invalid-iso-catalog.xml")
+        with self.assertRaises(ValidationError):
+            ThreddsResource.get(self.catalog_url, session=session, lazy=False)
+
+        # Test with missing WMS endpoint
+
+        session = self.mock_mapservice_session(self.thredds_directory / "invalid-wms-catalog.xml")
+        with self.assertRaises(ValidationError):
+            ThreddsResource.get(self.catalog_url, session=session, lazy=False)
 
         # Test with broken layer menu endpoint
 
@@ -78,17 +103,29 @@ class THREDDSTestCase(ResourceTestCase):
             ThreddsResource.get(self.catalog_url, lazy=False)
 
     @requests_mock.Mocker()
-    @mock.patch('clients.thredds.get_remote_element')
+    @mock.patch("clients.thredds.get_remote_element")
     def test_valid_thredds_request(self, mock_request, mock_metadata):
         self.mock_thredds_client(mock_request, mock_metadata)
 
-        client = ThreddsResource.get(self.catalog_url, lazy=False)
+        # Test variables initialized before query with alternate WMS version
+
+        client = ThreddsResource.get(self.catalog_url, lazy=True, wms_version="1.1.1")
+
+        self.assertEqual(client.wms_version, "1.1.1")
+        self.assertEqual(client._catalog_url, self.catalog_url.replace(".xml", ".html"))
+        self.assertEqual(client._service_url, self.catalog_url)
+
+        # Test population of related-endpoint-specific fields
+        self.assertEqual(client.access_constraints, None)
+
+        # Test all variables with default WMS version (1.3.0)
+
+        client = ThreddsResource.get(self.catalog_url, lazy=True)
 
         self.assertEqual(client.id, "NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc")
         self.assertEqual(client.title, "macav2metdata.nc")
-        self.assertEqual(client.credits, "northwestknowledge.net")
+        self.assertEqual(client.credits, "NKN Northwest Knowledge Network")
         self.assertEqual(client.version, "1.0.1")
-        self.assertEqual(client.is_ncwms, True)
 
         # Hard-coded base field values
 
@@ -103,7 +140,7 @@ class THREDDSTestCase(ResourceTestCase):
         self.assertEqual(client.data_type, "GRID")
         self.assertEqual(client.download_url, self.download_url)
         self.assertEqual(client.modified_date, "2017-04-28T17:32:01Z")
-        self.assertEqual(client.wms_version, "1.1.1")
+        self.assertEqual(client.wms_version, "1.3.0")
 
         self.assertEqual(len(client._services), 3)
         self.assertEqual(client._services["http"], {
@@ -114,7 +151,7 @@ class THREDDSTestCase(ResourceTestCase):
 
         # Derived from layer and metadata fields
 
-        self.assertEqual(client.access_constraints, "")
+        self.assertEqual(client.access_constraints, "northwestknowledge.net")
         self.assertEqual(client.description, "Downscaled daily meteorological data of Precipitation from Average.")
         self.assertEqual(
             client.full_extent.as_list(),
@@ -131,6 +168,15 @@ class THREDDSTestCase(ResourceTestCase):
         self.assertEqual(client.styles, [])
 
         # Private URL fields
+
+        dataset_path = self.dataset_path.split("/")
+
+        self.assertEqual(client._file_path, ["thredds", "fileServer"] + dataset_path)
+        self.assertEqual(client._iso_path, ["thredds", "iso"] + dataset_path)
+        self.assertEqual(client._wms_path, ["thredds", "wms"] + dataset_path)
+
+        self.assertEqual(client._catalog_url, self.catalog_url.replace(".xml", ".html"))
+        self.assertEqual(client._service_url, self.catalog_url)
 
         wms_url = ThreddsResource.to_wms_url(self.catalog_url)
         self.assertEqual(get_base_url(wms_url, True), self.base_wms_url)
@@ -159,9 +205,8 @@ class THREDDSTestCase(ResourceTestCase):
         )
         self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
 
-        self.assertEqual(first_layer.is_ncwms, True)
         self.assertEqual(first_layer.layer_order, 0)
-        self.assertEqual(first_layer.wms_version, "1.1.1")
+        self.assertEqual(first_layer.wms_version, "1.3.0")
         self.assertEqual(len(first_layer.styles), 3)
         self.assertEqual(len(first_layer.styles[0]), 5)
         self.assertEqual(first_layer.styles[0]["id"], "boxfill/ferret")
@@ -174,9 +219,9 @@ class THREDDSTestCase(ResourceTestCase):
 
         # Test NcWMS specific layer level information
 
-        self.assertEqual(first_layer.credits, "")
-        self.assertEqual(first_layer.copyright_text, "")
-        self.assertEqual(first_layer.more_info, "")
+        self.assertEqual(first_layer.credits, "NKN Northwest Knowledge Network")
+        self.assertEqual(first_layer.copyright_text, "northwestknowledge.net")
+        self.assertEqual(first_layer.more_info, "annual precipitation")
         self.assertEqual(first_layer.num_color_bands, 9)
         self.assertEqual(first_layer.log_scaling, False)
         self.assertEqual(first_layer.scale_range, ["26.0", "75.0"])
@@ -192,7 +237,7 @@ class THREDDSTestCase(ResourceTestCase):
         self.assertEqual(first_layer.supported_styles, ["boxfill", "contour"])
 
     @requests_mock.Mocker()
-    @mock.patch('clients.thredds.get_remote_element')
+    @mock.patch("clients.thredds.get_remote_element")
     def test_valid_thredds_image_request(self, mock_request, mock_metadata):
 
         self.mock_thredds_client(mock_request, mock_metadata)
@@ -201,7 +246,7 @@ class THREDDSTestCase(ResourceTestCase):
         self.assert_get_image(client, layer_ids=[self.layer_name], style_ids=["ferret"])
 
     @requests_mock.Mocker()
-    @mock.patch('clients.thredds.get_remote_element')
+    @mock.patch("clients.thredds.get_remote_element")
     def test_invalid_thredds_image_request(self, mock_request, mock_metadata):
 
         self.mock_thredds_client(mock_request, mock_metadata)
