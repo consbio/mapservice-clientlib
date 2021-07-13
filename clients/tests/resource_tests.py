@@ -263,7 +263,6 @@ class ClientResourceTestCase(ResourceTestCase):
 
 class TestClientResource(ClientResource):
 
-    # TODO: add the following to Meta
     _incoming_casing = "camel"
     _minimum_version = 10
     _supported_versions = (10.2, 30, 40.5)
