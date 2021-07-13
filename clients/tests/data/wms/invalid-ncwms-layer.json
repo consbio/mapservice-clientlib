@@ -1,0 +1,26 @@
+{
+  "units": "mm day-1",
+  "bbox": [
+    "-140.99999666399998",
+    "41.000001336",
+    "-52.00000235999998",
+    "83.49999861600001"
+  ],
+  "scaleRange": [
+    "9.9"
+  ],
+  "numColorBands": 127,
+  "supportedStyles": [
+    "contours"
+  ],
+  "datesWithData": {},
+  "nearestTimeIso": "2021-05-12T00:00:00.000Z",
+  "timeAxisUnits": "ISO8601",
+  "moreInfo": "",
+  "copyright": "",
+  "palettes": [
+    "ncview"
+  ],
+  "defaultPalette": "ncview",
+  "logScaling": true
+}

@@ -11,7 +11,6 @@ WMS Notes: layer may have BoundingBox, LatLonBoundingBox, or both (or worst case
 layer may have sublayers (extent may be defined at parent layer level).
 """
 
-import logging
 import requests
 
 from PIL import Image
@@ -21,8 +20,8 @@ from parserutils.collections import setdefaults, wrap_value
 from parserutils.urls import has_trailing_slash, update_url_params, url_to_parts, parts_to_url
 from restle.fields import TextField, BooleanField, IntegerField
 
-from .exceptions import BadExtent, ClientError, ContentError, HTTPError, ImageError
-from .exceptions import MissingFields, NoLayers, ValidationError
+from .exceptions import BadExtent, ClientError, HTTPError, ImageError
+from .exceptions import NoLayers, ValidationError
 from .query.fields import DictField, ExtentField, ListField
 from .query.serializers import XMLToJSONSerializer
 from .resources import ClientResource
@@ -30,8 +29,6 @@ from .utils.conversion import to_extent
 from .utils.geometry import Extent, union_extent
 from .utils.images import make_color_transparent
 
-
-logger = logging.getLogger(__name__)
 
 WMS_KNOWN_VERSIONS = ("1.1.1", "1.3.0")
 WMS_DEFAULT_PARAMS = {
@@ -86,7 +83,7 @@ class NcWMSLayerResource(ClientResource):
     def _get(self, url, **kwargs):
         """ Overridden to capture data known only to the parent NcWMSLayerResource """
 
-        self._data = kwargs["data"]
+        self._data = kwargs.get("data") or {}
 
     def populate_field_values(self, data):
         """ Overridden to include data from parent NcWMSLayerResource """
@@ -154,7 +151,7 @@ class WMSLayerResource(ClientResource):
     _dimension = DictField(default=[], aliases={"value": "values"})
     _extent = DictField(required=False, aliases={"value": "values"})
     _metadata_url = DictField(name="MetadataURL", default=[])
-    _style = DictField(default=[], aliases={"Name": "id"})
+    _style = DictField(default={}, aliases={"Name": "id"})
     _spatial_ref = ListField(name="SRS", default=[])
     _coordinate_ref = ListField(name="CRS", default=[])
 
@@ -372,7 +369,6 @@ class WMSLayerResource(ClientResource):
 
         for style in wrap_value(self._style):
             if not style.get("id"):
-                logger.warning(f'Style missing name for WMS layer "{self.id}":\n\t{self._url}')
                 continue
 
             style = setdefaults(style, "legend_url.online_resource.href")
@@ -397,11 +393,8 @@ class WMSLayerResource(ClientResource):
 
         self.supported_spatial_refs = sorted(supported_spatial_refs)
 
-    def _populate_ordered_layers(self, ordered_layers=None):
+    def _populate_ordered_layers(self, ordered_layers):
         """ Sets a unique layer order for all layers and a common parent order for nested sibling layers """
-
-        if ordered_layers is None:
-            ordered_layers = []
 
         self.layer_order = len(ordered_layers)
         self.parent_order = self.parent.layer_order
@@ -530,9 +523,7 @@ class WMSResource(ClientResource):
         if token is not None:
             self._params[token_id] = token
 
-        self._version = version
-        if version is not None:
-            self._params["version"] = version
+        self._params["version"] = version or WMS_KNOWN_VERSIONS[-1]
 
         # Populated before resource is loaded: must not be implemented as field definitions
         self.leaf_layers = {}
@@ -548,22 +539,11 @@ class WMSResource(ClientResource):
 
         if "ServiceException" in data:
             raise ClientError(data["ServiceException"], url=self.wms_url)
-
-        elif "Service" not in data:
-            raise ContentError("The WMS service did not respond correctly", params=self._params, url=self.wms_url)
-
-        elif "Capability" not in data:
-            raise NoLayers("The WMS service does not have any layers", url=self.wms_url)
-
         else:
             self.validate_version(data["version"])
 
         service = data["Service"]
-        capabilities = data["Capability"]
         title = service["Title"] or ""
-
-        if "Abstract" not in service:
-            raise MissingFields("The WMS service is missing required fields", missing=["Abstract"], url=self.wms_url)
 
         wms_data = {
             "version": data["version"],
@@ -582,6 +562,7 @@ class WMSResource(ClientResource):
 
         # Process capability request fields
 
+        capabilities = data["Capability"]
         request = capabilities["Request"]
 
         wms_data["map_formats"] = (request.get("GetMap") or {}).get("Format")
@@ -626,11 +607,9 @@ class WMSResource(ClientResource):
         web_mercator_srs = {"EPSG:3857", "EPSG:3785", "EPSG:900913", "EPSG:102113"}
         web_mercator_srs = sorted(web_mercator_srs.intersection(supported_spatial_refs))
 
-        if not web_mercator_srs:
-            logger.warning(f'The WMS Service "{title}" does not support Web Mercator:\n\t{self.wms_url}')
-        elif self._spatial_ref in web_mercator_srs:
+        if self._spatial_ref in web_mercator_srs:
             wms_data["spatial_ref"] = self._spatial_ref
-        else:
+        elif web_mercator_srs:
             wms_data["spatial_ref"] = web_mercator_srs[0]
 
         # Populate fields with coerced, non-layer data (layers are nested to represent parent/child relationships)
@@ -727,12 +706,12 @@ class WMSResource(ClientResource):
                 "bbox": extent.as_bbox_string(),
                 "layers": ",".join(wrap_value(layer_ids)),
                 "styles": ",".join(wrap_value(style_ids)),
-                "version": self.version
+                "version": (params or {}).get("version") or self.version
             }
             if self._token:
                 image_params["token"] = self._token
 
-            if self.version == "1.3.0":
+            if image_params["version"] == WMS_KNOWN_VERSIONS[1]:
                 image_params["exceptions"] = "XML"
                 image_params["crs"] = self.spatial_ref
             else:

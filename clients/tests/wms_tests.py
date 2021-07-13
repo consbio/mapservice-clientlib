@@ -1,5 +1,5 @@
-from ..exceptions import ContentError, HTTPError, ImageError, ValidationError
-from ..wms import WMSResource
+from ..exceptions import BadExtent, ContentError, HTTPError, ImageError, NoLayers, ValidationError
+from ..wms import WMSResource, WMSLayerResource, NcWMSLayerResource
 from ..utils.geometry import Extent
 
 from .utils import ResourceTestCase, get_extent
@@ -13,10 +13,7 @@ class WMSTestCase(ResourceTestCase):
         self.wms_directory = self.data_directory / "wms"
 
         self.wms_url = "http://demo.mapserver.org/cgi-bin/wms"
-        self.wms_path = self.wms_directory / "ncwms-layer.json"
-
         self.ncwms_url = "http://tools.pacificclimate.org/ncWMS-PCIC/wms?dataset=pr-tasmax-tasmin_day"
-        self.ncwms_path = self.wms_directory / "ncwms-layer.json"
 
         self.version_error_url = "http://demo.mapserver.org/version/wms"
         self.version_error_path = self.wms_directory / "version-error.xml"
@@ -25,14 +22,29 @@ class WMSTestCase(ResourceTestCase):
 
         is_max_version = (version == "1.3.0")
 
-        headers = {"content-type": "application/json"}
         session = self.mock_mapservice_session(data_path)
-        layer_session = self.mock_mapservice_session(self.ncwms_path, headers=headers)
+        layer_session = self.mock_mapservice_session(
+            self.wms_directory / "ncwms-layer.json",
+            headers={"content-type": "application/json"}
+        )
+
+        # Test ordered_layers initialized before query
 
         client = WMSResource.get(
             self.ncwms_url,
-            lazy=False, session=session, layer_session=layer_session,
-            token=token, version=version
+            lazy=True,
+            token=token, version=version,
+            session=session, layer_session=layer_session
+        )
+        self.assertEqual(len(client.ordered_layers), 2)
+
+        # Test all variables with specified WMS version
+
+        client = WMSResource.get(
+            self.ncwms_url,
+            lazy=True,
+            token=token, version=version,
+            session=session, layer_session=layer_session
         )
 
         # Test service level information
@@ -47,7 +59,6 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.access_constraints, None)
 
         self.assertEqual(client.version, version)
-        self.assertEqual(client.version, client._version)
         self.assertEqual(client._token, token)
         self.assertEqual(client._params.get("token"), token)
 
@@ -69,7 +80,7 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.is_ncwms, True)
         self.assertEqual(client.spatial_ref, "EPSG:3857")
 
-        layer_ids = {"pr-tasmax-tasmin_day"}
+        layer_ids = {"pr-tasmax-tasmin_day_precipitation_flux/pr-tasmax-tasmin_day"}
 
         self.assertEqual(len(client.leaf_layers), len(layer_ids))
         self.assertTrue(all(l in layer_ids for l in client.leaf_layers))
@@ -86,8 +97,8 @@ class WMSTestCase(ResourceTestCase):
 
         first_layer = client.root_layers[0].child_layers[0]
 
-        self.assertEqual(first_layer.id, "pr-tasmax-tasmin_day")
-        self.assertEqual(first_layer.title, "precipitation_flux")
+        self.assertEqual(first_layer.id, "pr-tasmax-tasmin_day_precipitation_flux/pr-tasmax-tasmin_day")
+        self.assertEqual(first_layer.title, "precipitation flux (pr-tasmax-tasmin day)")
         self.assertEqual(first_layer.description, "Precipitation")
         self.assertEqual(first_layer.version, version)
         self.assertEqual(first_layer.supports_query, True)
@@ -145,7 +156,7 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(first_layer._style[0]["legend_url"]["width"], "110")
         self.assertEqual(first_layer._style[0]["legend_url"]["height"], "264")
         self.assertEqual(first_layer._style[0]["legend_url"]["online_resource"]["href"], (
-            "http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?"
+            "http://tools.pacificclimate.org/ncWMS-PCIC/wms?"
             "REQUEST=GetLegendGraphic&LAYER=pr-tasmax-tasmin_day&PALETTE=alg"
         ))
         self.assertEqual(first_layer._style[0]["legend_url"]["online_resource"]["online_resource_type"], "simple")
@@ -156,8 +167,8 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(first_layer.styles[0]["title"], "Algorithmic")
         self.assertEqual(first_layer.styles[0]["abstract"], None)
         self.assertEqual(first_layer.styles[0]["legendURL"], (
-            "http://tools.pacificclimate.org/ncWMS-PCIC/wms"
-            "?palette=alg&request=GetLegendGraphic&layer=pr-tasmax-tasmin_day&colorbaronly=True"
+            "http://tools.pacificclimate.org/ncWMS-PCIC/wms?palette=alg&request=GetLegendGraphic"
+            "&layer=pr-tasmax-tasmin_day_precipitation_flux/pr-tasmax-tasmin_day&colorbaronly=True"
         ))
 
         self.assertEqual(first_layer._attribution, {})
@@ -202,8 +213,8 @@ class WMSTestCase(ResourceTestCase):
         # Test NcWMS specific layer level information
 
         self.assertEqual(first_layer.credits, None)
-        self.assertEqual(first_layer.copyright_text, "")
-        self.assertEqual(first_layer.more_info, "")
+        self.assertEqual(first_layer.copyright_text, "Northwest Knowledge Network")
+        self.assertEqual(first_layer.more_info, "NcWMS Layer Data")
         self.assertEqual(first_layer.num_color_bands, 254)
         self.assertEqual(first_layer.log_scaling, False)
         self.assertEqual(first_layer.scale_range, ["0.0", "797.8125"])
@@ -220,14 +231,28 @@ class WMSTestCase(ResourceTestCase):
             "ferret", "redblue", "brown_green", "blueheat", "brown_blue", "blue_brown", "blue_darkred",
             "lightblue_darkblue", "rainbow"
         ])
-        self.assertEqual(first_layer.supported_styles, ["boxfill"])
+        self.assertEqual(first_layer.supported_styles, ["boxfill", "contours"])
 
     def assert_wms_request(self, data_path, version, token=None):
 
         is_max_version = (version == "1.3.0")
 
+        session = self.mock_mapservice_session(data_path)
+
+        # Test ordered_layers initialized before query
+
         client = WMSResource.get(
-            self.wms_url, lazy=False, session=self.mock_mapservice_session(data_path),
+            self.wms_url,
+            lazy=False, session=session,
+            token=token, version=version
+        )
+        self.assertEqual(len(client.ordered_layers), 4)
+
+        # Test all variables with specified WMS version
+
+        client = WMSResource.get(
+            self.wms_url,
+            lazy=False, session=session,
             token=token, version=version
         )
 
@@ -243,7 +268,6 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.access_constraints, None)
 
         self.assertEqual(client.version, version)
-        self.assertEqual(client.version, client._version)
         self.assertEqual(client._token, token)
         self.assertEqual(client._params.get("token"), token)
 
@@ -279,7 +303,6 @@ class WMSTestCase(ResourceTestCase):
         # Test layer level information for first layer
 
         first_layer = client.ordered_layers[0]
-        first_layer.styles
         self.assertEqual(first_layer.id, "cities")
         self.assertEqual(first_layer.title, "World cities")
         self.assertEqual(first_layer.description, None)
@@ -383,11 +406,58 @@ class WMSTestCase(ResourceTestCase):
     def test_valid_old_ncwms_request(self):
         self.assert_ncwms_request(self.wms_directory / "ncwms-min.xml", version="1.1.1", token="secure")
 
+    def test_valid_ncwms_layer_request(self):
+
+        session = self.mock_mapservice_session(self.wms_directory / "ncwms-max.xml")
+        layer_session = self.mock_mapservice_session(
+            self.wms_directory / "invalid-ncwms-layer.json",
+            headers={"content-type": "application/json"}
+        )
+
+        client = WMSResource.get(
+            self.ncwms_url, lazy=False, session=session, layer_session=layer_session
+        )
+
+        # Test NcWMS specific layer level information with invalid supported styles
+
+        first_layer = client.root_layers[0].child_layers[0]
+
+        self.assertEqual(first_layer.credits, None)
+        self.assertEqual(first_layer.copyright_text, None)
+        self.assertEqual(first_layer.more_info, None)
+        self.assertEqual(first_layer.num_color_bands, 0)
+        self.assertEqual(first_layer.log_scaling, False)
+        self.assertEqual(first_layer.scale_range, [])
+        self.assertEqual(first_layer.legend_info, {})
+        self.assertEqual(first_layer.units, None)
+        self.assertEqual(first_layer.default_style, None)
+        self.assertEqual(first_layer.default_palette, None)
+        self.assertEqual(first_layer.palettes, [])
+        self.assertEqual(first_layer.supported_styles, ["boxfill"])
+
+    def test_invalid_ncwms_layer_request(self):
+        session = self.mock_mapservice_session(self.wms_directory / "invalid-ncwms-layer.json")
+        with self.assertRaises(ValidationError):
+            NcWMSLayerResource.get(self.ncwms_url, session=session, lazy=False)
+
     def test_valid_new_wms_request(self):
         self.assert_wms_request(self.wms_directory / "demo-wms-max.xml", version="1.3.0", token="secure")
 
     def test_valid_old_wms_request(self):
         self.assert_wms_request(self.wms_directory / "demo-wms-min.xml", version="1.1.1")
+
+    def test_invalid_wms_request(self):
+        session = self.mock_mapservice_session(self.wms_directory / "invalid-wms-layer.xml")
+        with self.assertRaises(BadExtent):
+            WMSResource.get(self.wms_url, session=session, lazy=False)
+
+        session = self.mock_mapservice_session(self.wms_directory / "invalid-wms-layers.xml")
+        with self.assertRaises(NoLayers):
+            WMSResource.get(self.wms_url, session=session, lazy=False)
+
+    def test_invalid_wms_layer_request(self):
+        with self.assertRaises(NotImplementedError):
+            WMSLayerResource.get(None, lazy=True)
 
     def test_valid_wms_image_request(self):
 
@@ -395,6 +465,22 @@ class WMSTestCase(ResourceTestCase):
         client = WMSResource.get(self.wms_url, session=session, lazy=False)
 
         self.assert_get_image(client, layer_ids=["country_bounds"], style_ids=["default"])
+
+        self.assert_get_image(
+            client, layer_ids=["country_bounds"], style_ids=["default"], params={"version": "1.1.1"}
+        )
+
+        extent = get_extent(web_mercator=True)
+        extent.xmin -= 10
+        extent.xmax += 10
+
+        self.assert_get_image(
+            client,
+            extent=extent,
+            layer_ids=["country_bounds"],
+            style_ids=["default"],
+            params={"version": "1.1.1"}
+        )
 
     def test_invalid_wms_image_request(self):
 
@@ -423,3 +509,7 @@ class WMSTestCase(ResourceTestCase):
         with self.assertRaises(ImageError):
             # Incompatible image format invalid_format
             client.get_image(extent, 100, 100, layer_ids=["layer1"], image_format="invalid_format")
+        with self.assertRaises(ImageError):
+            # Incompatible image format invalid_format
+            client.spatial_ref = None
+            client.get_image(client.full_extent, 32, 32, ["country_bounds"], ["default"])

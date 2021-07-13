@@ -43,7 +43,7 @@
                 <DCPType>
                     <HTTP>
                         <Get>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms" />
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms" />
                         </Get>
                     </HTTP>
                 </DCPType>
@@ -59,7 +59,7 @@
                 <DCPType>
                     <HTTP>
                         <Get>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms" />
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms" />
                         </Get>
                     </HTTP>
                 </DCPType>
@@ -74,7 +74,7 @@
                 <DCPType>
                     <HTTP>
                         <Get>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms" />
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms" />
                         </Get>
                     </HTTP>
                 </DCPType>
@@ -108,7 +108,7 @@
                 <Title>pr-tasmax-tasmin_day</Title>
 
                 <Layer queryable="1">
-                    <Name>pr-tasmax-tasmin_day</Name>
+                    <Name>pr-tasmax-tasmin_day_precipitation_flux/pr-tasmax-tasmin_day</Name>
                     <Title>precipitation_flux</Title>
                     <Abstract>Precipitation</Abstract>
 
@@ -129,7 +129,7 @@
                         <Abstract>boxfill style, using the alg palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=alg"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=alg"/>
                         </LegendURL>
                     </Style>
 
@@ -139,7 +139,7 @@
                         <Abstract>boxfill style, using the greyscale palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=greyscale"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=greyscale"/>
                         </LegendURL>
                     </Style>
 
@@ -149,7 +149,7 @@
                         <Abstract>boxfill style, using the ncview palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=ncview"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=ncview"/>
                         </LegendURL>
                     </Style>
 
@@ -159,7 +159,7 @@
                         <Abstract>boxfill style, using the occam palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=occam"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=occam"/>
                         </LegendURL>
                     </Style>
 
@@ -169,7 +169,7 @@
                         <Abstract>boxfill style, using the yellow_red palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=yellow_red"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=yellow_red"/>
                         </LegendURL>
                     </Style>
 
@@ -179,7 +179,7 @@
                         <Abstract>boxfill style, using the blue7_red3 palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blue7_red3"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blue7_red3"/>
                         </LegendURL>
                     </Style>
 
@@ -189,7 +189,7 @@
                         <Abstract>boxfill style, using the red_yellow palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=red_yellow"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=red_yellow"/>
                         </LegendURL>
                     </Style>
 
@@ -199,7 +199,7 @@
                         <Abstract>boxfill style, using the lightblue_darkblue_log palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=lightblue_darkblue_log"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=lightblue_darkblue_log"/>
                         </LegendURL>
                     </Style>
 
@@ -209,7 +209,7 @@
                         <Abstract>boxfill style, using the occam_inv palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=occam_inv"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=occam_inv"/>
                         </LegendURL>
                     </Style>
 
@@ -219,7 +219,7 @@
                         <Abstract>boxfill style, using the sst_36 palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=sst_36"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=sst_36"/>
                         </LegendURL>
                     </Style>
 
@@ -229,7 +229,7 @@
                         <Abstract>boxfill style, using the ferret palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=ferret"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=ferret"/>
                         </LegendURL>
                     </Style>
 
@@ -239,7 +239,7 @@
                         <Abstract>boxfill style, using the occam_pastel-30 palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=occam_pastel-30"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=occam_pastel-30"/>
                         </LegendURL>
                     </Style>
 
@@ -249,7 +249,7 @@
                         <Abstract>boxfill style, using the redblue palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=redblue"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=redblue"/>
                         </LegendURL>
                     </Style>
 
@@ -259,7 +259,7 @@
                         <Abstract>boxfill style, using the brown_green palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=brown_green"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=brown_green"/>
                         </LegendURL>
                     </Style>
 
@@ -269,7 +269,7 @@
                         <Abstract>boxfill style, using the blueheat palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blueheat"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blueheat"/>
                         </LegendURL>
                     </Style>
 
@@ -279,7 +279,7 @@
                         <Abstract>boxfill style, using the blue4_red6 palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blue4_red6"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blue4_red6"/>
                         </LegendURL>
                     </Style>
 
@@ -289,7 +289,7 @@
                         <Abstract>boxfill style, using the alg2 palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=alg2"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=alg2"/>
                         </LegendURL>
                     </Style>
 
@@ -299,7 +299,7 @@
                         <Abstract>boxfill style, using the lightblue_darkblue_log_nc palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=lightblue_darkblue_log_nc"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=lightblue_darkblue_log_nc"/>
                         </LegendURL>
                     </Style>
 
@@ -309,7 +309,7 @@
                         <Abstract>boxfill style, using the brown_blue palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=brown_blue"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=brown_blue"/>
                         </LegendURL>
                     </Style>
 
@@ -319,7 +319,7 @@
                         <Abstract>boxfill style, using the blue6_red4 palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blue6_red4"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blue6_red4"/>
                         </LegendURL>
                     </Style>
 
@@ -329,7 +329,7 @@
                         <Abstract>boxfill style, using the blue_brown palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blue_brown"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blue_brown"/>
                         </LegendURL>
                     </Style>
 
@@ -339,7 +339,7 @@
                         <Abstract>boxfill style, using the blue_darkred palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blue_darkred"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=blue_darkred"/>
                         </LegendURL>
                     </Style>
 
@@ -349,7 +349,7 @@
                         <Abstract>boxfill style, using the lightblue_darkblue palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=lightblue_darkblue"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=lightblue_darkblue"/>
                         </LegendURL>
                     </Style>
 
@@ -359,7 +359,7 @@
                         <Abstract>boxfill style, using the rainbow palette </Abstract>
                         <LegendURL width="110" height="264">
                             <Format>image/png</Format>
-                            <OnlineResource xlink:type="simple" xlink:href="http://pizza.pcic.uvic.ca:8080/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=rainbow"/>
+                            <OnlineResource xlink:type="simple" xlink:href="http://tools.pacificclimate.org/ncWMS-PCIC/wms?REQUEST=GetLegendGraphic&amp;LAYER=pr-tasmax-tasmin_day&amp;PALETTE=rainbow"/>
                         </LegendURL>
                     </Style>
 
