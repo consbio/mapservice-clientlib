@@ -659,8 +659,10 @@ class ExtentTestCase(GeometryTestCase):
 class SpatialReferenceTestCase(GeometryTestCase):
 
     def test_spatial_reference(self):
-        # Test with an SRS string
+        # Test with primitive values
         self.assert_spatial_reference(SpatialReference("EPSG:4326"), props="srs")
+        self.assert_spatial_reference(SpatialReference(4326), props="wkid")
+        self.assert_spatial_reference(SpatialReference(4326.0), props="wkid")
 
         # Test with valid spatial reference dicts
         self.assert_spatial_reference(SpatialReference(get_spatial_reference_dict()))

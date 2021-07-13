@@ -428,6 +428,9 @@ class SpatialReference(object):
         if isinstance(spatial_reference, str):
             self.srs = spatial_reference
 
+        elif isinstance(spatial_reference, (int, float)):
+            self.wkid = spatial_reference
+
         elif isinstance(spatial_reference, dict):
             self.srs = spatial_reference.get("srs")
 
