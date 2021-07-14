@@ -268,11 +268,13 @@ class THREDDSTestCase(ResourceTestCase):
         self.mock_thredds_client(mock_request, mock_metadata)
         client = ThreddsResource.get(self.catalog_url, lazy=False)
 
+        valid_image_args = (32, 32, [self.layer_name], ["ferret"])
+
         # Test with valid params and broken endpoint
 
         client._session = self.mock_mapservice_session(self.data_directory / "wms" / "service-exception.xml", ok=False)
         with self.assertRaises(HTTPError):
-            client.get_image(client.full_extent, 32, 32, [self.layer_name], ["ferret"])
+            client.get_image(client.full_extent, *valid_image_args)
 
         # Test with invalid params but working endpoint
 
@@ -290,3 +292,11 @@ class THREDDSTestCase(ResourceTestCase):
         with self.assertRaises(ImageError):
             # Incompatible image format invalid_format
             client.get_image(extent, 100, 100, layer_ids=["layer1"], image_format="invalid_format")
+
+        # Test bad image response
+
+        client._session = self.mock_mapservice_session(
+            self.data_directory / "test.html", mode="rb", headers={"content-type": "image/png"}
+        )
+        with self.assertRaises(ImageError):
+            client.get_image(client.full_extent, *valid_image_args)

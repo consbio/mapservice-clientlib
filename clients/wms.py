@@ -21,7 +21,7 @@ from parserutils.urls import has_trailing_slash, update_url_params, url_to_parts
 from restle.fields import TextField, BooleanField, IntegerField
 
 from .exceptions import BadExtent, ClientError, HTTPError, ImageError
-from .exceptions import NoLayers, ValidationError
+from .exceptions import NoLayers, ServiceError, ValidationError
 from .query.fields import DictField, ExtentField, ListField
 from .query.serializers import XMLToJSONSerializer
 from .resources import ClientResource
@@ -538,7 +538,7 @@ class WMSResource(ClientResource):
         """ Overridden to validate root fields and flatten converted WMS data """
 
         if "ServiceException" in data:
-            raise ClientError(data["ServiceException"], url=self.wms_url)
+            raise ServiceError(data["ServiceException"], url=self.wms_url)
         else:
             self.validate_version(data["version"])
 
@@ -618,9 +618,6 @@ class WMSResource(ClientResource):
 
     def _populate_ordered_layers(self):
         """ Must be called after root layers and complete nested layer structure have been loaded """
-
-        if self._ordered_layers:
-            return  # Populate these once per call to get
 
         reversed_layers = list(self.root_layers)
         reversed_layers.reverse()

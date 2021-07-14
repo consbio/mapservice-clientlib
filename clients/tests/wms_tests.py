@@ -1,5 +1,6 @@
-from ..exceptions import BadExtent, ContentError, HTTPError, ImageError, NoLayers, ValidationError
-from ..wms import WMSResource, WMSLayerResource, NcWMSLayerResource
+from ..exceptions import BadExtent, ContentError, HTTPError, ImageError
+from ..exceptions import NoLayers, ServiceError, ValidationError
+from ..wms import WMSResource, WMSLayerResource, NcWMSLayerResource, WMS_EXCEPTION_FORMAT
 from ..utils.geometry import Extent
 
 from .utils import ResourceTestCase, get_extent
@@ -14,6 +15,9 @@ class WMSTestCase(ResourceTestCase):
 
         self.wms_url = "http://demo.mapserver.org/cgi-bin/wms"
         self.ncwms_url = "http://tools.pacificclimate.org/ncWMS-PCIC/wms?dataset=pr-tasmax-tasmin_day"
+
+        self.service_exception_url = "http://demo.mapserver.org/service/wms"
+        self.service_exception_path = self.wms_directory / "service-exception.xml"
 
         self.version_error_url = "http://demo.mapserver.org/version/wms"
         self.version_error_path = self.wms_directory / "version-error.xml"
@@ -32,7 +36,7 @@ class WMSTestCase(ResourceTestCase):
 
         client = WMSResource.get(
             self.ncwms_url,
-            lazy=True,
+            lazy=True, spatial_ref="EPSG:4326",
             token=token, version=version,
             session=session, layer_session=layer_session
         )
@@ -400,6 +404,10 @@ class WMSTestCase(ResourceTestCase):
         with self.assertRaises(ValidationError):
             WMSResource.get(self.version_error_url, session=session, lazy=False)
 
+        session = self.mock_mapservice_session(self.service_exception_path)
+        with self.assertRaises(ServiceError):
+            WMSResource.get(self.service_exception_url, session=session, lazy=False)
+
     def test_valid_new_ncwms_request(self):
         self.assert_ncwms_request(self.wms_directory / "ncwms-max.xml", version="1.3.0")
 
@@ -462,7 +470,7 @@ class WMSTestCase(ResourceTestCase):
     def test_valid_wms_image_request(self):
 
         session = self.mock_mapservice_session(self.wms_directory / "demo-wms-max.xml")
-        client = WMSResource.get(self.wms_url, session=session, lazy=False)
+        client = WMSResource.get(self.wms_url, lazy=False, session=session, token="secure")
 
         self.assert_get_image(client, layer_ids=["country_bounds"], style_ids=["default"])
 
@@ -487,16 +495,19 @@ class WMSTestCase(ResourceTestCase):
         session = self.mock_mapservice_session(self.wms_directory / "demo-wms-max.xml")
         client = WMSResource.get(self.wms_url, session=session, lazy=False)
 
+        valid_image_args = (32, 32, ["country_bounds"], ["default"])
+
         # Test with valid params and broken endpoint
 
-        client._session = self.mock_mapservice_session(self.wms_directory / "service-exception.xml", ok=False)
+        client._session = self.mock_mapservice_session(self.service_exception_path, ok=False)
         with self.assertRaises(HTTPError):
-            client.get_image(client.full_extent, 32, 32, ["country_bounds"], ["default"])
+            client.get_image(client.full_extent, *valid_image_args)
 
         # Test with invalid params but working endpoint
 
+        image_path = self.data_directory / "test.png"
         client._session = self.mock_mapservice_session(
-            self.data_directory / "test.png", mode="rb", headers={"content-type": "image/png"}
+            image_path, mode="rb", headers={"content-type": "image/png"}
         )
         extent = get_extent(web_mercator=True)
 
@@ -507,9 +518,31 @@ class WMSTestCase(ResourceTestCase):
             # Provided styles do not correspond to specified Layers
             client.get_image(extent, 100, 100, layer_ids=["layer1"], style_ids=["style1", "style2"])
         with self.assertRaises(ImageError):
-            # Incompatible image format invalid_format
+            # Incompatible image format
             client.get_image(extent, 100, 100, layer_ids=["layer1"], image_format="invalid_format")
         with self.assertRaises(ImageError):
-            # Incompatible image format invalid_format
+            # Missing spatial reference
             client.spatial_ref = None
-            client.get_image(client.full_extent, 32, 32, ["country_bounds"], ["default"])
+            client.get_image(client.full_extent, *valid_image_args)
+
+        # Test bad image responses
+
+        client = WMSResource.get(self.wms_url, session=session, lazy=False)
+
+        client._session = self.mock_mapservice_session(
+            image_path, mode="rb", headers={"content-type": "image/bad"}
+        )
+        with self.assertRaises(ImageError):
+            client.get_image(client.full_extent, *valid_image_args)
+
+        client._session = self.mock_mapservice_session(
+            self.service_exception_path, mode="rb", headers={"content-type": WMS_EXCEPTION_FORMAT}
+        )
+        with self.assertRaises(ImageError):
+            client.get_image(client.full_extent, *valid_image_args)
+
+        client._session = self.mock_mapservice_session(
+            self.data_directory / "test.html", mode="rb", headers={"content-type": "image/png"}
+        )
+        with self.assertRaises(ImageError):
+            client.get_image(client.full_extent, *valid_image_args)
