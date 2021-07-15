@@ -225,6 +225,8 @@ class ResourceTestCase(BaseTestCase):
 
     def setUp(self):
         super(ResourceTestCase, self).setUp()
+
+        self.cookies = None
         self.headers = {"content-type": WMS_EXCEPTION_FORMAT}
 
     def assert_get_image(self, client, target_hash=DEFAULT_IMG_HASH, extent=None, dimensions=None, **image_params):
@@ -242,13 +244,16 @@ class ResourceTestCase(BaseTestCase):
         self.assertEqual(img.mode, "RGBA")
         self.assertEqual(md5(img.tobytes()).hexdigest(), target_hash)
 
-    def mock_mapservice_request(self, mock_method, service_url, data_path, mode="r", ok=True, headers=None):
+    def mock_mapservice_request(
+        self, mock_method, service_url, data_path, mode="r", ok=True, cookies=None, headers=None
+    ):
 
         with open(data_path, mode=mode) as mapservice_data:
             return mock_method(
                 service_url,
                 status_code=200 if ok else 500,
                 text=mapservice_data.read(),
+                cookies=self.cookies if cookies is None else cookies,
                 headers=self.headers if headers is None else headers
             )
 
