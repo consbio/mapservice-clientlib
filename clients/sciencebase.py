@@ -6,7 +6,7 @@ from restle.fields import BooleanField, NumberField, TextField
 from sciencebasepy import SbSession
 
 from .arcgis import ArcGISSecureResource, MapServerResource
-from .exceptions import HTTPError, MissingFields, NoLayers, ServiceError, ValidationError
+from .exceptions import HTTPError, MissingFields, NoLayers, ValidationError
 from .resources import ClientResource
 from .query.fields import DictField, ListField, ObjectField
 from .wms import WMSResource
@@ -219,8 +219,6 @@ class ScienceBaseResource(ClientResource):
             self._service_client = WMSResource.get(
                 self.service_url, lazy=True, token=self._token, token_id="josso"
             )
-        else:
-            raise ServiceError(f"Invalid ScienceBaseResource.service_type: {self.service_type}")
 
         if not self._lazy:
             self._service_client._load_resource()
