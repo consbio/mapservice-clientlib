@@ -25,8 +25,7 @@
   "contacts": [
     {
       "name": "Some Person",
-      "oldPartyId": 67547,
-      "type": "Distributor",
+      "type": "Originator",
       "contactType": "person",
       "email": "person@freshwaterinstitute.org",
       "active": true,
@@ -34,11 +33,21 @@
       "firstName": "Some",
       "middleName": "Other",
       "lastName": "Person",
-      "organization": {},
+      "company": "Freshwater Institute"
+    },
+    {
+      "type": "Point of Contact",
+      "contactType": "person",
+      "email": "srlcc.info@gmail.com",
+      "organization": {
+        "name": "Freshwater Institute"
+      }
+    },
+    {
+      "name": "Freshwater Institute",
+      "type": "Lead Organization",
+      "contactType": "organization",
       "primaryLocation": {
-        "name": "Freshwater Institute",
-        "officePhone": "3048762815",
-        "streetAddress": {},
         "mailAddress": {
           "line1": "1098 Turner Road",
           "city": "Shepherdstown",

@@ -6,16 +6,12 @@ from restle.fields import BooleanField, NumberField, TextField
 from sciencebasepy import SbSession
 
 from .arcgis import ArcGISSecureResource, MapServerResource
-from .exceptions import HTTPError, MissingFields, NoLayers, ValidationError
+from .exceptions import HTTPError, NoLayers, ValidationError
 from .resources import ClientResource
 from .query.fields import DictField, ListField, ObjectField
 from .wms import WMSResource
 
 
-# List of contact types that we pull out for credits field, since ScienceBase doesn't have the same concept as us.
-DATA_PROVIDER_CONTACT_TYPES = (
-    "Author", "Co-Investigator", "Data Owner", "Lead Organization", "Originator", "Principal Investigator"
-)
 SCIENCE_BASE_CONTENT_TYPES = "text/html,application/json,application/xhtml+xml,application/xml"
 SCIENCE_BASE_TOKEN_IDS = {"arcgis": "token", "wms": "josso"}
 
@@ -148,7 +144,11 @@ class ScienceBaseSession(SbSession, object):
 
 class ScienceBaseResource(ClientResource):
 
-    data_provider_contact_types = DATA_PROVIDER_CONTACT_TYPES
+    data_provider_types = (
+        # Contact types used to populate the credits field
+        "author", "co-investigator", "data owner",
+        "lead organization", "originator", "principal investigator"
+    )
 
     id = TextField()
     title = TextField()
@@ -179,6 +179,9 @@ class ScienceBaseResource(ClientResource):
     properties = DictField(default={})
     system_types = ListField(default=[])
 
+    contact_persons = ListField(default=[])
+    contact_orgs = ListField(default=[])
+    originators = ListField(default=[])
     settings = ObjectField(name="itemSettings", class_name="Settings", aliases={"isPrivate": "private"})
 
     _contacts = ObjectField(name="contacts", class_name="Contact", default=[])
@@ -275,18 +278,11 @@ class ScienceBaseResource(ClientResource):
         }
 
     def _load_resource(self):
-        """ Overridden to improve error handling """
+        """ Overridden to make session handling compatible with SbSession """
 
-        try:
-            self.populate_field_values(self._session.get_json(self._url, self._external_id))
-        except ValidationError:
-            raise  # Prevents double wrapping validation exceptions, which are also AttributeError
-        except (AttributeError, KeyError) as ex:
-            # Handles nested property dependencies in both ScienceBaseSession._get_item_json and populate_field_values
-            raise MissingFields(
-                "The ScienceBase item is missing required fields",
-                missing=ex, underlying=ex, url=self._url
-            )
+        self.populate_field_values(
+            self._session.get_json(self._url, self._external_id)
+        )
 
     def populate_field_values(self, data):
 
@@ -371,14 +367,18 @@ class ScienceBaseResource(ClientResource):
 
         # Append originators from provenance annotation if present, or contacts
 
+        self.originators = []
+
         if hasattr(self.provenance, "annotation"):
             # Use annotations by default: may include free-form text for credits / originators
-            self.originators = [self.provenance.annotation]
+            self.originators.append(self.provenance.annotation)
         else:
             # Append originators with organization or company names
 
-            self.originators = []
-            for originator in (o for o in valid_contacts if o.get("type") in self.data_provider_contact_types):
+            originator_contacts = (
+                o for o in valid_contacts if (o.get("type") or "").lower() in self.data_provider_types
+            )
+            for originator in originator_contacts:
                 originator_txt = originator.get("name", "unknown")
                 if originator.get("organization", {}).get("display_text"):
                     originator_txt += "({})".format(originator["organization"]["display_text"])

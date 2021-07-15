@@ -14,14 +14,55 @@
   "summary": "With reference to white tailed jack rabbit",
   "body": "With reference to white tailed jack rabbit found in Alaska",
   "provenance": {
-    "dataSource": "Input directly",
+    "annotation": "generated using mdTranslator",
     "dateCreated": "2015-04-15T22:48:33Z",
-    "lastUpdated": "2016-04-08T23:42:46Z",
-    "lastUpdatedBy": "daniel.harvey@consbio.org",
-    "createdBy": "daniel.harvey@consbio.org"
+    "lastUpdated": "2016-04-08T23:42:46Z"
   },
   "hasChildren": false,
   "parentId": "parent-folder",
+  "contacts": [
+    {
+      "name": "Southern Rockies Landscape Conservation Cooperative",
+      "type": "Publisher",
+      "contactType": "organization",
+      "email": "srlcc.info@gmail.com",
+      "primaryLocation": {
+        "mailAddress": {
+          "line1": "134 Union Blvd",
+          "city": "Lakewood",
+          "state": "CO",
+          "zip": "80228",
+          "country": "USA"
+        }
+      }
+    },
+    {
+      "name": "Southern Rockies Landscape Conservation Cooperative",
+      "type": "Lead Organization",
+      "contactType": "organization"
+    },
+    {
+      "name": "Some Employee",
+      "type": "Data Owner",
+      "contactType": "person",
+      "organization": {
+        "displayText": "Southern Rockies Landscape Conservation Cooperative"
+      }
+    },
+    {
+      "type": "Point of Contact",
+      "contactType": "organization",
+      "email": "srlcc.info@gmail.com"
+    }
+  ],
+  "webLinks": [
+    {
+      "type": "webLink",
+      "uri": "https://www.sciencebase.gov/catalog/item/arcgis_service",
+      "title": "Product Web-page with Downloadable Files",
+      "hidden": false
+    }
+  ],
   "browseCategories": [
     "Data"
   ],

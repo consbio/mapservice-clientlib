@@ -249,23 +249,27 @@ class ScienceBaseTestCase(ResourceTestCase):
             Extent(facet_data.get("extent"), spatial_reference="102100").as_list(),
             [-121.861000575342, 44.4967792744768, -115.403665323615, 49.0040515878564]
         )
-        self.assert_object_field(client.facets[0], {
+        self.assert_object_field(client.facets, [{
             "name": "ArcGIS.sd",
             "facet_name": "ArcGIS Service Definition",
             "service_id": "arcgis_service",
             "service_path": "arcgis_service",
             "enabled_services": ["KmlServer", "WMSServer"]
-        })
+        }])
 
         self.assertEqual(client.files, [])
-        self.assertEqual(client.links, [])
+        self.assert_object_field(client.links, [{
+            "type": "webLink",
+            "uri": "https://www.sciencebase.gov/catalog/item/arcgis_service",
+            "title": "Product Web-page with Downloadable Files",
+            "hidden": False,
+            "type_label": None
+        }])
 
         self.assert_object_field(client.provenance, {
-            "data_source": "Input directly",
+            "annotation": "generated using mdTranslator",
             "date_created": "2015-04-15T22:48:33Z",
-            "date_updated": "2016-04-08T23:42:46Z",
-            "last_updated_by": "daniel.harvey@consbio.org",
-            "created_by": "daniel.harvey@consbio.org"
+            "date_updated": "2016-04-08T23:42:46Z"
         })
 
         self.assertEqual(client.browse_categories, ["Data"])
@@ -276,6 +280,13 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertEqual(client.properties, {})
         self.assertEqual(client.system_types, ["Downloadable", "Mappable"])
 
+        self.assertEqual(client.contact_persons, [{"name": "Some Employee"}])
+        self.assertEqual(client.contact_orgs, [
+            '<a href="mailto:srlcc.info@gmail.com">Southern Rockies Landscape Conservation Cooperative</a>',
+            "Southern Rockies Landscape Conservation Cooperative"
+        ])
+        self.assertEqual(client.originators, ["generated using mdTranslator"])
+
         self.assertEqual(client.settings.get_data(), ARCGIS_SETTINGS)
         self.assertEqual(client.permissions.get_data(), ARCGIS_SETTINGS["permissions"])
         self.assertEqual(client.private, ARCGIS_SETTINGS["private"])
@@ -284,13 +295,35 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertEqual(client.service_url, ARCGIS_SETTINGS["service_url"])
 
         # Private resource properties
-        self.assertEqual(client._contacts, [])
-        self.assertEqual(len(client._dates), 1)
-        self.assert_object_field(client._dates[0], {
+        self.assert_object_field(client._contacts, [
+            {
+                'name': 'Southern Rockies Landscape Conservation Cooperative',
+                'type': 'Publisher',
+                'contact_type': 'organization',
+                'email': 'srlcc.info@gmail.com'
+            },
+            {
+                'name': 'Southern Rockies Landscape Conservation Cooperative',
+                'type': 'Lead Organization',
+                'contact_type': 'organization'
+            },
+            {
+                'name': 'Some Employee',
+                'type': 'Data Owner',
+                'contact_type': 'person',
+                'organization': {'display_text': 'Southern Rockies Landscape Conservation Cooperative'}
+            },
+            {
+                'type': 'Point of Contact',
+                'contact_type': 'organization',
+                'email': 'srlcc.info@gmail.com'
+            }
+        ])
+        self.assert_object_field(client._dates, [{
             "type": "Reported",
             "value": "2016",
             "label": "Date Reported",
-        })
+        }])
 
         permissions = client._permissions.get_data()
 
@@ -307,8 +340,7 @@ class ScienceBaseTestCase(ResourceTestCase):
             ["USER:bcward@consbio.org", "USER:daniel.harvey@consbio.org", "USER:databasinadmin@consbio.org"]
         )
 
-        self.assertEqual(len(client._tags), 1)
-        self.assert_object_field(client._tags[0], {"name": "test"})
+        self.assert_object_field(client._tags, [{"name": "test"}])
 
     @requests_mock.Mocker()
     def test_valid_arcgis_sciencebase_image_request(self, mock_request):
@@ -375,16 +407,22 @@ class ScienceBaseTestCase(ResourceTestCase):
             Extent(facet_data.get("extent"), spatial_reference="EPSG:5070").as_list(),
             [-121.38976229221491, 29.80333794238641, -104.72940289874478, 39.32228869647462]
         )
-        self.assert_object_field(client.facets[0], {
-            "name": "SouthwesternWillowFlycatcher_FocalArea",
-            "facet_name": "Shapefile",
-            "class_name": "gov.sciencebase.catalog.item.facet.ShapefileFacet",
-            "geometry_type": "MultiLineString",
-            "native_crs": "EPSG:5070"
-        })
+        self.assert_object_field(client.facets, [
+            {
+                "name": "SouthwesternWillowFlycatcher_FocalArea",
+                "facet_name": "Shapefile",
+                "class_name": "gov.sciencebase.catalog.item.facet.ShapefileFacet",
+                "geometry_type": "MultiLineString",
+                "native_crs": "EPSG:5070"
+            },
+            {
+                "facet_name": "Citation",
+                "class_name": "gov.sciencebase.catalog.item.facet.CitationFacet",
+                "citation_type": "vector digital data"
+            }
+        ])
 
-        self.assertEqual(len(client.files), 1)
-        self.assert_object_field(client.files[0], {
+        self.assert_object_field(client.files, [{
             "name": "SouthwesternWillowFlycatcher_FocalArea_metadata.xml",
             "title": "",
             "content_type": "application/fgdc+xml",
@@ -392,7 +430,7 @@ class ScienceBaseTestCase(ResourceTestCase):
             "date_uploaded": "2015-08-29T17:46:16Z",
             "url": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__id",
             "download_uri": "https://www.sciencebase.gov/catalog/file/get/wms?f=__disk__id"
-        })
+        }])
         self.assertEqual(client.links, [])
 
         self.assert_object_field(client.provenance, {
@@ -409,6 +447,10 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertEqual(client.properties, {"wms_layer_name": "SouthwesternWillowFlycatcher_FocalArea"})
         self.assertEqual(client.system_types, ["Downloadable", "Mappable"])
 
+        self.assertEqual(client.contact_persons, [{"name": "Some Person", "email": "person@freshwaterinstitute.org"}])
+        self.assertEqual(client.contact_orgs, ["Freshwater Institute"])
+        self.assertEqual(client.originators, ["Some Person(Freshwater Institute)", "Freshwater Institute"])
+
         self.assertEqual(client.settings.get_data(), WMS_SETTINGS)
         self.assertEqual(client.permissions.get_data(), WMS_SETTINGS["permissions"])
         self.assertEqual(client.private, WMS_SETTINGS["private"])
@@ -418,19 +460,29 @@ class ScienceBaseTestCase(ResourceTestCase):
 
         # Private resource properties
 
-        self.assertEqual(len(client._contacts), 1)
-        self.assertEqual(len(client._contacts[0].get_data()["primary_location"]), 4)
-        self.assert_object_field(client._contacts[0], {
-            "name": "Some Person",
-            "type": "Distributor",
-            "contact_type": "person",
-            "email": "person@freshwaterinstitute.org",
-            "active": True,
-            "job_title": "Senior Environmental Associate",
-            "first_name": "Some",
-            "middle_name": "Other",
-            "last_name": "Person"
-        })
+        self.assert_object_field(client._contacts, [
+            {
+                "name": "Some Person",
+                "type": "Originator",
+                "contact_type": "person",
+                "email": "person@freshwaterinstitute.org",
+                "job_title": "Senior Environmental Associate",
+                "first_name": "Some",
+                "middle_name": "Other",
+                "last_name": "Person"
+            },
+            {
+                "type": "Point of Contact",
+                "contact_type": "person",
+                "email": "srlcc.info@gmail.com",
+                "organization": {"name": "Freshwater Institute"}
+            },
+            {
+                "name": "Freshwater Institute",
+                "type": "Lead Organization",
+                "contact_type": "organization"
+            }
+        ])
 
         self.assertEqual(client._dates, [])
         self.assertEqual(client._permissions, [])
@@ -465,6 +517,7 @@ ARCGIS_ITEM_KEYS = {
     "body",
     "browseCategories",
     "browseTypes",
+    "contacts",
     "dates",
     "distributionLinks",
     "facets",
@@ -480,7 +533,8 @@ ARCGIS_ITEM_KEYS = {
     "summary",
     "systemTypes",
     "tags",
-    "title"
+    "title",
+    "webLinks"
 }
 ARCGIS_DIST_LINKS = [
     {
