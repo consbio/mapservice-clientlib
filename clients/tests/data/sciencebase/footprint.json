@@ -19,7 +19,7 @@
     "dateCreated": "2015-10-15T21:30:28Z",
     "lastUpdated": "2017-12-05T20:34:51Z",
     "lastUpdatedBy": "jcantu@usgs.gov",
-    "createdBy": "daniel.harvey@consbio.org"
+    "createdBy": "dani.harvey@consbio.org"
   },
   "hasChildren": false,
   "parentId": "parent-folder",
@@ -65,7 +65,7 @@
     },
     "write": {
       "acl": [
-        "USER:daniel.harvey@consbio.org",
+        "USER:dani.harvey@consbio.org",
         "USER:databasinadmin@consbio.org",
         "USER:sbdr_app"
       ],

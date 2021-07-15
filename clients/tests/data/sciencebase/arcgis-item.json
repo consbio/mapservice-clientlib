@@ -120,7 +120,7 @@
           "imageHeight": null,
           "size": 12537004,
           "dateUploaded": "2015-04-15T22:47:46Z",
-          "uploadedBy": "daniel.harvey@consbio.org",
+          "uploadedBy": "dani.harvey@consbio.org",
           "originalMetadata": true,
           "useForPreview": false,
           "movedToS3": null,
@@ -146,7 +146,7 @@
           "imageHeight": 133,
           "size": 11287,
           "dateUploaded": "2015-04-15T22:48:33Z",
-          "uploadedBy": "daniel.harvey@consbio.org",
+          "uploadedBy": "dani.harvey@consbio.org",
           "originalMetadata": null,
           "useForPreview": null,
           "movedToS3": null,
@@ -177,14 +177,14 @@
     "read": {
       "acl": [
         "USER:bcward@consbio.org",
-        "USER:daniel.harvey@consbio.org"
+        "USER:dani.harvey@consbio.org"
       ],
       "inherited": false
     },
     "write": {
       "acl": [
         "USER:bcward@consbio.org",
-        "USER:daniel.harvey@consbio.org",
+        "USER:dani.harvey@consbio.org",
         "USER:databasinadmin@consbio.org"
       ],
       "inherited": false

@@ -33,14 +33,18 @@
       "firstName": "Some",
       "middleName": "Other",
       "lastName": "Person",
-      "company": "Freshwater Institute"
+      "company": "Freshwater Institute",
+      "organization": {
+        "name": "Something Else"
+      }
     },
     {
-      "type": "Point of Contact",
+      "name": "Another Person",
+      "type": "Data Owner",
       "contactType": "person",
       "email": "srlcc.info@gmail.com",
       "organization": {
-        "name": "Freshwater Institute"
+        "display_text": "Freshwater Institute"
       }
     },
     {

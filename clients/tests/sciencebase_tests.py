@@ -297,26 +297,26 @@ class ScienceBaseTestCase(ResourceTestCase):
         # Private resource properties
         self.assert_object_field(client._contacts, [
             {
-                'name': 'Southern Rockies Landscape Conservation Cooperative',
-                'type': 'Publisher',
-                'contact_type': 'organization',
-                'email': 'srlcc.info@gmail.com'
+                "name": "Southern Rockies Landscape Conservation Cooperative",
+                "type": "Publisher",
+                "contact_type": "organization",
+                "email": "srlcc.info@gmail.com"
             },
             {
-                'name': 'Southern Rockies Landscape Conservation Cooperative',
-                'type': 'Lead Organization',
-                'contact_type': 'organization'
+                "name": "Southern Rockies Landscape Conservation Cooperative",
+                "type": "Lead Organization",
+                "contact_type": "organization"
             },
             {
-                'name': 'Some Employee',
-                'type': 'Data Owner',
-                'contact_type': 'person',
-                'organization': {'display_text': 'Southern Rockies Landscape Conservation Cooperative'}
+                "name": "Some Employee",
+                "type": "Data Owner",
+                "contact_type": "person",
+                "organization": {"display_text": "Southern Rockies Landscape Conservation Cooperative"}
             },
             {
-                'type': 'Point of Contact',
-                'contact_type': 'organization',
-                'email': 'srlcc.info@gmail.com'
+                "type": "Point of Contact",
+                "contact_type": "organization",
+                "email": "srlcc.info@gmail.com"
             }
         ])
         self.assert_object_field(client._dates, [{
@@ -331,13 +331,13 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertEqual(permissions["read"].get("inherited"), False)
         self.assertEqual(
             permissions["read"].get("access_list"),
-            ["USER:bcward@consbio.org", "USER:daniel.harvey@consbio.org"]
+            ["USER:bcward@consbio.org", "USER:dani.harvey@consbio.org"]
         )
         self.assertIn("write", permissions)
         self.assertEqual(permissions["write"].get("inherited"), False)
         self.assertEqual(
             permissions["write"].get("access_list"),
-            ["USER:bcward@consbio.org", "USER:daniel.harvey@consbio.org", "USER:databasinadmin@consbio.org"]
+            ["USER:bcward@consbio.org", "USER:dani.harvey@consbio.org", "USER:databasinadmin@consbio.org"]
         )
 
         self.assert_object_field(client._tags, [{"name": "test"}])
@@ -447,9 +447,16 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertEqual(client.properties, {"wms_layer_name": "SouthwesternWillowFlycatcher_FocalArea"})
         self.assertEqual(client.system_types, ["Downloadable", "Mappable"])
 
-        self.assertEqual(client.contact_persons, [{"name": "Some Person", "email": "person@freshwaterinstitute.org"}])
+        self.assertEqual(client.contact_persons, [
+            {"name": "Some Person", "email": "person@freshwaterinstitute.org"},
+            {"name": "Another Person", "email": "srlcc.info@gmail.com"}
+        ])
         self.assertEqual(client.contact_orgs, ["Freshwater Institute"])
-        self.assertEqual(client.originators, ["Some Person(Freshwater Institute)", "Freshwater Institute"])
+        self.assertEqual(client.originators, [
+            "Some Person(Freshwater Institute)",
+            "Another Person(Freshwater Institute)",
+            "Freshwater Institute"
+        ])
 
         self.assertEqual(client.settings.get_data(), WMS_SETTINGS)
         self.assertEqual(client.permissions.get_data(), WMS_SETTINGS["permissions"])
@@ -469,13 +476,16 @@ class ScienceBaseTestCase(ResourceTestCase):
                 "job_title": "Senior Environmental Associate",
                 "first_name": "Some",
                 "middle_name": "Other",
-                "last_name": "Person"
+                "last_name": "Person",
+                "company": "Freshwater Institute",
+                "organization": {"name": "Something Else"}
             },
             {
-                "type": "Point of Contact",
+                "name": "Another Person",
+                "type": "Data Owner",
                 "contact_type": "person",
                 "email": "srlcc.info@gmail.com",
-                "organization": {"name": "Freshwater Institute"}
+                "organization": {"display_text": "Freshwater Institute"}
             },
             {
                 "name": "Freshwater Institute",
@@ -595,7 +605,7 @@ ARCGIS_SETTINGS = {
         "read": {
             "user": [
                 "bcward@consbio.org",
-                "daniel.harvey@consbio.org"
+                "dani.harvey@consbio.org"
             ]
         },
         "write": None,

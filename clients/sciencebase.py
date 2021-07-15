@@ -379,7 +379,7 @@ class ScienceBaseResource(ClientResource):
                 o for o in valid_contacts if (o.get("type") or "").lower() in self.data_provider_types
             )
             for originator in originator_contacts:
-                originator_txt = originator.get("name", "unknown")
+                originator_txt = originator["name"]
                 if originator.get("organization", {}).get("display_text"):
                     originator_txt += "({})".format(originator["organization"]["display_text"])
                 elif originator.get("company"):
