@@ -6,7 +6,7 @@ from restle.fields import BooleanField, NumberField, TextField
 from sciencebasepy import SbSession
 
 from .arcgis import ArcGISSecureResource, MapServerResource
-from .exceptions import ClientError, HTTPError, MissingFields, NoLayers, ServiceError, ValidationError
+from .exceptions import HTTPError, MissingFields, NoLayers, ServiceError, ValidationError
 from .resources import ClientResource
 from .query.fields import DictField, ListField, ObjectField
 from .wms import WMSResource
@@ -54,18 +54,12 @@ class ScienceBaseSession(SbSession, object):
 
         try:
             response.raise_for_status()
-        except ClientError:
-            raise  # Prevents double wrapping intentionally raised errors in the catch-all below
         except requests.exceptions.HTTPError as ex:
             try:
                 value = response.json()["errors"]
                 error = value["message"] if isinstance(value, dict) else value[0]["message"]
             except (IndexError, KeyError, ValueError):
                 error = f"ScienceBase denied your request for this item: {external_id}"
-            raise HTTPError(error, status_code=response.status_code, underlying=ex, url=url)
-        except Exception:
-            # SbSession raises a generic exception for status errors (only excepts 200)
-            error = f"ScienceBase denied your request for this item: {external_id}"
             raise HTTPError(error, status_code=response.status_code, underlying=ex, url=url)
 
         return self._get_json(response, external_id)

@@ -1,0 +1,10 @@
+{
+  "errors": [
+    {
+      "message": "First message error"
+    },
+    {
+      "message": "Second message error"
+    }
+  ]
+}

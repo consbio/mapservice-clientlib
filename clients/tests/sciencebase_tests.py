@@ -1,10 +1,19 @@
 import requests_mock
 
-from ..sciencebase import ScienceBaseResource
+from unittest import mock
+
+from ..sciencebase import ScienceBaseResource, ScienceBaseSession
 from ..exceptions import HTTPError, MissingFields, NoLayers, ValidationError
 from ..utils.geometry import Extent
 
 from .utils import ResourceTestCase
+
+
+def mock_sbsession_login():
+    def sbsession_login(self, username, password):
+        self._jossosessionid = f"{username}:{password}"
+        return self._jossosessionid
+    return sbsession_login
 
 
 class ScienceBaseTestCase(ResourceTestCase):
@@ -36,6 +45,13 @@ class ScienceBaseTestCase(ResourceTestCase):
             (self.arcgis_service_legend_url, self.arcgis_service_legend_path)
         )
 
+        # Deprecated endpoints
+
+        self.deprecated_url = "https://www.sciencebase.gov/directory/deprecatedLegacyObj/getObj?objId=val"
+        self.deprecated_path = self.sciencebase_directory / "deprecated.json"
+
+        self.josso_url = "https://my.usgs.gov/josso/signon/usernamePasswordLogin.do"
+
         # WMS-backed endpoints
 
         wms_service_url = "https://www.sciencebase.gov/catalogMaps/mapping/ows/wms"
@@ -64,6 +80,12 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.json_error_url = "https://www.google.com/?format=json"
         self.json_error_path = self.data_directory / "test.html"
 
+        self.message_error_url = "https://www.sciencebase.gov/catalog/item/message/?format=json"
+        self.message_error_path = self.sciencebase_directory / "message-error.json"
+
+        self.messages_error_url = "https://www.sciencebase.gov/catalog/item/messages/?format=json"
+        self.messages_error_path = self.sciencebase_directory / "messages-error.json"
+
         self.missing_fields_url = "https://www.sciencebase.gov/catalog/item/missing-fields/?format=json"
         self.missing_fields_path = self.sciencebase_directory / "missing-fields.json"
 
@@ -77,9 +99,16 @@ class ScienceBaseTestCase(ResourceTestCase):
             self.mock_mapservice_request(mock_request.get, self.wms_item_url, self.wms_item_path, ok=False)
             self.mock_mapservice_request(mock_request.get, self.empty_error_url, self.empty_error_path, ok=False)
             self.mock_mapservice_request(mock_request.get, self.json_error_url, self.json_error_path, ok=False)
+            self.mock_mapservice_request(mock_request.get, self.message_error_url, self.message_error_path, ok=False)
+            self.mock_mapservice_request(mock_request.get, self.messages_error_url, self.messages_error_path, ok=False)
             self.mock_mapservice_request(mock_request.get, self.missing_fields_url, self.missing_fields_path)
             self.mock_mapservice_request(mock_request.get, self.footprint_url, self.footprint_path)
             self.mock_mapservice_request(mock_request.get, self.unpublished_url, self.unpublished_path)
+
+        elif service_type == "session":
+            self.mock_mapservice_request(mock_request.get, self.arcgis_item_url, self.arcgis_item_path)
+            self.mock_mapservice_request(mock_request.get, self.deprecated_url, self.deprecated_path)
+            self.mock_mapservice_request(mock_request.get, self.wms_item_url, self.wms_item_path)
 
         elif service_type == "arcgis":
 
@@ -135,15 +164,46 @@ class ScienceBaseTestCase(ResourceTestCase):
             ScienceBaseResource.get(self.unpublished_url, lazy=False)
 
     @requests_mock.Mocker()
-    def test_valid_arcgis_sciencebase_request(self, mock_request):
+    def test_valid_sciencebase_sessions(self, mock_request):
+        self.mock_service_client(mock_request, "session")
+
+        session_json = ScienceBaseSession().get_json(self.deprecated_url)
+        self.assertEqual(set(session_json.keys()), {"id", "name", "description"})
+
+        session_json = ScienceBaseSession().get_json(self.arcgis_item_url)
+        self.assertEqual(set(session_json.keys()), ARCGIS_ITEM_KEYS)
+
+        session_json = ScienceBaseSession().get_json(self.wms_item_url)
+        self.assertEqual(set(session_json.keys()), WMS_ITEM_KEYS)
+
+    @requests_mock.Mocker()
+    def test_invalid_sciencebase_sessions(self, mock_request):
+        self.mock_service_client(mock_request, "error")
+
+        with self.assertRaises(HTTPError):
+            ScienceBaseSession().get_json(self.empty_error_url)
+
+        with self.assertRaises(HTTPError):
+            ScienceBaseSession().get_json(self.message_error_url)
+
+        with self.assertRaises(HTTPError):
+            ScienceBaseSession().get_json(self.messages_error_url)
+
+    @requests_mock.Mocker()
+    @mock.patch("clients.arcgis.ServerAdmin")
+    def test_valid_arcgis_sciencebase_request(self, mock_request, mock_server_admin):
         self.mock_service_client(mock_request, "arcgis", token="arcgis_token")
 
+        mock_server_admin.return_value = mock.Mock(
+            token="arcgis_token",
+            generate_token=mock.Mock()
+        )
         token, username = "usgs_session.id", "usgs_session.uid"
         arcgis_credentials = {
-            "token": "arcgis_token",
             "username": "arcgis_user",
             "password": "arcgis_pass"
         }
+
         client = ScienceBaseResource.get(
             self.arcgis_item_url, lazy=False,
             token=token, username=username,
@@ -162,6 +222,9 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertEqual(service_client._username, "arcgis_user")
         self.assertEqual(service_client._params.get("token"), "arcgis_token")
         self.assertEqual(service_client.arcgis_credentials, {"token": "arcgis_token", "username": "arcgis_user"})
+
+        self.assertEqual(client.service_version, 10.5)
+        self.assertEqual(client.service_version, service_client.version)
 
         self.assertEqual(client.id, "arcgis_service")
         self.assertEqual(client.title, "Testing ArcGIS Service")
@@ -260,12 +323,16 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assert_get_image(client)
 
     @requests_mock.Mocker()
-    def test_valid_wms_sciencebase_request(self, mock_request):
-        self.mock_service_client(mock_request, "wms", token="usgs_session.id")
+    @mock.patch("clients.sciencebase.SbSession.login", new_callable=mock_sbsession_login)
+    def test_valid_wms_sciencebase_request(self, mock_request, mock_login):
+        username, password = "usgs_user", "usgs_pass"
+        token = f"{username}:{password}"
 
-        token, username = "usgs_session.id", "usgs_session.uid"
+        self.mock_service_client(mock_request, "wms", token=token)
+
         client = ScienceBaseResource.get(
-            self.wms_item_url, token=token, username=username, lazy=False
+            self.wms_item_url, lazy=False,
+            username=username, password="usgs_pass"
         )
 
         self.assertEqual(client._token, token)
@@ -276,6 +343,9 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertIs(client.get_service_client(), service_client)
         self.assertEqual(service_client._token, token)
         self.assertEqual(service_client._params.get("josso"), token)
+
+        self.assertEqual(client.service_version, "1.3.0")
+        self.assertEqual(client.service_version, service_client.version)
 
         title = "Southwestern Willow Flycatcher Focal Area"
 
@@ -390,6 +460,28 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assert_get_image(client, layer_ids=["AKCAN_mastersample_50km"], style_ids=["highlight"])
 
 
+ARCGIS_ITEM_KEYS = {
+    "id",
+    "body",
+    "browseCategories",
+    "browseTypes",
+    "dates",
+    "distributionLinks",
+    "facets",
+    "hasChildren",
+    "itemSettings",
+    "link",
+    "locked",
+    "parentId",
+    "permissions",
+    "previewImage",
+    "provenance",
+    "relatedItems",
+    "summary",
+    "systemTypes",
+    "tags",
+    "title"
+}
 ARCGIS_DIST_LINKS = [
     {
         "uri": "https://www.sciencebase.gov/arcgis/rest/services/Catalog/service/MapServer",
@@ -460,6 +552,30 @@ ARCGIS_SETTINGS = {
     "service_url": "https://www.sciencebase.gov/arcgis/rest/services/Catalog/service/MapServer"
 }
 
+WMS_ITEM_KEYS = {
+    "id",
+    "body",
+    "browseCategories",
+    "browseTypes",
+    "citation",
+    "contacts",
+    "distributionLinks",
+    "facets",
+    "files",
+    "hasChildren",
+    "itemSettings",
+    "link",
+    "parentId",
+    "previewImage",
+    "provenance",
+    "purpose",
+    "relatedItems",
+    "spatial",
+    "summary",
+    "systemTypes",
+    "tags",
+    "title"
+}
 WMS_DIST_LINKS = [
     {
         "uri": (
