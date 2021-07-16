@@ -487,6 +487,7 @@ class WMSTestCase(ResourceTestCase):
             extent=extent,
             layer_ids=["country_bounds"],
             style_ids=["default"],
+            time_range="2004-01-01/2004-02-01",
             params={"version": "1.1.1"}
         )
 

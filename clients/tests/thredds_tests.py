@@ -258,6 +258,7 @@ class THREDDSTestCase(ResourceTestCase):
             extent=extent,
             layer_ids=[self.layer_name],
             style_ids=["ferret"],
+            time_range="2004-01-01/2004-02-01",
             params={"version": "1.1.1"}
         )
 
