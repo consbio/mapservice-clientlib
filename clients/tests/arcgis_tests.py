@@ -1,3 +1,4 @@
+import json
 import requests_mock
 
 from unittest import mock
@@ -10,6 +11,7 @@ from ..arcgis import MapLayerResource, FeatureLayerResource, GeometryServiceClie
 from ..exceptions import BadExtent, BadTileScheme, NoLayers, ValidationError
 from ..exceptions import ContentError, HTTPError, ImageError, ServiceError
 from ..query.fields import RENDERER_DEFAULTS
+from ..utils.conversion import to_renderer
 
 from .utils import MAPSERVICE_IMG_DIMS, ResourceTestCase, mock_thread
 from .utils import get_default_image, get_extent, get_extent_dict, get_object
@@ -32,12 +34,14 @@ class ArcGISTestCase(ResourceTestCase):
         self.map_legend_url = "https://www.fws.gov/wetlands/arcgis/rest/services/Wetlands/MapServer/legend/?f=json"
         self.map_legend_path = self.arcgis_directory / "map-legend.json"
 
-        self.feature_url = "https://services1.arcgis.com/gbas/arcgis/rest/services/prcp/FeatureServer/?f=json"
+        self.feature_url = "https://arcgis.com/gbas/arcgis/rest/services/prcp/FeatureServer/?f=json"
         self.feature_path = self.arcgis_directory / "feature.json"
-        self.feature_layer_url = "https://services1.arcgis.com/gbas/arcgis/rest/services/prcp/FeatureServer/0?f=json"
+        self.feature_layer_url = "https://arcgis.com/gbas/arcgis/rest/services/prcp/FeatureServer/0?f=json"
         self.feature_layer_path = self.arcgis_directory / "feature-layer.json"
-        self.feature_layer_id_url = "https://services1.arcgis.com/gbas/arcgis/rest/services/prcp/FeatureServer/0/query"
+        self.feature_layer_id_url = "https://arcgis.com/gbas/arcgis/rest/services/prcp/FeatureServer/0/query"
         self.feature_layer_id_path = self.arcgis_directory / "feature-layer-ids.json"
+        self.feature_time_query_url = "https://arcgis.com/gbas/arcgis/rest/services/prcp/FeatureServer/0/time-query"
+        self.feature_time_query_path = self.arcgis_directory / "empty-error.json"
 
         self.image_url = "https://map.dfg.ca.gov/arcgis/rest/services/BaseRemoteSensing/NAIP_2010/ImageServer/?f=json"
         self.image_path = self.arcgis_directory / "image.json"
@@ -79,8 +83,10 @@ class ArcGISTestCase(ResourceTestCase):
         self.empty_path = self.arcgis_directory / "empty-error.json"
         self.generic_url = "https://arcgis.com/errors/arcgis/rest/services/599/MapServer/?f=json"
         self.generic_path = self.arcgis_directory / "generic-error.json"
-        self.no_layers_url = "https://arcgis.com/errors/arcgis/rest/services/NoLayers/MapServer/?f=json"
-        self.no_layers_path = self.arcgis_directory / "no-map-layers.json"
+        self.no_feature_layer_url = "https://arcgis.com/errors/arcgis/rest/services/NoLayers/FeatureServer/?f=json"
+        self.no_feature_layer_path = self.arcgis_directory / "no-feature-layer.json"
+        self.no_map_layers_url = "https://arcgis.com/errors/arcgis/rest/services/NoLayers/MapServer/?f=json"
+        self.no_map_layers_path = self.arcgis_directory / "no-map-layers.json"
         self.no_layers_layers_url = "https://arcgis.com/errors/arcgis/rest/services/NoLayers/MapServer/layers?f=json"
         self.no_layers_layers_path = self.arcgis_directory / "no-map-layers-layers.json"
         self.not_found_url = "https://arcgis.com/errors/arcgis/rest/services/NotFound/MapServer/?f=json"
@@ -116,7 +122,8 @@ class ArcGISTestCase(ResourceTestCase):
             self.mock_mapservice_request(mock_request.get, self.config_url, self.config_path)
             self.mock_mapservice_request(mock_request.get, self.empty_url, self.empty_path)
             self.mock_mapservice_request(mock_request.get, self.generic_url, self.generic_path)
-            self.mock_mapservice_request(mock_request.get, self.no_layers_url, self.no_layers_path)
+            self.mock_mapservice_request(mock_request.get, self.no_feature_layer_url, self.no_feature_layer_path)
+            self.mock_mapservice_request(mock_request.get, self.no_map_layers_url, self.no_map_layers_path)
             self.mock_mapservice_request(mock_request.get, self.no_layers_layers_url, self.no_layers_layers_path)
             self.mock_mapservice_request(mock_request.get, self.not_found_url, self.not_found_path)
             self.mock_mapservice_request(mock_request.get, self.token_required_url, self.token_required_path)
@@ -137,6 +144,7 @@ class ArcGISTestCase(ResourceTestCase):
             self.mock_mapservice_request(mock_request.get, self.feature_url, self.feature_path)
             self.mock_mapservice_request(mock_request.get, self.feature_layer_url, self.feature_layer_path)
             self.mock_mapservice_request(mock_request.post, self.feature_layer_id_url, self.feature_layer_id_path)
+            self.mock_mapservice_request(mock_request.post, self.feature_time_query_url, self.feature_time_query_path)
         elif service_type == "geometry":
             self.mock_mapservice_request(mock_request.get, self.geometry_url + self.geometry_args, self.geometry_path)
         elif service_type == "image":
@@ -193,9 +201,13 @@ class ArcGISTestCase(ResourceTestCase):
             with self.assertRaises(ServiceError, msg=f"ServiceError not raised for image service: {error_url}"):
                 ImageServerResource.get(error_url, lazy=False)
 
-        error_url = self.no_layers_url
+        error_url = self.no_map_layers_url
         with self.assertRaises(NoLayers, msg=f"NoLayers not raised for map service: {error_url}"):
             MapServerResource.get(error_url, lazy=False)
+
+        error_url = self.no_feature_layer_url
+        with self.assertRaises(NoLayers, msg=f"NoLayers not raised for feature service: {error_url}"):
+            FeatureServerResource.get(error_url, lazy=False)
 
         # Test layer level errors
 
@@ -465,12 +477,19 @@ class ArcGISTestCase(ResourceTestCase):
         self.mock_arcgis_client(mock_request, "map")
 
         client = MapServerResource.get(self.map_url, token="arcgis_token", lazy=False)
+        renderer = to_renderer(client.layers[0].drawing_info.renderer.get_data(), from_camel=False)
+
+        custom_renderers = {0: renderer.get_data()}
+        layer_defs = {0: '("FID" IN (0))'}
 
         # Test tiled server image generation
 
         self.assert_get_image(
             client,
             dimensions=MAPSERVICE_IMG_DIMS,
+            custom_renderers=custom_renderers,
+            layer_defs=layer_defs,
+            layers="show:0",
             target_hash="34595cff458cf8a204df84c5ef959984"
         )
 
@@ -478,7 +497,14 @@ class ArcGISTestCase(ResourceTestCase):
         extent.xmin -= 10
         extent.xmax += 10
 
-        self.assert_get_image(client, extent=extent, target_hash="736d99610d0097be78651ecdae4714bb")
+        self.assert_get_image(
+            client,
+            extent=extent,
+            custom_renderers=json.dumps(custom_renderers),
+            layer_defs=json.dumps(layer_defs),
+            layers="hide:0",
+            target_hash="736d99610d0097be78651ecdae4714bb"
+        )
 
         # Test non-tiled image generation
 
@@ -488,7 +514,16 @@ class ArcGISTestCase(ResourceTestCase):
         extent.xmin -= 10
         extent.xmax += 10
 
-        self.assert_get_image(client, extent=extent)
+        custom_renderers[0]["type"] = "classBreaks"
+        custom_renderers[0]["classBreakInfos"] = custom_renderers[0].pop("uniqueValueInfos")
+
+        self.assert_get_image(
+            client,
+            extent=extent,
+            custom_renderers=custom_renderers,
+            layer_defs=layer_defs,
+            layers="show:0",
+        )
 
     @requests_mock.Mocker()
     def test_invalid_mapservice_image_request(self, mock_request):
@@ -676,9 +711,25 @@ class ArcGISTestCase(ResourceTestCase):
         self.mock_arcgis_client(mock_request, "feature")
 
         mock_sub_image.return_value = get_default_image()
+
         client = FeatureServerResource.get(self.feature_url, token="arcgis_token", lazy=False)
+        renderer = to_renderer(client.layers[0].drawing_info.renderer.get_data(), from_camel=False)
+
+        custom_renderers = {0: renderer.get_data()}
+        layer_defs = {0: '("FID" IN (0))'}
 
         self.assert_get_image(client)
+
+        self.assert_get_image(
+            client,
+            custom_renderers=custom_renderers,
+            layer_defs=layer_defs
+        )
+        self.assert_get_image(
+            client,
+            custom_renderers=json.dumps(custom_renderers),
+            layer_defs=json.dumps(layer_defs)
+        )
 
     @requests_mock.Mocker()
     def test_invalid_featureservice_image_request(self, mock_request):
@@ -692,6 +743,9 @@ class ArcGISTestCase(ResourceTestCase):
 
         with self.assertRaises(NotImplementedError):
             client.get_image(get_extent(web_mercator=True), 100, 100)
+
+        with self.assertRaises(NotImplementedError):
+            client.layers[0].get_time_image(get_extent(web_mercator=True), 100, 100)
 
         # Test with invalid feature data
 
@@ -1078,6 +1132,7 @@ MAP_LAYER_DRAWING_INFO = {
                         "width": 0.4
                     }
                 },
+                "max": 0.5,
                 "value": "Estuarine and Marine Deepwater",
                 "label": "Estuarine and Marine Deepwater",
                 "description": ""
@@ -1094,6 +1149,7 @@ MAP_LAYER_DRAWING_INFO = {
                         "width": 0.4
                     }
                 },
+                "max": 0.5,
                 "value": "Estuarine and Marine Wetland",
                 "label": "Estuarine and Marine Wetland",
                 "description": ""

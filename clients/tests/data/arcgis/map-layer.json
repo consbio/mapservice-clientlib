@@ -45,6 +45,7 @@
               "width": 0.4
             }
           },
+          "classMaxValue": 0.5,
           "value": "Estuarine and Marine Deepwater",
           "label": "Estuarine and Marine Deepwater",
           "description": ""
@@ -71,6 +72,7 @@
               "width": 0.4
             }
           },
+          "classMaxValue": 0.5,
           "value": "Estuarine and Marine Wetland",
           "label": "Estuarine and Marine Wetland",
           "description": ""

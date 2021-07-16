@@ -1,0 +1,58 @@
+{
+  "currentVersion": 10.81,
+  "serviceItemId": "no_layers",
+  "serviceDescription": "",
+  "hasVersionedData": false,
+  "supportsDisconnectedEditing": false,
+  "hasStaticData": true,
+  "hasSharedDomains": false,
+  "maxRecordCount": 2000,
+  "supportedQueryFormats": "JSON",
+  "supportsVCSProjection": false,
+  "supportedExportFormats": "",
+  "capabilities": "Query",
+  "description": "",
+  "copyrightText": "",
+  "spatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  },
+  "initialExtent": {
+    "xmin": -13407041.172414886,
+    "ymin": 4623683.436859363,
+    "xmax": -13267891.808923297,
+    "ymax": 4838750.263348374,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "fullExtent": {
+    "xmin": -13407041.172414886,
+    "ymin": 4623683.436859363,
+    "xmax": -13267891.808923297,
+    "ymax": 4838750.263348374,
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "timeInfo": {},
+  "allowGeometryUpdates": true,
+  "units": "esriMeters",
+  "supportsAppend": true,
+  "supportsSharedDomains": true,
+  "supportsWebHooks": true,
+  "supportsTemporalLayers": true,
+  "layerOverridesEnabled": true,
+  "size": 49152,
+  "syncEnabled": false,
+  "supportsApplyEditsWithGlobalIds": false,
+  "supportsReturnDeleteResults": true,
+  "supportsLayerOverrides": true,
+  "supportsTilesAndBasicQueriesMode": true,
+  "editorTrackingInfo": {},
+  "xssPreventionInfo": {},
+  "layers": [],
+  "tables": []
+}

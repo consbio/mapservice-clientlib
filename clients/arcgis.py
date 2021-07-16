@@ -588,10 +588,7 @@ class MapServerResource(ArcGISTiledImageResource):
             for layer in (l for l in self.layers if "raster" in l.type.lower() and len(l.legend) >= 3):
                 max_colors = max([count_colors(base64_to_image(l.image_base64)) for l in layer.legend])
 
-                if not max_colors:
-                    logger.warning(f"Unable to obtain palette colors from legend image at: {legend_url}")
-
-                elif max_colors > 3 and len(layer.legend) == 3:
+                if max_colors and max_colors > 3 and len(layer.legend) == 3:
                     # If there are more than 3 colors (transparent, border, fill), then this is stretched.
                     # But we only need to do something different if there are 3 patches (most common)
                     images = []
@@ -604,13 +601,18 @@ class MapServerResource(ArcGISTiledImageResource):
                     layer.legend[1].image_base64 = image_to_base64(stack_images_vertically(images))
 
     def get_image(
-        self, extent, width, height, custom_renderers=None, layer_defs="", layers="", time="", **kwargs
+        self, extent, width, height, custom_renderers=None, layer_defs=None, layers="", time="", **kwargs
     ):
         """
         Note: if this service is tiled, extent will be modified to allow fetching tiles at appropriate zoom level.
         :param custom_renderers:
-            A dict containing renderer JSON objects, indexed by WMS ID. If there are any custom renderers at all,
-            there should be an entry for each visible layer with a null renderer for unstyled layers.
+            A JSON string or dict containing renderer JSON objects indexed by layer id (WMS ID).
+            Renderers should have correspond to visible layers, with a null renderer for unstyled layers.
+        :param layer_defs:
+            If no custom_renderers are provided, a single ESRI definition expression
+            Otherwise, a JSON string or dict with keys corresponding to layer-specific definition expressions
+        :param layers:
+            A string with either "show:" or "hide:" preceding a comma-separated list of layer ids
         """
 
         image_params = {
@@ -630,8 +632,15 @@ class MapServerResource(ArcGISTiledImageResource):
         return self.generate_image_from_query(extent, width, height, "export", params=image_params)
 
     def _generate_dynamic_layers(self, custom_renderers, layer_defs, layers):
-        layer_defs = json.loads(layer_defs)
         layer_list = [int(x) for x in layers.split(":")[1].split(",")]
+
+        renderers_from_json = isinstance(custom_renderers, str)
+        if renderers_from_json:
+            custom_renderers = json.loads(custom_renderers)
+
+        layer_defs_from_json = isinstance(layer_defs, str)
+        if layer_defs_from_json:
+            layer_defs = json.loads(layer_defs)
 
         if "hide" not in layers:
             layer_map = {visible_id: layer_list[visible_id] for visible_id in layer_list}
@@ -647,7 +656,10 @@ class MapServerResource(ArcGISTiledImageResource):
                 "id": layer_id,
                 "source": {"type": "mapLayer", "mapLayerId": layer_id},
             }
+
+            layer_id = str(layer_id) if renderers_from_json else int(layer_id)
             if layer_id in custom_renderers and custom_renderers[layer_id]:
+
                 # Convert internally aliased renderer properties back to ESRI values
                 renderer = to_renderer(custom_renderers[layer_id], from_camel=False).get_data()
 
@@ -656,11 +668,12 @@ class MapServerResource(ArcGISTiledImageResource):
                     for info in renderer['classBreakInfos']:
                         # Smaller numbers than this do not affect style
                         info['classMaxValue'] -= .000001
-                dynamic_layer['drawingInfo'] = {
-                    'renderer': renderer
-                }
-            if str(layer_id) in layer_defs:
-                dynamic_layer["definitionExpression"] = layer_defs[str(layer_id)]
+
+                dynamic_layer['drawingInfo'] = {'renderer': renderer}
+
+            layer_id = str(layer_id) if layer_defs_from_json else int(layer_id)
+            if layer_id in layer_defs:
+                dynamic_layer["definitionExpression"] = layer_defs[layer_id]
 
             dynamic_layers.append(dynamic_layer)
 
@@ -855,32 +868,40 @@ class FeatureLayerResource(ArcGISLayerResource):
         get_parameters = {"f": "json"}
         match_fuzzy_keys = True
 
-    def get_image(self, extent, width, height, custom_renderers=None, layer_defs="", **kwargs):
+    def get_image(self, extent, width, height, custom_renderers=None, layer_defs=None, time="", **kwargs):
+        """
+        :param custom_renderers:
+            A JSON string or dict containing renderer JSON objects indexed by layer id (WMS ID).
+        :param layer_defs:
+            A JSON string or dict with indices corresponding to the feature layer definition expression:
+        :param kwargs:
+            May contain an ArcGIS token as "token" for secure feature layer image requests
+        """
 
-        renderer = self.drawing_info.renderer
-        if custom_renderers:
-            renderer = custom_renderers[self.id]
+        if isinstance(custom_renderers, str):
+            renderer = to_renderer(json.loads(custom_renderers)[str(self.id)])
+        elif isinstance(custom_renderers, dict):
+            renderer = to_renderer(custom_renderers[self.id])
+        else:
+            renderer = self.drawing_info.renderer
 
-        time = kwargs.pop("time", None) or ""
-
-        id_str = str(self.id)
-        where = ""
-        if layer_defs:
-            layer_defs = json.loads(layer_defs)
-            if id_str in layer_defs:
-                where = layer_defs[id_str]
+        if isinstance(layer_defs, str):
+            layer_def = json.loads(layer_defs).get(str(self.id))
+        elif isinstance(layer_defs, dict):
+            layer_def = layer_defs.get(self.id)
+        else:
+            layer_def = None
 
         # Break up very large result sets by querying just the IDs of matching features
 
         id_query = self.query(
-            where=where,
+            where=layer_def or "",
             time=time,
             geometry=extent.as_json_string(),
             geometry_type="esriGeometryEnvelope",
             return_ids_only=True,
             **kwargs
         )
-
         if "error" in id_query:
             self.handle_error(
                 id_query,
@@ -928,6 +949,12 @@ class FeatureLayerResource(ArcGISLayerResource):
         return self.generate_sub_image(extent, width, height, TIME_SUMMARY_RENDERER, self.time_query())
 
     def generate_sub_image(self, extent, width, height, renderer, query_results):
+        """
+        :param renderer:
+            A renderer object as defined by clients.utils.conversion.to_renderer
+        :param query_results:
+            An executed query as defined by clients.query.actions.QueryAction
+        """
         class_name = self.__class__.__name__
         raise NotImplementedError(f"{class_name}.generate_sub_image")
 
@@ -991,7 +1018,7 @@ class FeatureServerResource(ArcGISServerResource):
         if not self.layers:
             raise NoLayers("The ArcGIS feature service does not have any layers", url=self._url)
 
-    def get_image(self, extent, width, height, custom_renderers=None, layer_defs="", **kwargs):
+    def get_image(self, extent, width, height, custom_renderers=None, layer_defs=None, **kwargs):
         final_image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
 
         if self._token:
