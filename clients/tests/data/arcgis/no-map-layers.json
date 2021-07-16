@@ -1,0 +1,49 @@
+{
+  "currentVersion": 10.5,
+  "serviceDescription": "",
+  "mapName": "No Layers",
+  "description": "Not a single one.",
+  "copyrightText": "",
+  "supportsDynamicLayers": true,
+  "layers": [],
+  "tables": [],
+  "spatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  },
+  "singleFusedMapCache": false,
+  "initialExtent": {
+    "xmin": -13534626.345112057,
+    "ymin": 3780698.8404716593,
+    "xmax": -12377675.484987943,
+    "ymax": 4547515.108228341,
+    "spatialReference": {
+      "cs": "pcs",
+      "wkid": 102100
+    }
+  },
+  "fullExtent": {
+    "xmin": -13534626.345112057,
+    "ymin": 3780698.8404716593,
+    "xmax": -12377675.484987943,
+    "ymax": 4547515.108228341,
+    "spatialReference": {
+      "cs": "pcs",
+      "wkid": 102100
+    }
+  },
+  "minScale": 112076270.45185185,
+  "maxScale": 0,
+  "units": "esriMeters",
+  "supportedImageFormatTypes": "PNG,JPG,DIB,TIFF,EMF,PS,PDF,GIF,SVG,SVGZ,BMP",
+  "documentInfo": {},
+  "capabilities": "Map,Query,Data",
+  "supportedQueryFormats": "JSON,AMF,geoJSON",
+  "exportTilesAllowed": false,
+  "datumTransformations": [],
+  "supportsDatumTransformation": true,
+  "maxRecordCount": 1000,
+  "maxImageHeight": 4096,
+  "maxImageWidth": 4096,
+  "supportedExtensions": "KmlServer,WMSServer"
+}

@@ -272,6 +272,9 @@ class ArcGISTiledImageResource(ArcGISServerResource):
                 "size": ",".join(str(i) for i in (width, height)),
                 "format": "png24"
             }
+            if self._token:
+                image_params["token"] = self._token
+
             image_params.update(params or {})
 
             image_data = io.BytesIO(self._make_request(image_url, image_params).content)
@@ -542,23 +545,15 @@ class MapServerResource(ArcGISTiledImageResource):
 
         super(MapServerResource, self).populate_field_values(data)
 
-        # Load all layers at once (if not a feature service), otherwise one at a time
-
-        if "/FeatureServer" not in self._url:
-            # Query all layers with full layer detail for each
-            layer_url = "{0}/layers".format(self._url.strip("/"))
-            self.layers = MapLayerResource.bulk_get(
-                layer_url,
-                strict=self._strict,
-                session=(self._layer_session or self._session),
-                bulk_key="layers", bulk_defaults={"currentVersion": self.version},
-                **self.arcgis_credentials
-            )
-        elif "layers" in data:
-            # Query each layer one by one to get full layer detail for each
-            layer_field = ToManyField(MapLayerResource, "partial", id_field="id", relative_path="{id}")
-            self.layers = layer_field.to_python(data["layers"], self)
-
+        # Load all layers at once with full layer detail for each
+        layer_url = "{0}/layers".format(self._url.strip("/"))
+        self.layers = MapLayerResource.bulk_get(
+            layer_url,
+            strict=self._strict,
+            session=(self._layer_session or self._session),
+            bulk_key="layers", bulk_defaults={"currentVersion": self.version},
+            **self.arcgis_credentials
+        )
         if not self.layers:
             raise NoLayers("The ArcGIS map service does not have any layers", url=self._url)
 
@@ -626,9 +621,6 @@ class MapServerResource(ArcGISTiledImageResource):
             "time": time
         }
         image_params.update(kwargs)
-
-        if self._token:
-            image_params["token"] = self._token
 
         if custom_renderers is not None:
             # To style and filter at the same time we need to switch to using dynamic layers
@@ -809,7 +801,7 @@ class FeatureLayerResource(ArcGISLayerResource):
             "distance", "units", "out_fields", "return_geometry", "max_allowable_offset", "geometry_precision",
             "out_sr", "gdb_version", "return_distinct_values", "return_ids_only", "return_count_only",
             "return_extent_only", "order_by_fields", "group_by_fields_for_statistics", "out_statistics", "return_z",
-            "return_m", "multipatch_option", "result_offset", "result_record_count"
+            "return_m", "multipatch_option", "result_offset", "result_record_count", "token"
         ),
         param_defaults={"f": "json"},
         param_aliases={
@@ -848,7 +840,7 @@ class FeatureLayerResource(ArcGISLayerResource):
         "time-query",
         http_method="POST",
         optional_params=(
-            "f",
+            "f", "token"
         ),
         param_defaults={"f": "json"},
         param_aliases={},
@@ -865,14 +857,11 @@ class FeatureLayerResource(ArcGISLayerResource):
 
     def get_image(self, extent, width, height, custom_renderers=None, layer_defs="", **kwargs):
 
-        if not isinstance(extent, Extent):
-            extent = Extent(extent)
-
         renderer = self.drawing_info.renderer
         if custom_renderers:
             renderer = custom_renderers[self.id]
 
-        time = kwargs.get("time") or ""
+        time = kwargs.pop("time", None) or ""
 
         id_str = str(self.id)
         where = ""
@@ -888,7 +877,8 @@ class FeatureLayerResource(ArcGISLayerResource):
             time=time,
             geometry=extent.as_json_string(),
             geometry_type="esriGeometryEnvelope",
-            return_ids_only=True
+            return_ids_only=True,
+            **kwargs
         )
 
         if "error" in id_query:
@@ -917,7 +907,7 @@ class FeatureLayerResource(ArcGISLayerResource):
                 object_field=id_query["objectIdFieldName"],
                 formatted_id_list=json.dumps(object_ids_to_get).replace("[", "(").replace("]", ")")
             )
-            query_results = self.query(where=id_where_clause, out_sr=3857, out_fields="*")
+            query_results = self.query(where=id_where_clause, out_sr=3857, out_fields="*", **kwargs)
 
             if "error" in query_results:
                 self.handle_error(
@@ -1003,6 +993,9 @@ class FeatureServerResource(ArcGISServerResource):
 
     def get_image(self, extent, width, height, custom_renderers=None, layer_defs="", **kwargs):
         final_image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+
+        if self._token:
+            kwargs["token"] = self._token
 
         for layer in self.layers:
             final_image.paste(layer.get_image(extent, width, height, custom_renderers, layer_defs, **kwargs))

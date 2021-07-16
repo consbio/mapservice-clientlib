@@ -7,7 +7,7 @@ from parserutils.collections import setdefaults
 
 from ..arcgis import ArcGISSecureResource, MapServerResource, FeatureServerResource, ImageServerResource
 from ..arcgis import MapLayerResource, FeatureLayerResource, GeometryServiceClient
-from ..exceptions import BadExtent, BadTileScheme, ValidationError
+from ..exceptions import BadExtent, BadTileScheme, NoLayers, ValidationError
 from ..exceptions import ContentError, HTTPError, ImageError, ServiceError
 from ..query.fields import RENDERER_DEFAULTS
 
@@ -79,6 +79,10 @@ class ArcGISTestCase(ResourceTestCase):
         self.empty_path = self.arcgis_directory / "empty-error.json"
         self.generic_url = "https://arcgis.com/errors/arcgis/rest/services/599/MapServer/?f=json"
         self.generic_path = self.arcgis_directory / "generic-error.json"
+        self.no_layers_url = "https://arcgis.com/errors/arcgis/rest/services/NoLayers/MapServer/?f=json"
+        self.no_layers_path = self.arcgis_directory / "no-map-layers.json"
+        self.no_layers_layers_url = "https://arcgis.com/errors/arcgis/rest/services/NoLayers/MapServer/layers?f=json"
+        self.no_layers_layers_path = self.arcgis_directory / "no-map-layers-layers.json"
         self.not_found_url = "https://arcgis.com/errors/arcgis/rest/services/NotFound/MapServer/?f=json"
         self.not_found_path = self.arcgis_directory / "not-found.json"
         self.token_required_url = "https://arcgis.com/errors/arcgis/rest/services/Token/MapServer/?f=json"
@@ -112,6 +116,8 @@ class ArcGISTestCase(ResourceTestCase):
             self.mock_mapservice_request(mock_request.get, self.config_url, self.config_path)
             self.mock_mapservice_request(mock_request.get, self.empty_url, self.empty_path)
             self.mock_mapservice_request(mock_request.get, self.generic_url, self.generic_path)
+            self.mock_mapservice_request(mock_request.get, self.no_layers_url, self.no_layers_path)
+            self.mock_mapservice_request(mock_request.get, self.no_layers_layers_url, self.no_layers_layers_path)
             self.mock_mapservice_request(mock_request.get, self.not_found_url, self.not_found_path)
             self.mock_mapservice_request(mock_request.get, self.token_required_url, self.token_required_path)
             self.mock_mapservice_request(mock_request.get, self.map_version_error_url, self.map_version_error_path)
@@ -186,6 +192,10 @@ class ArcGISTestCase(ResourceTestCase):
                 FeatureServerResource.get(error_url, lazy=False)
             with self.assertRaises(ServiceError, msg=f"ServiceError not raised for image service: {error_url}"):
                 ImageServerResource.get(error_url, lazy=False)
+
+        error_url = self.no_layers_url
+        with self.assertRaises(NoLayers, msg=f"NoLayers not raised for map service: {error_url}"):
+            MapServerResource.get(error_url, lazy=False)
 
         # Test layer level errors
 
@@ -454,7 +464,9 @@ class ArcGISTestCase(ResourceTestCase):
     def test_valid_mapservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "map")
 
-        client = MapServerResource.get(self.map_url, lazy=False)
+        client = MapServerResource.get(self.map_url, token="arcgis_token", lazy=False)
+
+        # Test tiled server image generation
 
         self.assert_get_image(
             client,
@@ -462,23 +474,59 @@ class ArcGISTestCase(ResourceTestCase):
             target_hash="34595cff458cf8a204df84c5ef959984"
         )
 
+        extent = get_extent(web_mercator=True)
+        extent.xmin -= 10
+        extent.xmax += 10
+
+        self.assert_get_image(client, extent=extent, target_hash="736d99610d0097be78651ecdae4714bb")
+
+        # Test non-tiled image generation
+
+        client.tile_info = None
+
+        extent = get_extent(web_mercator=True)
+        extent.xmin -= 10
+        extent.xmax += 10
+
+        self.assert_get_image(client, extent=extent)
+
     @requests_mock.Mocker()
     def test_invalid_mapservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "map")
 
         client = MapServerResource.get(self.map_url, lazy=False)
 
+        # Test tiled server image responses
+
+        # Incorrect zoom levels
         client._session = self.mock_mapservice_session(self.error_path)
         with self.assertRaises(BadExtent):
             extent = get_extent(web_mercator=True)
             client.get_image(extent, *extent.get_dimensions())
 
+        # Fails in threaded tile query (_render_single_tile)
         with mock.patch("clients.arcgis.Thread", mock_thread):
             client._session = self.mock_mapservice_session(self.error_path, ok=False)
             with self.assertRaises(ImageError):
                 client.get_image(client.full_extent, *MAPSERVICE_IMG_DIMS)
 
         self.assert_tile_scheme(client)
+
+        # Test non-tiled image responses
+
+        client.tile_info = None
+
+        # Valid params and broken endpoint
+        client._session = self.mock_mapservice_session(self.map_path, ok=False)
+        with self.assertRaises(HTTPError):
+            client.get_image(client.full_extent, *MAPSERVICE_IMG_DIMS)
+
+        # Invalid image data
+        client._session = self.mock_mapservice_session(
+            self.data_directory / "test.html", mode="rb", headers={"content-type": "image/png"}
+        )
+        with self.assertRaises(ImageError):
+            client.get_image(client.full_extent, *MAPSERVICE_IMG_DIMS)
 
     @requests_mock.Mocker()
     def test_valid_featureservice_request(self, mock_request):
@@ -625,10 +673,12 @@ class ArcGISTestCase(ResourceTestCase):
     @requests_mock.Mocker()
     @mock.patch('clients.arcgis.FeatureLayerResource.generate_sub_image')
     def test_valid_featureservice_image_request(self, mock_request, mock_sub_image):
-        mock_sub_image.return_value = get_default_image()
-
         self.mock_arcgis_client(mock_request, "feature")
-        self.assert_get_image(FeatureServerResource.get(self.feature_url, lazy=False))
+
+        mock_sub_image.return_value = get_default_image()
+        client = FeatureServerResource.get(self.feature_url, token="arcgis_token", lazy=False)
+
+        self.assert_get_image(client)
 
     @requests_mock.Mocker()
     def test_invalid_featureservice_image_request(self, mock_request):
@@ -641,7 +691,7 @@ class ArcGISTestCase(ResourceTestCase):
         # Test with valid feature service data (fails at generate_sub_image)
 
         with self.assertRaises(NotImplementedError):
-            client.get_image(get_extent(web_mercator=True).as_dict(), 100, 100)
+            client.get_image(get_extent(web_mercator=True), 100, 100)
 
         # Test with invalid feature data
 
@@ -651,7 +701,7 @@ class ArcGISTestCase(ResourceTestCase):
             self.arcgis_directory / "not-found.json"
         )
         with self.assertRaises(ImageError):
-            client.get_image(get_extent(web_mercator=True).as_dict(), 100, 100)
+            client.get_image(get_extent(web_mercator=True), 100, 100)
 
     @requests_mock.Mocker()
     def test_valid_imageservice_request(self, mock_request):
@@ -763,7 +813,7 @@ class ArcGISTestCase(ResourceTestCase):
     def test_valid_imageservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "image")
 
-        client = ImageServerResource.get(self.image_url, lazy=False)
+        client = ImageServerResource.get(self.image_url, token="arcgis_token", lazy=False)
 
         self.assert_get_image(
             client,
@@ -771,23 +821,59 @@ class ArcGISTestCase(ResourceTestCase):
             target_hash="b8d5c1253903b53c2aaf55b50d47c928"
         )
 
+        extent = get_extent(web_mercator=True)
+        extent.xmin -= 10
+        extent.xmax += 10
+
+        self.assert_get_image(client, extent=extent, target_hash="736d99610d0097be78651ecdae4714bb")
+
+        # Test non-tiled image generation
+
+        client.tile_info = None
+
+        extent = get_extent(web_mercator=True)
+        extent.xmin -= 10
+        extent.xmax += 10
+
+        self.assert_get_image(client, extent=extent)
+
     @requests_mock.Mocker()
     def test_invalid_imageservice_image_request(self, mock_request):
         self.mock_arcgis_client(mock_request, "image")
 
         client = ImageServerResource.get(self.image_url, lazy=False)
 
+        # Test tiled server image responses
+
+        # Incorrect zoom levels
         client._session = self.mock_mapservice_session(self.error_path)
         with self.assertRaises(BadExtent):
             extent = get_extent(web_mercator=True)
             client.get_image(extent, *extent.get_dimensions())
 
+        # Fails in threaded tile query (_render_single_tile)
         with mock.patch("clients.arcgis.Thread", mock_thread):
             client._session = self.mock_mapservice_session(self.error_path, ok=False)
             with self.assertRaises(ImageError):
                 client.get_image(client.full_extent, *MAPSERVICE_IMG_DIMS)
 
         self.assert_tile_scheme(client)
+
+        # Test non-tiled image responses
+
+        client.tile_info = None
+
+        # Valid params and broken endpoint
+        client._session = self.mock_mapservice_session(self.image_path, ok=False)
+        with self.assertRaises(HTTPError):
+            client.get_image(client.full_extent, *MAPSERVICE_IMG_DIMS)
+
+        # Invalid image data
+        client._session = self.mock_mapservice_session(
+            self.data_directory / "test.html", mode="rb", headers={"content-type": "image/png"}
+        )
+        with self.assertRaises(ImageError):
+            client.get_image(client.full_extent, *MAPSERVICE_IMG_DIMS)
 
 
 IMAGE_SERVICE_FIELDS = [
