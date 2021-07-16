@@ -529,18 +529,21 @@ class WMSTestCase(ResourceTestCase):
 
         client = WMSResource.get(self.wms_url, session=session, lazy=False)
 
+        # Invalid image format without WMS header
         client._session = self.mock_mapservice_session(
             image_path, mode="rb", headers={"content-type": "image/bad"}
         )
         with self.assertRaises(ImageError):
             client.get_image(client.full_extent, *valid_image_args)
 
+        # Invalid image format with WMS header
         client._session = self.mock_mapservice_session(
             self.service_exception_path, mode="rb", headers={"content-type": WMS_EXCEPTION_FORMAT}
         )
         with self.assertRaises(ImageError):
             client.get_image(client.full_extent, *valid_image_args)
 
+        # Invalid image data
         client._session = self.mock_mapservice_session(
             self.data_directory / "test.html", mode="rb", headers={"content-type": "image/png"}
         )
