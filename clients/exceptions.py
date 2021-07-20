@@ -79,7 +79,7 @@ class BadExtent(ValidationError, ValueError):
         self.error_context["extent"] = self.extent = extent
 
 
-class BadSpatialReference(ValidationError, ValueError):
+class BadSpatialReference(BadExtent):
 
     def __init__(self, message, spatial_reference=None, **kwargs):
         super(BadSpatialReference, self).__init__(message, **kwargs)
