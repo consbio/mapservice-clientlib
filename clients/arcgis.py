@@ -57,7 +57,7 @@ WEB_MERCATOR_SRS = (
 class ArcGISResource(ClientResource):
     """ Enables version validation and defines common fields """
 
-    _minimum_version = 10.1
+    minimum_version = 10.1
 
     version = NumberField(name="currentVersion")
     description = TextField()
@@ -698,8 +698,6 @@ class GeometryServiceClient(object):
     Intended for internal use, so no validation of URL, etc is performed.
     """
 
-    _client_user_agent = DEFAULT_USER_AGENT
-
     def __init__(self, service_url):
         self.service_url = get_base_url(service_url, True)
         if self.service_url.endswith("/project"):
@@ -731,7 +729,7 @@ class GeometryServiceClient(object):
         }
 
         url = f"{self.service_url}/project"
-        headers = {"User-agent": self._client_user_agent}
+        headers = {"User-agent": DEFAULT_USER_AGENT}
         params = {
             "f": "json",
             "geometries": json.dumps(geometries),

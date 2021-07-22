@@ -19,7 +19,8 @@ from .query.serializers import XMLToJSONSerializer
 from .resources import ClientResource
 from .utils.geometry import Extent, SpatialReference, union_extent
 from .utils.images import make_color_transparent
-from .wms import WMS_DEFAULT_PARAMS, WMS_EXCEPTION_FORMAT, WMS_KNOWN_VERSIONS, WMS_SRS_DEFAULT, NcWMSLayerResource
+from .wms import NcWMSLayerResource
+from .wms import WMS_DEFAULT_PARAMS, WMS_EXCEPTION_FORMAT, WMS_KNOWN_VERSIONS, WMS_SRS_DEFAULT
 
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ RELATED_ENDPOINT_FIELDS = (
 
 class ThreddsResource(ClientResource):
 
-    _default_spatial_ref = WMS_SRS_DEFAULT
+    default_spatial_ref = WMS_SRS_DEFAULT
 
     # Base service fields
 
@@ -124,7 +125,7 @@ class ThreddsResource(ClientResource):
         parts["path"][-1] = "catalog.xml"
         self._service_url = parts_to_url(parts, trailing_slash=has_trailing)
 
-        self.spatial_ref = SpatialReference(spatial_ref or self._default_spatial_ref)
+        self.spatial_ref = SpatialReference(spatial_ref or self.default_spatial_ref)
         self.wms_version = wms_version or WMS_KNOWN_VERSIONS[-1]
 
     def populate_field_values(self, data):

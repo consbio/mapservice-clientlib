@@ -16,12 +16,11 @@ DEFAULT_USER_AGENT = "Mozilla/5.0 (compatible; +https://databasin.org)"
 class ClientResource(Resource):
     """ Overridden to provide bulk get functionality and to validate version and extents """
 
-    _client_user_agent = DEFAULT_USER_AGENT
-
-    _default_spatial_ref = None
-    _incoming_casing = "camel"
-    _minimum_version = None
-    _supported_versions = ()
+    client_user_agent = DEFAULT_USER_AGENT
+    default_spatial_ref = None
+    incoming_casing = "camel"
+    minimum_version = None
+    supported_versions = ()
 
     _session = None
     _layer_session = None
@@ -31,27 +30,27 @@ class ClientResource(Resource):
         session = kwargs.pop("session", None)
         if not session:
             session = requests.Session()
-            session.headers["User-agent"] = self._client_user_agent
+            session.headers["User-agent"] = self.client_user_agent
 
         if default_spatial_ref:
-            self._default_spatial_ref = default_spatial_ref
+            self.default_spatial_ref = default_spatial_ref
 
         super(ClientResource, self).__init__(session=session, **kwargs)
 
         # Convert casing of field names to expected values from API
 
-        to_camel = self._incoming_casing in {"camel", "pascal"}
+        to_camel = self.incoming_casing in {"camel", "pascal"}
         required = [
             snake_to_camel(f.name) if to_camel else f.name
             for f in self._meta.fields if f.required and f.default is None
         ]
 
-        if self._incoming_casing != "pascal":
+        if self.incoming_casing != "pascal":
             self._required_fields = required
         else:
             self._required_fields = [
                 # Capitalize only the first letter if Pascal: leave the rest camel-cased
-                f[0].upper() + f[1:] if self._incoming_casing == "pascal" else f for f in required
+                f[0].upper() + f[1:] if self.incoming_casing == "pascal" else f for f in required
             ]
 
     @property
@@ -251,7 +250,7 @@ class ClientResource(Resource):
         params = self._params if params is None else params
 
         headers = kwargs.pop("headers", self._session.headers)
-        headers["User-agent"] = self._client_user_agent
+        headers["User-agent"] = self.client_user_agent
 
         response = self._session.get(url, params=params, headers=headers, **kwargs)
         response.raise_for_status()
@@ -264,7 +263,7 @@ class ClientResource(Resource):
         try:
             super(ClientResource, self).populate_field_values(data)
         except MissingFieldException as ex:
-            to_camel = self._incoming_casing in {"camel", "pascal"}
+            to_camel = self.incoming_casing in {"camel", "pascal"}
             present = set((snake_to_camel(k) if to_camel else k).lower() for k in data)
             missing = [m for m in self._required_fields if m.lower() not in present]
 
@@ -285,11 +284,11 @@ class ClientResource(Resource):
         version = version or self.version
         invalid, supported = None, None
 
-        if self._minimum_version and version < self._minimum_version:
-            supported = self._minimum_version
+        if self.minimum_version and version < self.minimum_version:
+            supported = self.minimum_version
             invalid = version
-        elif self._supported_versions and version not in self._supported_versions:
-            supported = ", ".join(str(v) for v in self._supported_versions)
+        elif self.supported_versions and version not in self.supported_versions:
+            supported = ", ".join(str(v) for v in self.supported_versions)
             invalid = version
 
         if invalid:

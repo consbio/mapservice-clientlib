@@ -38,8 +38,8 @@ class ClientResourceTestCase(ResourceTestCase):
 
         client = clients[0]
 
-        self.assertEqual(client._minimum_version, 10)
-        self.assertEqual(client._supported_versions, (10.2, 30, 40.5))
+        self.assertEqual(client.minimum_version, 10)
+        self.assertEqual(client.supported_versions, (10.2, 30, 40.5))
         self.assertEqual(client.id, "first")
         self.assertEqual(client.version, 10.2)
         self.assertEqual(client.comma_separated, ["one", "two", "three"])
@@ -71,8 +71,8 @@ class ClientResourceTestCase(ResourceTestCase):
 
         client = clients[1]
 
-        self.assertEqual(client._minimum_version, 10)
-        self.assertEqual(client._supported_versions, (10.2, 30, 40.5))
+        self.assertEqual(client.minimum_version, 10)
+        self.assertEqual(client.supported_versions, (10.2, 30, 40.5))
         self.assertEqual(client.id, "second")
         self.assertEqual(client.version, 40.5)
         self.assertEqual(client.comma_separated, ["four", "five", "six"])
@@ -105,8 +105,8 @@ class ClientResourceTestCase(ResourceTestCase):
 
         client = clients[2]
 
-        self.assertEqual(client._minimum_version, 10)
-        self.assertEqual(client._supported_versions, (10.2, 30, 40.5))
+        self.assertEqual(client.minimum_version, 10)
+        self.assertEqual(client.supported_versions, (10.2, 30, 40.5))
         self.assertEqual(client.id, None)
         self.assertEqual(client.version, 30)
         self.assertEqual(client.comma_separated, None)
@@ -166,8 +166,8 @@ class ClientResourceTestCase(ResourceTestCase):
         session = self.mock_mapservice_session(self.client_path)
         client = TestClientResource.get(self.client_url, lazy=False, session=session)
 
-        self.assertEqual(client._minimum_version, 10)
-        self.assertEqual(client._supported_versions, (10.2, 30, 40.5))
+        self.assertEqual(client.minimum_version, 10)
+        self.assertEqual(client.supported_versions, (10.2, 30, 40.5))
         self.assertEqual(client.id, "single")
         self.assertEqual(client.version, 10.2)
         self.assertEqual(client.comma_separated, ["one", "two", "three"])
@@ -263,9 +263,9 @@ class ClientResourceTestCase(ResourceTestCase):
 
 class TestClientResource(ClientResource):
 
-    _incoming_casing = "camel"
-    _minimum_version = 10
-    _supported_versions = (10.2, 30, 40.5)
+    incoming_casing = "camel"
+    minimum_version = 10
+    supported_versions = (10.2, 30, 40.5)
 
     id = TextField(required=False)
     version = FloatField(default=30)

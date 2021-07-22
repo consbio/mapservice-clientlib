@@ -41,7 +41,7 @@ WMS_SRS_DEFAULT = "EPSG:3857"
 
 class NcWMSLayerResource(ClientResource):
 
-    _default_spatial_ref = "EPSG:4326"
+    default_spatial_ref = "EPSG:4326"
 
     # Pulled from layer list or metadata query
 
@@ -134,7 +134,7 @@ class NcWMSLayerResource(ClientResource):
 
 class WMSLayerResource(ClientResource):
 
-    _default_spatial_ref = "EPSG:4326"
+    default_spatial_ref = "EPSG:4326"
 
     id = TextField(name="name", required=False)  # Empty for parent layers
     title = TextField(name="title")
@@ -231,7 +231,7 @@ class WMSLayerResource(ClientResource):
         self.child_layers = []
         self.leaf_layers = {}
 
-        data["old_version"] = (data["version"] == self.wms._supported_versions[0])
+        data["old_version"] = (data["version"] == self.wms.supported_versions[0])
         data["queryable"] = (data.get("queryable", "").lower() in {"1", "true"})
         data["is_ncwms"] = self.wms._is_ncwms
 
@@ -440,8 +440,8 @@ class WMSLayerResource(ClientResource):
 
 class WMSResource(ClientResource):
 
-    _default_spatial_ref = WMS_SRS_DEFAULT
-    _incoming_casing = "pascal"
+    default_spatial_ref = WMS_SRS_DEFAULT
+    incoming_casing = "pascal"
 
     title = TextField()
     description = TextField(name="abstract")
@@ -460,7 +460,7 @@ class WMSResource(ClientResource):
     supported_spatial_refs = ListField(required=False)
     spatial_ref = SpatialReferenceField(required=False)
 
-    _supported_versions = WMS_KNOWN_VERSIONS
+    supported_versions = WMS_KNOWN_VERSIONS
 
     _wms_url = None
 
@@ -506,7 +506,7 @@ class WMSResource(ClientResource):
         self._is_ncwms = ("ncwms" in self._url.lower() or self._url.endswith(".nc"))
         self._ordered_layers = []  # Populated before resource is loaded, or anytime afterwards if self._lazy
 
-        self._spatial_ref = spatial_ref or self._default_spatial_ref
+        self._spatial_ref = spatial_ref or self.default_spatial_ref
 
         self._token = token
         if token is not None:
@@ -764,7 +764,6 @@ class WMSResource(ClientResource):
         return self.ordered_layers  # Now that they are populated
 
 
-# TODO: make this variable
 _STYLES_COLOR_MAP = {
     # Custom NcWMS palettes
     "alg": {"name": "Algorithmic", "colors": ["#CC00FF", "#00FFFF", "#CCFF33", "#FF9900", "#AA0000"]},

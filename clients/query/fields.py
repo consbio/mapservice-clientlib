@@ -170,7 +170,7 @@ class ExtentField(BaseExtentField):
         try:
             return Extent(value)
         except BadSpatialReference:
-            return Extent(value, resource._default_spatial_ref)
+            return Extent(value, resource.default_spatial_ref)
 
 
 class SpatialReferenceField(BaseExtentField):
