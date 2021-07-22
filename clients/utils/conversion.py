@@ -8,19 +8,6 @@ from ..query.fields import DictField, ObjectField
 from .geometry import Extent
 
 
-def to_extent(extent_data):
-    """ Converts JSON, dict or extent-like object to an Extent """
-
-    if isinstance(extent_data, Extent):
-        return extent_data
-    elif isinstance(extent_data, str):
-        extent_data = json.loads(extent_data)
-    elif hasattr(extent_data, "get_data"):
-        extent_data = extent_data.get_data()
-
-    return Extent({k: float(v) if is_number(v) else v for k, v in extent_data.items()})
-
-
 def to_object(json_or_dict, aliases=None, from_camel=True, defaults=None):
     """ Transforms JSON data into an object """
 

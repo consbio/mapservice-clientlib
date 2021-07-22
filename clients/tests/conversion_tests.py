@@ -3,7 +3,7 @@ import json
 import types
 
 from ..query.fields import ObjectField
-from ..utils.conversion import to_extent, to_object, to_renderer, to_symbol, is_symbol
+from ..utils.conversion import to_object, to_renderer, to_symbol, is_symbol
 from ..utils.conversion import extent_to_polygon_wkt, polygon_to_wkt, polyline_to_wkt
 from ..utils.conversion import multipoint_to_wkt, point_to_wkt
 
@@ -12,14 +12,6 @@ from .utils import get_extent, get_extent_dict, get_extent_object
 
 
 class ConversionTestCase(GeometryTestCase):
-
-    def test_to_extent(self):
-        extent_dict = get_extent_dict()
-
-        self.assert_extent(to_extent(get_extent()))
-        self.assert_extent(to_extent(extent_dict))
-        self.assert_extent(to_extent(json.dumps(extent_dict)))
-        self.assert_extent(to_extent(ObjectField().to_python(extent_dict, None)))
 
     def test_to_object(self):
         object_dict = {"a": "aaa", "b": "bbb", "c": "ccc", "aBc": "def"}
