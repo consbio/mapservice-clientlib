@@ -134,20 +134,49 @@ class DrawingInfoField(ObjectField):
         return super(DrawingInfoField, self).to_python(value, resource)
 
 
-class ExtentField(fields.Field):
-
-    def __init__(self, default_spatial_ref=None, *args, **kwargs):
-        self.default_spatial_ref = default_spatial_ref
-        super(ExtentField, self).__init__(*args, **kwargs)
+class BaseExtentField(DictField):
 
     def to_python(self, value, resource):
+        """ Overridden to manage conversion of multiple incoming vals """
+
+        value = super(BaseExtentField, self).to_python(value, resource)
+
+        if not isinstance(value, (list, tuple)):
+            return self._val_to_py(value, resource)
+        elif value and not isinstance(value[0], dict):
+            return self._val_to_py(value, resource)
+        else:
+            return [self._val_to_py(v, resource) for v in value]
+
+    def to_value(self, obj, resource):
+        """ Overridden to manage conversion of multiple objects back to dict """
+
+        if not isinstance(obj, (list, tuple)):
+            return self._py_to_val(obj, resource)
+        else:
+            return [self._py_to_val(o, resource) for o in obj]
+
+    def _val_to_py(self, value, resource):
+        class_name = self.__class__.__name__
+        raise NotImplementedError(f"{class_name}._val_to_py")
+
+    def _py_to_val(self, obj, resource):
+        return obj.as_dict()
+
+
+class ExtentField(BaseExtentField):
+
+    def _val_to_py(self, value, resource):
         try:
             return Extent(value)
         except BadSpatialReference:
-            return Extent(value, self.default_spatial_ref)
+            return Extent(value, resource._default_spatial_ref)
 
-    def to_value(self, obj, resource):
-        return obj.as_dict()
+
+class SpatialReferenceField(BaseExtentField):
+
+    def _val_to_py(self, value, resource):
+        return SpatialReference(value)
 
 
 class TimeInfoField(ObjectField):
@@ -155,14 +184,6 @@ class TimeInfoField(ObjectField):
     def __init__(self, *args, **kwargs):
         aliases = dict(TIME_INFO_ALIASES)
         super(TimeInfoField, self).__init__(class_name="TimeInfo", aliases=aliases, *args, **kwargs)
-
-
-class SpatialReferenceField(fields.Field):
-    def to_python(self, value, resource):
-        return SpatialReference(value)
-
-    def to_value(self, obj, resource):
-        return obj.as_dict()
 
 
 DRAWING_INFO_ALIASES = {

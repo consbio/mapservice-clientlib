@@ -101,8 +101,8 @@
     <Abstract>This demonstration server showcases MapServer</Abstract>
     <CRS>EPSG:4326</CRS>
     <CRS>EPSG:4269</CRS>
-    <CRS>EPSG:3978</CRS>
     <CRS>EPSG:3857</CRS>
+    <CRS>EPSG:900913</CRS>
     <EX_GeographicBoundingBox>
         <westBoundLongitude>-180</westBoundLongitude>
         <eastBoundLongitude>180</eastBoundLongitude>

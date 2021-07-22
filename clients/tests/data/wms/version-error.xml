@@ -101,7 +101,7 @@
   <UserDefinedSymbolization SupportSLD="1" UserLayer="0" UserStyle="1" RemoteWFS="0"/>
   <Layer queryable="1">
     <Name>WMS_server</Name>
-    <Title>WMS Demo Server for MapServer</Title>
+    <Title>Version Error Server for MapServer</Title>
     <Abstract>This demonstration server is a bad version</Abstract>
     <SRS>EPSG:4326</SRS>
     <SRS>EPSG:4269</SRS>

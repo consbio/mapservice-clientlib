@@ -5,8 +5,8 @@
 
 <Service>
   <Name>WMS</Name>
-  <Title>WMS Demo Server for MapServer</Title>
-  <Abstract>This demonstration server showcases MapServer</Abstract>
+  <Title>No Layers</Title>
+  <Abstract>Missing WMS layers</Abstract>
     <KeywordList>
       <Keyword>DEMO</Keyword>
       <Keyword>WMS</Keyword>

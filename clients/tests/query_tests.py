@@ -8,6 +8,7 @@ from ..query.fields import ExtentField, SpatialReferenceField
 from ..query.fields import CommaSeparatedField, DrawingInfoField, TimeInfoField
 from ..query.fields import DRAWING_INFO_ALIASES, TIME_INFO_ALIASES
 from ..query.serializers import XMLToJSONSerializer
+from ..resources import ClientResource
 from ..utils.geometry import Extent, SpatialReference
 
 from .utils import BaseTestCase
@@ -188,6 +189,9 @@ class FieldsTestCase(BaseTestCase):
     def test_extent_field(self):
 
         for web_mercator in (True, False):
+            spatial_ref = get_spatial_reference_dict(web_mercator)
+            resource = ClientResource(default_spatial_ref=spatial_ref["srs"])
+
             extent_data = (
                 get_extent_dict(web_mercator),
                 get_extent_object(web_mercator),
@@ -195,25 +199,38 @@ class FieldsTestCase(BaseTestCase):
                 Extent(
                     get_extent_list(web_mercator),
                     spatial_reference=get_spatial_reference(web_mercator)
-                ),
-            )
-            for extent in extent_data:
-                if not isinstance(extent, list):
-                    field = ExtentField(name="to_python")
-                    target = Extent(extent)
-                else:
-                    field = ExtentField(name="to_python", default_spatial_ref="EPSG:4326")
-                    target = Extent(extent, "EPSG:4326")
-
-                result = field.to_python(extent, None)
-                self.assert_objects_are_equal(
-                    result, target,
-                    "Testing to_python with {} data".format(type(extent).__name__)
                 )
+            )
+
+            # Test each form of an extent individually
+            for extent in extent_data:
+                field = ExtentField(name="to_python")
+                target = Extent(extent, spatial_ref).as_dict()
+
+                result = field.to_python(extent, resource)
+                self.assertEqual(result.as_dict(), target)
+
                 obj = result
                 field = ExtentField(name="to_value")
-                result = field.to_value(obj, None)
-                self.assertEqual(result, target.as_dict())
+                result = field.to_value(obj, resource)
+                self.assertEqual(result, target)
+
+            # Test multiple extent values in a list
+
+            extent_data = (get_extent_dict(), get_extent_list())
+            spatial_ref = get_spatial_reference_dict()
+            resource = ClientResource(default_spatial_ref=spatial_ref["srs"])
+
+            field = ExtentField(name="to_python")
+            target = [Extent(e, spatial_ref).as_dict() for e in extent_data]
+
+            result = field.to_python(extent_data, resource)
+            self.assertEqual([r.as_dict() for r in result], target)
+
+            objects = result
+            field = ExtentField(name="to_value")
+            result = field.to_value(objects, resource)
+            self.assertEqual(result, target)
 
     def test_time_info_field(self):
 
@@ -234,19 +251,38 @@ class FieldsTestCase(BaseTestCase):
             get_spatial_reference_dict(),
             get_spatial_reference_object()
         )
+
+        # Test each form of a spatial reference individually
         for value in data:
             field = SpatialReferenceField(name="to_python")
-            result = field.to_python(value, None)
             target = SpatialReference(value)
-            self.assert_objects_are_equal(
-                result, target,
-                "Testing to_python with {} data".format(type(value).__name__)
-            )
+
+            result = field.to_python(value, None)
+            self.assert_objects_are_equal(result, target)
 
             obj = result
             field = SpatialReferenceField(name="to_value")
             result = field.to_value(obj, None)
             self.assertEqual(result, target.as_dict())
+
+        # Test multiple spatial reference values in a list
+
+        data = (
+            get_spatial_reference_dict(True),
+            get_spatial_reference_dict(False)
+        )
+
+        field = SpatialReferenceField(name="to_python")
+        target = [SpatialReference(v) for v in data]
+
+        result = field.to_python(data, None)
+        self.assert_objects_are_equal(result, target)
+
+        objects = result
+        field = SpatialReferenceField(name="to_value")
+        target = [t.as_dict() for t in target]
+        result = field.to_value(objects, None)
+        self.assertEqual(result, target)
 
 
 class ActionsTestCase(BaseTestCase):

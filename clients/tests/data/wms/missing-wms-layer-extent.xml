@@ -10,8 +10,8 @@
 
 <Service>
   <Name>OGC:WMS</Name>
-  <Title>Bad WMS Layer</Title>
-  <Abstract>Invalid layer extent</Abstract>
+  <Title>Missing WMS Layer Extent</Title>
+  <Abstract>Missing layer extent</Abstract>
     <KeywordList>
     </KeywordList>
   <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://bad.layer.org/cgi-bin/wms?"/>
@@ -84,22 +84,17 @@
   <UserDefinedSymbolization SupportSLD="1" UserLayer="0" UserStyle="1" RemoteWFS="0"/>
   <Layer queryable="1">
     <Name>WMS_server</Name>
-    <Title>WMS Demo Server for MapServer</Title>
-    <Abstract>This demonstration server showcases MapServer (www.mapserver.org) and its OGC support</Abstract>
+    <Title>Missing WMS Layer Extent</Title>
+    <Abstract>Missing layer extent</Abstract>
     <SRS>EPSG:4326</SRS>
     <SRS>EPSG:4269</SRS>
     <SRS>EPSG:3978</SRS>
     <SRS>EPSG:3857</SRS>
-    <BoundingBox SRS="44000"
-                minx="-180" miny="-90" maxx="180" maxy="90" />
     <Layer queryable="0" opaque="0" cascaded="0">
-        <Name>Bad SRS</Name>
-        <Title>Non-proj4 extent</Title>
-        <SRS>44000</SRS>
-        <BoundingBox SRS="44000"
-                    minx="-180" miny="-90" maxx="180" maxy="90" />
+        <Name>Missing Extent</Name>
+        <Title>No Leaf Layer Extent</Title>
     <Attribution>
-        <Title>Non-proj4 extent</Title>
+        <Title>No Leaf Layer Extent</Title>
         <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://ebad.layer.gov/Features/BadExtent/"/>
     </Attribution>
         <MetadataURL type="TC211">

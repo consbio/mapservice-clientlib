@@ -21,11 +21,10 @@ from parserutils.urls import has_trailing_slash, update_url_params, url_to_parts
 from restle.fields import TextField, BooleanField, IntegerField
 
 from .exceptions import BadExtent, ClientError, HTTPError, ImageError
-from .exceptions import NoLayers, ServiceError, ValidationError
-from .query.fields import DictField, ExtentField, ListField
+from .exceptions import MissingFields, NoLayers, ServiceError, ValidationError
+from .query.fields import DictField, ExtentField, ListField, SpatialReferenceField
 from .query.serializers import XMLToJSONSerializer
 from .resources import ClientResource
-from .utils.conversion import to_extent
 from .utils.geometry import Extent, union_extent
 from .utils.images import make_color_transparent
 
@@ -41,6 +40,8 @@ WMS_SRS_DEFAULT = "EPSG:3857"
 
 
 class NcWMSLayerResource(ClientResource):
+
+    _default_spatial_ref = "EPSG:4326"
 
     # Pulled from layer list or metadata query
 
@@ -80,23 +81,15 @@ class NcWMSLayerResource(ClientResource):
         case_sensitive_fields = False
         match_fuzzy_keys = True
 
-    def _get(self, url, **kwargs):
+    def _get(self, url, data=None, **kwargs):
         """ Overridden to capture data known only to the parent NcWMSLayerResource """
 
-        self._data = kwargs.get("data") or {}
+        self._data = data or {}
 
     def populate_field_values(self, data):
         """ Overridden to include data from parent NcWMSLayerResource """
 
         data.update({k: v for k, v in self._data.items() if v or k not in data})
-
-        # Ensure coordinates are converted to numbers
-        bbox = data["bbox"]
-        data["bbox"] = to_extent({
-            "xmin": bbox[0], "ymin": bbox[1],
-            "xmax": bbox[2], "ymax": bbox[3],
-            "spatial_reference": "EPSG:4326"
-        })
 
         super(NcWMSLayerResource, self).populate_field_values(data)
 
@@ -141,6 +134,8 @@ class NcWMSLayerResource(ClientResource):
 
 class WMSLayerResource(ClientResource):
 
+    _default_spatial_ref = "EPSG:4326"
+
     id = TextField(name="name", required=False)  # Empty for parent layers
     title = TextField(name="title")
     version = TextField()
@@ -152,16 +147,14 @@ class WMSLayerResource(ClientResource):
     _extent = DictField(required=False, aliases={"value": "values"})
     _metadata_url = DictField(name="MetadataURL", default=[])
     _style = DictField(default={}, aliases={"Name": "id"})
-    _spatial_ref = ListField(name="SRS", default=[])
-    _coordinate_ref = ListField(name="CRS", default=[])
 
-    _new_extent = DictField(name="EX_GeographicBoundingBox", required=False, aliases={
+    _geographic_extent = ExtentField(name="EX_GeographicBoundingBox", required=False, aliases={
         "southBoundLatitude": "ymin",
         "eastBoundLongitude": "xmax",
         "northBoundLatitude": "ymax",
         "westBoundLongitude": "xmin"
     })
-    _old_bbox_extent = DictField(name="BoundingBox", required=False, aliases={
+    _old_bbox_extent = ExtentField(name="BoundingBox", required=False, aliases={
         "minx": "xmin",
         "miny": "ymin",
         "maxx": "xmax",
@@ -169,12 +162,15 @@ class WMSLayerResource(ClientResource):
         "CRS": "spatial_reference",
         "SRS": "spatial_reference"
     })
-    _old_latlon_extent = DictField(name="LatLonBoundingBox", required=False, aliases={
+    _old_latlon_extent = ExtentField(name="LatLonBoundingBox", required=False, aliases={
         "minx": "xmin",
         "miny": "ymin",
         "maxx": "xmax",
         "maxy": "ymax"
     })
+
+    _spatial_refs = ListField(name="SRS", default=[])
+    _coordinate_refs = ListField(name="CRS", default=[])
 
     # Derived properties
 
@@ -214,7 +210,7 @@ class WMSLayerResource(ClientResource):
         match_fuzzy_keys = True
 
     @classmethod
-    def get(cls, url, strict=True, lazy=True, session=None, **kwargs):
+    def get(cls, url, **kwargs):
         raise NotImplementedError("WMSLayerResource cannot be fetched, only populated")
 
     def populate_field_values(self, data):
@@ -252,7 +248,7 @@ class WMSLayerResource(ClientResource):
         self._populate_attribution()
         self._populate_extent()
         self._populate_styles()
-        self._populate_supported_spatial_refs()
+        self._populate_spatial_refs()
 
         self._populate_child_layers(data)
 
@@ -307,30 +303,23 @@ class WMSLayerResource(ClientResource):
     def _populate_extent(self):
         """ Extract original extent - caller must limit to globe and project """
 
-        extent = getattr(self.parent, "full_extent", None)
-
-        if self._new_extent is not None:
-            extent = self._new_extent
-            extent["spatial_reference"] = "EPSG:4326"
-
-        elif self._old_latlon_extent is not None:
+        if self._geographic_extent:
+            extent = self._geographic_extent
+        elif self._old_latlon_extent:
             extent = self._old_latlon_extent
-            extent["spatial_reference"] = "EPSG:4326"
-
-        elif self._old_bbox_extent is not None and "spatial_reference" in self._old_bbox_extent:
+        elif self._old_bbox_extent:
             extent = self._old_bbox_extent
+            extent = extent if isinstance(extent, Extent) else extent[0]
+        else:
+            extent = getattr(self.parent, "full_extent", None)
 
-        if extent:
-            self.full_extent = to_extent(extent)
-
-        if self.id and not self.full_extent:
-            raise BadExtent(
-                f'Extent required for WMS layer "{self.id}"', extent=self.full_extent, url=self._url
-            )
-        elif self.full_extent:
+        if self.id and not extent:
+            # Leaf layer missing extent as EX_GeographicBoundingBox, LatLonBoundingBox, or BoundingBox
+            raise MissingFields(f'Extent required for WMS layer "{self.id}"', missing="extent", url=self._url)
+        elif extent:
             try:
                 # Standardize across layers; they may be in different projections
-                self.full_extent = self.full_extent.project_to_web_mercator()
+                self.full_extent = extent.project_to_web_mercator()
             except ValueError as ex:
                 raise BadExtent(
                     f'Error reprojecting extent for WMS layer "{self.id}"',
@@ -385,11 +374,11 @@ class WMSLayerResource(ClientResource):
                 "legendURL": legend_url
             })
 
-    def _populate_supported_spatial_refs(self):
+    def _populate_spatial_refs(self):
 
         supported_spatial_refs = set(getattr(self.parent, "supported_spatial_refs", ""))  # SRS is inherited
-        supported_spatial_refs.update(sr.strip() for sr in self._spatial_ref)
-        supported_spatial_refs.update(cr.strip() for cr in self._coordinate_ref)
+        supported_spatial_refs.update(sr.strip() for sr in self._spatial_refs)
+        supported_spatial_refs.update(cr.strip() for cr in self._coordinate_refs)
 
         self.supported_spatial_refs = sorted(supported_spatial_refs)
 
@@ -451,6 +440,7 @@ class WMSLayerResource(ClientResource):
 
 class WMSResource(ClientResource):
 
+    _default_spatial_ref = WMS_SRS_DEFAULT
     _incoming_casing = "pascal"
 
     title = TextField()
@@ -468,7 +458,7 @@ class WMSResource(ClientResource):
     has_time = BooleanField(default=False)
     is_ncwms = BooleanField(default=False)
     supported_spatial_refs = ListField(required=False)
-    spatial_ref = TextField(required=False)
+    spatial_ref = SpatialReferenceField(required=False)
 
     _supported_versions = WMS_KNOWN_VERSIONS
 
@@ -493,7 +483,7 @@ class WMSResource(ClientResource):
         return self._wms_url
 
     @classmethod
-    def get(cls, url, strict=True, lazy=True, session=None, version=None, spatial_ref=WMS_SRS_DEFAULT, **kwargs):
+    def get(cls, url, **kwargs):
         """ Overridden to parse the URL in case it includes the GetCapabilities request """
 
         parts = url_to_parts(url)
@@ -503,11 +493,10 @@ class WMSResource(ClientResource):
             parts.query.pop(param)
 
         return super(WMSResource, cls).get(
-            parts_to_url(parts, trailing_slash=has_trailing_slash(url)),
-            strict=strict, lazy=lazy, session=session, version=version, spatial_ref=spatial_ref, **kwargs
+            parts_to_url(parts, trailing_slash=has_trailing_slash(url)), **kwargs
         )
 
-    def _get(self, url, token=None, token_id="token", version=None, spatial_ref=WMS_SRS_DEFAULT, **kwargs):
+    def _get(self, url, token=None, token_id="token", version=None, spatial_ref=None, **kwargs):
         """ Overridden to do some initialization and capture version and target coordinate reference """
 
         self._behind_proxy = self._url.rfind("http://") > 0 or self._url.rfind("https://") > 0
@@ -517,7 +506,7 @@ class WMSResource(ClientResource):
         self._is_ncwms = ("ncwms" in self._url.lower() or self._url.endswith(".nc"))
         self._ordered_layers = []  # Populated before resource is loaded, or anytime afterwards if self._lazy
 
-        self._spatial_ref = spatial_ref
+        self._spatial_ref = spatial_ref or self._default_spatial_ref
 
         self._token = token
         if token is not None:
@@ -636,7 +625,7 @@ class WMSResource(ClientResource):
         """
 
         if not isinstance(extent, Extent):
-            spatial_ref = getattr(extent, "spatial_reference", None) or self._spatial_ref
+            spatial_ref = getattr(extent, "spatial_reference", None) or self.spatial_ref
             extent = Extent(extent, spatial_reference=spatial_ref)
 
         if self.spatial_ref is None:
@@ -710,10 +699,10 @@ class WMSResource(ClientResource):
 
             if image_params["version"] == WMS_KNOWN_VERSIONS[1]:
                 image_params["exceptions"] = "XML"
-                image_params["crs"] = self.spatial_ref
+                image_params["crs"] = extent.spatial_reference.srs
             else:
                 image_params["exceptions"] = WMS_EXCEPTION_FORMAT
-                image_params["srs"] = self.spatial_ref
+                image_params["srs"] = extent.spatial_reference.srs
 
             if time_range:
                 # Unclear in docs if time and custom params require ordering to match layer
@@ -775,6 +764,7 @@ class WMSResource(ClientResource):
         return self.ordered_layers  # Now that they are populated
 
 
+# TODO: make this variable
 _STYLES_COLOR_MAP = {
     # Custom NcWMS palettes
     "alg": {"name": "Algorithmic", "colors": ["#CC00FF", "#00FFFF", "#CCFF33", "#FF9900", "#AA0000"]},

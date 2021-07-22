@@ -1,7 +1,6 @@
 from ..exceptions import BadExtent, ContentError, HTTPError, ImageError
-from ..exceptions import NoLayers, ServiceError, ValidationError
-from ..wms import WMSResource, WMSLayerResource, NcWMSLayerResource, WMS_EXCEPTION_FORMAT
-from ..utils.geometry import Extent
+from ..exceptions import MissingFields, NoLayers, ServiceError, ValidationError
+from ..wms import WMSResource, WMSLayerResource, NcWMSLayerResource, WMS_EXCEPTION_FORMAT, WMS_SRS_DEFAULT
 
 from .utils import ResourceTestCase, get_extent
 
@@ -36,8 +35,7 @@ class WMSTestCase(ResourceTestCase):
 
         client = WMSResource.get(
             self.ncwms_url,
-            lazy=True, spatial_ref="EPSG:4326",
-            token=token, version=version,
+            lazy=True, token=token, version=version,
             session=session, layer_session=layer_session
         )
         self.assertEqual(len(client.ordered_layers), 2)
@@ -46,8 +44,7 @@ class WMSTestCase(ResourceTestCase):
 
         client = WMSResource.get(
             self.ncwms_url,
-            lazy=True,
-            token=token, version=version,
+            lazy=True, token=token, version=version,
             session=session, layer_session=layer_session
         )
 
@@ -82,7 +79,7 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.has_dimensions, True)
         self.assertEqual(client.has_time, True)
         self.assertEqual(client.is_ncwms, True)
-        self.assertEqual(client.spatial_ref, "EPSG:3857")
+        self.assertEqual(client.spatial_ref.srs, WMS_SRS_DEFAULT)
 
         layer_ids = {"pr-tasmax-tasmin_day_precipitation_flux/pr-tasmax-tasmin_day"}
 
@@ -120,21 +117,26 @@ class WMSTestCase(ResourceTestCase):
             )
 
         extent_coords = [-140.99999666399998, 41.000001336, -52.00000235999998, 83.49999861600001]
-        spatial_ref = "CRS:84" if is_max_version else "EPSG:4326"
 
-        self.assertEqual(first_layer._spatial_ref, [])
-        self.assertEqual(first_layer._coordinate_ref, [])
+        self.assertEqual(first_layer._spatial_refs, [])
+        self.assertEqual(first_layer._coordinate_refs, [])
+
+        self.assertEqual(first_layer._old_bbox_extent.as_list(), extent_coords)
+        self.assertEqual(first_layer._old_bbox_extent.spatial_reference.srs, "EPSG:4326")
 
         if not is_max_version:
-            self.assertEqual(first_layer._new_extent, None)
-        else:
-            self.assertEqual(Extent(first_layer._new_extent).as_list(), extent_coords)
-            self.assertEqual(first_layer._new_extent["spatial_reference"], "EPSG:4326")
+            self.assertEqual(first_layer._geographic_extent, None)
 
-        self.assertEqual(Extent(first_layer._old_bbox_extent).as_list(), extent_coords)
-        self.assertEqual(first_layer._old_bbox_extent["spatial_reference"], spatial_ref)
+            self.assertEqual(first_layer._old_latlon_extent.as_list(), extent_coords)
+            self.assertEqual(first_layer._old_latlon_extent.spatial_reference.srs, "EPSG:4326")
+        else:
+            self.assertEqual(first_layer._geographic_extent.as_list(), extent_coords)
+            self.assertEqual(first_layer._geographic_extent.spatial_reference.srs, "EPSG:4326")
+
+            self.assertEqual(first_layer._old_latlon_extent, None)
+
         self.assertEqual(
-            Extent(first_layer.full_extent).as_list(),
+            first_layer.full_extent.as_list(),
             [-15696047.830489751, 5012341.860907214, -5788613.783964222, 18295676.048854332]
         )
         self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
@@ -248,16 +250,17 @@ class WMSTestCase(ResourceTestCase):
         client = WMSResource.get(
             self.wms_url,
             lazy=False, session=session,
-            token=token, version=version
+            spatial_ref="EPSG:3978", token=token, version=version
         )
         self.assertEqual(len(client.ordered_layers), 4)
+        self.assertEqual(client.spatial_ref.srs, WMS_SRS_DEFAULT)
 
         # Test all variables with specified WMS version
 
         client = WMSResource.get(
             self.wms_url,
             lazy=False, session=session,
-            token=token, version=version
+            spatial_ref="EPSG:900913", token=token, version=version
         )
 
         # Test service level information
@@ -286,12 +289,12 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(
             client.supported_spatial_refs,
-            ["EPSG:3857", "EPSG:3978", "EPSG:4269", "EPSG:4326"]
+            ["EPSG:3857", "EPSG:4269", "EPSG:4326", "EPSG:900913"]
         )
         self.assertEqual(client.has_dimensions, False)
         self.assertEqual(client.has_time, False)
         self.assertEqual(client.is_ncwms, False)
-        self.assertEqual(client.spatial_ref, "EPSG:3857")
+        self.assertEqual(client.spatial_ref.srs, "EPSG:900913")
 
         layer_ids = {"continents", "country_bounds", "cities", "bluemarble"}
 
@@ -315,32 +318,36 @@ class WMSTestCase(ResourceTestCase):
 
         self.assertEqual(first_layer._extent, None)
 
+        extent_coords = [-178.167, -54.8, 179.383, 78.9333]
+
         if not is_max_version:
-            self.assertEqual(first_layer._spatial_ref, ["EPSG:4326"])
-            self.assertEqual(first_layer._coordinate_ref, [])
-            self.assertEqual(first_layer._new_extent, None)
+            self.assertEqual(first_layer._geographic_extent, None)
+
+            self.assertEqual(first_layer._old_latlon_extent.as_list(), extent_coords)
+            self.assertEqual(first_layer._old_latlon_extent.spatial_reference.srs, "EPSG:4326")
+
+            self.assertEqual(first_layer._spatial_refs, ["EPSG:4326"])
+            self.assertEqual(first_layer._coordinate_refs, [])
         else:
-            self.assertEqual(first_layer._spatial_ref, [])
-            self.assertEqual(first_layer._coordinate_ref, ["EPSG:4326"])
-            self.assertEqual(
-                Extent(first_layer._new_extent).as_list(),
-                [-178.167, -54.8, 179.383, 78.9333]
-            )
-            self.assertEqual(first_layer._new_extent["spatial_reference"], "EPSG:4326")
+            self.assertEqual(first_layer._geographic_extent.as_list(), extent_coords)
+            self.assertEqual(first_layer._geographic_extent.spatial_reference.srs, "EPSG:4326")
+
+            self.assertEqual(first_layer._old_latlon_extent, None)
+
+            self.assertEqual(first_layer._spatial_refs, [])
+            self.assertEqual(first_layer._coordinate_refs, ["EPSG:4326"])
+
+        self.assertEqual(first_layer._old_bbox_extent.as_list(), extent_coords)
+        self.assertEqual(first_layer._old_bbox_extent.spatial_reference.srs, "EPSG:4326")
 
         self.assertEqual(
-            Extent(first_layer._old_bbox_extent).as_list(),
-            [-178.167, -54.8, 179.383, 78.9333]
-        )
-        self.assertEqual(first_layer._old_bbox_extent["spatial_reference"], "EPSG:4326")
-        self.assertEqual(
-            Extent(first_layer.full_extent).as_list(),
+            first_layer.full_extent.as_list(),
             [-19833459.716165174, -7323146.544576741, 19968824.216969796, 14888598.992608657]
         )
         self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(
             first_layer.supported_spatial_refs,
-            ["EPSG:3857", "EPSG:3978", "EPSG:4269", "EPSG:4326"]
+            ["EPSG:3857", "EPSG:4269", "EPSG:4326", "EPSG:900913"]
         )
 
         self.assertEqual(first_layer.has_time, False)
@@ -455,11 +462,15 @@ class WMSTestCase(ResourceTestCase):
         self.assert_wms_request(self.wms_directory / "demo-wms-min.xml", version="1.1.1")
 
     def test_invalid_wms_request(self):
-        session = self.mock_mapservice_session(self.wms_directory / "invalid-wms-layer.xml")
+        session = self.mock_mapservice_session(self.wms_directory / "invalid-wms-layer-extent.xml")
         with self.assertRaises(BadExtent):
             WMSResource.get(self.wms_url, session=session, lazy=False)
 
-        session = self.mock_mapservice_session(self.wms_directory / "invalid-wms-layers.xml")
+        session = self.mock_mapservice_session(self.wms_directory / "missing-wms-layer-extent.xml")
+        with self.assertRaises(MissingFields):
+            WMSResource.get(self.wms_url, session=session, lazy=False)
+
+        session = self.mock_mapservice_session(self.wms_directory / "missing-wms-layers.xml")
         with self.assertRaises(NoLayers):
             WMSResource.get(self.wms_url, session=session, lazy=False)
 

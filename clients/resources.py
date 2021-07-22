@@ -18,6 +18,7 @@ class ClientResource(Resource):
 
     _client_user_agent = DEFAULT_USER_AGENT
 
+    _default_spatial_ref = None
     _incoming_casing = "camel"
     _minimum_version = None
     _supported_versions = ()
@@ -25,14 +26,19 @@ class ClientResource(Resource):
     _session = None
     _layer_session = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, default_spatial_ref=None, **kwargs):
 
         session = kwargs.pop("session", None)
         if not session:
             session = requests.Session()
             session.headers["User-agent"] = self._client_user_agent
 
+        if default_spatial_ref:
+            self._default_spatial_ref = default_spatial_ref
+
         super(ClientResource, self).__init__(session=session, **kwargs)
+
+        # Convert casing of field names to expected values from API
 
         to_camel = self._incoming_casing in {"camel", "pascal"}
         required = [

@@ -660,13 +660,15 @@ class SpatialReferenceTestCase(GeometryTestCase):
 
     def test_spatial_reference(self):
         # Test with primitive values
-        self.assert_spatial_reference(SpatialReference("EPSG:4326"), props="srs")
+        self.assert_spatial_reference(SpatialReference("CRS:84"), props="srs,wkid")
+        self.assert_spatial_reference(SpatialReference("EPSG:4326"), props="srs,wkid")
         self.assert_spatial_reference(SpatialReference(4326), props="wkid")
         self.assert_spatial_reference(SpatialReference(4326.0), props="wkid")
 
         # Test with valid spatial reference dicts
         self.assert_spatial_reference(SpatialReference(get_spatial_reference_dict()))
-        self.assert_spatial_reference(SpatialReference({"srs": "EPSG:4326"}), props="srs")
+        self.assert_spatial_reference(SpatialReference({"srs": "CRS:84"}), props="srs,wkid")
+        self.assert_spatial_reference(SpatialReference({"srs": "EPSG:4326"}), props="srs,wkid")
         self.assert_spatial_reference(SpatialReference({"wkid": "4326"}), props="wkid")
         self.assert_spatial_reference(SpatialReference({"wkt": WEB_MERCATOR_WKT}), props="wkt")
 
@@ -732,6 +734,7 @@ class SpatialReferenceTestCase(GeometryTestCase):
         result = SpatialReference(data).as_dict(esri_format=True)
         self.assertEqual(result, {"wkid": 3857})
 
+        data.pop("srs")
         data.pop("wkid")
 
         result = SpatialReference(data).as_dict(esri_format=True)
@@ -755,6 +758,7 @@ class SpatialReferenceTestCase(GeometryTestCase):
         result = SpatialReference(data).as_json_string(esri_format=True)
         self.assertEqual(result, json.dumps({"wkid": 3857}))
 
+        data.pop("srs")
         data.pop("wkid")
 
         result = SpatialReference(data).as_json_string(esri_format=True)
@@ -793,8 +797,6 @@ class SpatialReferenceTestCase(GeometryTestCase):
 
     def test_spatial_reference_is_valid_proj4_projection(self):
 
-        self.assertFalse(SpatialReference({"srs": "EPSG:nope"}).is_valid_proj4_projection())
-        self.assertFalse(SpatialReference({"srs": "EPSG:4326:nope"}).is_valid_proj4_projection())
         self.assertFalse(SpatialReference({"srs": 4326}).is_valid_proj4_projection())
         self.assertFalse(SpatialReference({"wkid": 33000}).is_valid_proj4_projection())
 

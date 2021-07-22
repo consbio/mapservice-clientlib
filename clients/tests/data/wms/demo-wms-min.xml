@@ -105,8 +105,8 @@
     <Abstract>This demonstration server showcases MapServer (www.mapserver.org) and its OGC support</Abstract>
     <SRS>EPSG:4326</SRS>
     <SRS>EPSG:4269</SRS>
-    <SRS>EPSG:3978</SRS>
     <SRS>EPSG:3857</SRS>
+    <SRS>EPSG:900913</SRS>
     <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90" />
     <BoundingBox SRS="EPSG:4326"
                 minx="-180" miny="-90" maxx="180" maxy="90" />

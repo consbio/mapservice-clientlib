@@ -17,9 +17,9 @@ from .exceptions import HTTPError, ImageError, ValidationError
 from .query.fields import DictField, ExtentField, ListField
 from .query.serializers import XMLToJSONSerializer
 from .resources import ClientResource
-from .utils.geometry import Extent, union_extent
+from .utils.geometry import Extent, SpatialReference, union_extent
 from .utils.images import make_color_transparent
-from .wms import WMS_DEFAULT_PARAMS, WMS_EXCEPTION_FORMAT, WMS_KNOWN_VERSIONS, NcWMSLayerResource
+from .wms import WMS_DEFAULT_PARAMS, WMS_EXCEPTION_FORMAT, WMS_KNOWN_VERSIONS, WMS_SRS_DEFAULT, NcWMSLayerResource
 
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,8 @@ RELATED_ENDPOINT_FIELDS = (
 
 
 class ThreddsResource(ClientResource):
+
+    _default_spatial_ref = WMS_SRS_DEFAULT
 
     # Base service fields
 
@@ -42,7 +44,6 @@ class ThreddsResource(ClientResource):
 
     feature_info_formats = ["image/png", "text/xml"]
     layer_drawing_limit = 1
-    spatial_ref = "EPSG:3857"
 
     # Derived from service fields
 
@@ -90,7 +91,7 @@ class ThreddsResource(ClientResource):
         return parts_to_url(parts, trailing_slash=has_trailing_slash(thredds_url))
 
     @classmethod
-    def get(cls, url, strict=True, lazy=True, session=None, **kwargs):
+    def get(cls, url, **kwargs):
         """ Overridden to parse the URL in case it includes the GetCapabilities request """
 
         parts = url_to_parts(url)
@@ -109,9 +110,9 @@ class ThreddsResource(ClientResource):
         parts.path[-1] = "catalog.xml"  # Ensure catalog service query
 
         thredds_url = parts_to_url(parts, trailing_slash=has_trailing_slash(url))
-        return super(ThreddsResource, cls).get(thredds_url, strict=strict, lazy=lazy, session=session, **kwargs)
+        return super(ThreddsResource, cls).get(thredds_url, **kwargs)
 
-    def _get(self, url, **kwargs):
+    def _get(self, url, spatial_ref=None, wms_version=None, **kwargs):
         """ Overridden to initialize URL's derived from a THREDDS endpoint """
 
         has_trailing = has_trailing_slash(url)
@@ -123,7 +124,8 @@ class ThreddsResource(ClientResource):
         parts["path"][-1] = "catalog.xml"
         self._service_url = parts_to_url(parts, trailing_slash=has_trailing)
 
-        self.wms_version = kwargs.get("wms_version", WMS_KNOWN_VERSIONS[-1])
+        self.spatial_ref = SpatialReference(spatial_ref or self._default_spatial_ref)
+        self.wms_version = wms_version or WMS_KNOWN_VERSIONS[-1]
 
     def populate_field_values(self, data):
         """ Overridden to populate from multiple end points """
@@ -405,10 +407,10 @@ class ThreddsResource(ClientResource):
             }
             if image_params["version"] == WMS_KNOWN_VERSIONS[1]:
                 image_params["exceptions"] = "XML"
-                image_params["crs"] = self.spatial_ref
+                image_params["crs"] = extent.spatial_reference.srs
             else:
                 image_params["exceptions"] = WMS_EXCEPTION_FORMAT
-                image_params["srs"] = self.spatial_ref
+                image_params["srs"] = extent.spatial_reference.srs
 
             # Note: time and custom params may require ordering to match layer - not clear from docs
             if time_range:

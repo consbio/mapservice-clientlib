@@ -108,7 +108,11 @@ class Extent(object):
                 spatial_reference = getattr(extent, "spatial_reference", None)
 
         else:
-            raise BadExtent("Invalid extent: must be dict, tuple or compatible object", extent=extent)
+            extent_type = type(extent).__name__
+            raise BadExtent(
+                f"Invalid extent: must be dict, tuple or compatible object, not {extent_type}",
+                extent=extent
+            )
 
         if any(not is_number(coord) for coord in (self.xmin, self.ymin, self.xmax, self.ymax)):
             raise BadExtent("Invalid extent coordinates", extent=extent)
@@ -301,9 +305,6 @@ class Extent(object):
             self.spatial_reference.srs = "EPSG:3857"
         elif self.spatial_reference.wkid:
             self.spatial_reference.srs = f"EPSG:{self.spatial_reference.wkid}"
-        elif self.spatial_reference.srs:
-            # Convert deprecated CRS format to one more common
-            self.spatial_reference.srs = self.spatial_reference.srs.replace("CRS:84", "EPSG:4326")
 
         # Apply y-axis corrections to avoid singularities in projection at latitude -90 or 90
         if self.spatial_reference.srs == "EPSG:4326":
@@ -324,7 +325,7 @@ class Extent(object):
         self._correct_for_projection()
 
         source_srs = self.spatial_reference.srs
-        from_epsg = source_srs.strip().lower().startswith("epsg:")
+        from_epsg = source_srs.strip().upper().startswith("EPSG:")
         source_proj = Proj(init=source_srs) if from_epsg else Proj(str(source_srs))
         target_proj = Proj(init=target_srs) if ":" in target_srs else Proj(str(target_srs))
 
@@ -446,13 +447,18 @@ class SpatialReference(object):
                 setattr(self, att, getattr(spatial_reference, att, None))
 
         else:
+            spatial_ref_type = type(spatial_reference).__name__
             raise BadSpatialReference(
-                "Invalid spatial reference: must be dict, string or compatible object",
+                f"Invalid spatial reference: must be dict, string or compatible object, not {spatial_ref_type}",
                 spatial_reference=spatial_reference
             )
 
-        if self.srs:
-            self.srs = (self.srs if isinstance(self.srs, str) else str(self.srs)).upper()
+        self.srs = str(self.srs or "").upper()
+
+        if self.srs == "CRS:84":
+            self.srs = "EPSG:4326"
+        if not self.wkid and self.srs.startswith("EPSG:"):
+            self.wkid = self.srs.split(":")[-1]
 
         if not (self.srs or self.wkid or self.wkt):
             raise BadSpatialReference("Invalid spatial reference: empty coordinate identifier")
@@ -481,7 +487,7 @@ class SpatialReference(object):
         elif self.wkt:
             return {"wkt": self.wkt}
         else:
-            return None
+            return {"srs": self.srs}
 
     def as_json_string(self, esri_format=True):
         return json.dumps(self.as_dict(esri_format))
@@ -499,8 +505,8 @@ class SpatialReference(object):
         """ If true, this can be projected using proj4; otherwise, need to use some external service to project """
 
         srs_prefix, srs_val = None, None
-        if ":" in (self.srs or ""):
-            srs_prefix, srs_val = (self.srs or "").split(":", 1)
+        if ":" in self.srs:
+            srs_prefix, srs_val = self.srs.split(":", 1)
 
         # Only WKIDs < 33000 map to EPSG codes, as per
         #    http://gis.stackexchange.com/questions/18651/do-arcgis-spatialreference-object-factory-codes-correspond-with-epsg-numbers
