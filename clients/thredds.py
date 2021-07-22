@@ -33,6 +33,7 @@ RELATED_ENDPOINT_FIELDS = (
 class ThreddsResource(ClientResource):
 
     default_spatial_ref = WMS_SRS_DEFAULT
+    styles_color_map = None
 
     # Base service fields
 
@@ -113,7 +114,7 @@ class ThreddsResource(ClientResource):
         thredds_url = parts_to_url(parts, trailing_slash=has_trailing_slash(url))
         return super(ThreddsResource, cls).get(thredds_url, **kwargs)
 
-    def _get(self, url, spatial_ref=None, wms_version=None, **kwargs):
+    def _get(self, url, styles_color_map=None, spatial_ref=None, wms_version=None, **kwargs):
         """ Overridden to initialize URL's derived from a THREDDS endpoint """
 
         has_trailing = has_trailing_slash(url)
@@ -127,6 +128,8 @@ class ThreddsResource(ClientResource):
 
         self.spatial_ref = SpatialReference(spatial_ref or self.default_spatial_ref)
         self.wms_version = wms_version or WMS_KNOWN_VERSIONS[-1]
+
+        self.styles_color_map = styles_color_map or {}
 
     def populate_field_values(self, data):
         """ Overridden to populate from multiple end points """
@@ -290,7 +293,8 @@ class ThreddsResource(ClientResource):
         return NcWMSLayerResource.get(
             layer_url,
             lazy=False,
-            data=layer_data,
+            color_map=self.styles_color_map,
+            layer_data=layer_data,
             session=(self._layer_session or self._session)
         )
 

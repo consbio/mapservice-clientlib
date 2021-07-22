@@ -42,10 +42,17 @@ class WMSTestCase(ResourceTestCase):
 
         # Test all variables with specified WMS version
 
+        styles_color_map = {
+            "alg": {
+                "name": "Algorithmic",
+                "colors": ["#CC00FF", "#00FFFF", "#CCFF33", "#FF9900", "#AA0000"]
+            }
+        }
         client = WMSResource.get(
             self.ncwms_url,
             lazy=True, token=token, version=version,
-            session=session, layer_session=layer_session
+            session=session, layer_session=layer_session,
+            styles_color_map=styles_color_map
         )
 
         # Test service level information

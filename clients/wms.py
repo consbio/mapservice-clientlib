@@ -81,15 +81,16 @@ class NcWMSLayerResource(ClientResource):
         case_sensitive_fields = False
         match_fuzzy_keys = True
 
-    def _get(self, url, data=None, **kwargs):
+    def _get(self, url, color_map=None, layer_data=None, **kwargs):
         """ Overridden to capture data known only to the parent NcWMSLayerResource """
 
-        self._data = data or {}
+        self._color_map = color_map or {}
+        self._layer_data = layer_data or {}
 
     def populate_field_values(self, data):
         """ Overridden to include data from parent NcWMSLayerResource """
 
-        data.update({k: v for k, v in self._data.items() if v or k not in data})
+        data.update({k: v for k, v in self._layer_data.items() if v or k not in data})
 
         super(NcWMSLayerResource, self).populate_field_values(data)
 
@@ -119,7 +120,7 @@ class NcWMSLayerResource(ClientResource):
 
         for palette in (p.lower() for p in self.palettes):
             style = f"boxfill/{palette}"
-            color = _STYLES_COLOR_MAP.get(palette, {})
+            color = self._color_map.get(palette, {})
 
             self.styles.append({
                 "id": style,
@@ -209,6 +210,12 @@ class WMSLayerResource(ClientResource):
         case_sensitive_fields = False
         match_fuzzy_keys = True
 
+    def __init__(self, color_map=None, **kwargs):
+        """ Overridden to pass a styles color map to NcWMSLayerResource"""
+
+        super(WMSLayerResource, self).__init__(**kwargs)
+        self._color_map = color_map or {}
+
     @classmethod
     def get(cls, url, **kwargs):
         raise NotImplementedError("WMSLayerResource cannot be fetched, only populated")
@@ -264,7 +271,10 @@ class WMSLayerResource(ClientResource):
             layer["parent"] = self
             layer["version"] = data["version"]
 
-            wms_layer = WMSLayerResource(session=(self._layer_session or self._session))
+            wms_layer = WMSLayerResource(
+                session=(self._layer_session or self._session),
+                color_map=self._color_map
+            )
             wms_layer.populate_field_values(layer)
             self.child_layers.append(wms_layer)
             self.full_extent = union_extent((self.full_extent, wms_layer.full_extent))
@@ -415,7 +425,8 @@ class WMSLayerResource(ClientResource):
                 ncwms_layer = NcWMSLayerResource.get(
                     layer_url,
                     lazy=False,
-                    data=layer_data,
+                    color_map=self._color_map,
+                    layer_data=layer_data,
                     session=(self._layer_session or self._session)
                 )
             except ClientError:
@@ -442,6 +453,7 @@ class WMSResource(ClientResource):
 
     default_spatial_ref = WMS_SRS_DEFAULT
     incoming_casing = "pascal"
+    styles_color_map = None
 
     title = TextField()
     description = TextField(name="abstract")
@@ -496,7 +508,7 @@ class WMSResource(ClientResource):
             parts_to_url(parts, trailing_slash=has_trailing_slash(url)), **kwargs
         )
 
-    def _get(self, url, token=None, token_id="token", version=None, spatial_ref=None, **kwargs):
+    def _get(self, url, spatial_ref=None, styles_color_map=None, token=None, token_id="token", version=None, **kwargs):
         """ Overridden to do some initialization and capture version and target coordinate reference """
 
         self._behind_proxy = self._url.rfind("http://") > 0 or self._url.rfind("https://") > 0
@@ -517,6 +529,8 @@ class WMSResource(ClientResource):
         # Populated before resource is loaded: must not be implemented as field definitions
         self.leaf_layers = {}
         self.root_layers = []
+
+        self.styles_color_map = styles_color_map or {}
 
     def _load_resource(self, as_unicode=False):
         """ Overridden to query XML as ASCII the first time: prevents unicode errors and duplicate requests """
@@ -563,7 +577,10 @@ class WMSResource(ClientResource):
             layer["wms"] = self
             layer["version"] = wms_data["version"]
 
-            wms_layer = WMSLayerResource(session=(self._layer_session or self._session))
+            wms_layer = WMSLayerResource(
+                color_map=self.styles_color_map,
+                session=(self._layer_session or self._session)
+            )
             wms_layer.populate_field_values(layer)
 
             self.root_layers.append(wms_layer)
@@ -762,59 +779,3 @@ class WMSResource(ClientResource):
             self._populate_ordered_layers()
 
         return self.ordered_layers  # Now that they are populated
-
-
-_STYLES_COLOR_MAP = {
-    # Custom NcWMS palettes
-    "alg": {"name": "Algorithmic", "colors": ["#CC00FF", "#00FFFF", "#CCFF33", "#FF9900", "#AA0000"]},
-    "alg2": {"name": "Algorithmic 2", "colors": ["#000066", "#00CCFF", "#99FF00", "#FF9900", "#660000"]},
-    "bugnyl": {"name": "Blue Green Yellow", "colors": ["#084081", "#2B8CBE", "#A8DDB5", "#E0F3DB", "#F7FCF0"]},
-    "burd": {"name": "Blue White Red", "colors": ["#2166AC", "#92C5DE", "#FDDBC7", "#D6604D", "#B2182B"]},
-    "buylrd": {"name": "Blue Yellow Red", "colors": ["#4575B4", "#ABD9E9", "#FEE090", "#F46D43", "#D73027"]},
-    "ferret": {"name": "Ferret", "colors": ["#CC00FF", "#00994D", "#FFFF00", "#FF0000", "#990000"]},
-    "gbbr": {"name": "Green Blue Brown", "colors": ["#01665E", "#80CDC1", "#F6E8C3", "#BF812D", "#8C510A"]},
-    "gnrp": {"name": "Green White Purple", "colors": ["#1B7837", "#A6DBA0", "#E7D4E8", "#9970AB", "#762A83"]},
-    "gnylrd": {"name": "Green Yellow Red", "colors": ["#1A9850", "#A6D96A", "#FEE08B", "#F46D43", "#D73027"]},
-    "greyscale": {"name": "Grey Scale", "colors": ["#2B2B2B", "#555555", "#808080", "#AAAAAA", "#FFFFFF"]},
-    "gypi": {"name": "Green White Pink", "colors": ["#4D9221", "#B8E186", "#FDE0EF", "#DE77AE", "#C51B7D"]},
-    "gyrd": {"name": "Grey White Red", "colors": ["#4D4D4D", "#BABABA", "#FDDBC7", "#D6604D", "#B2182B"]},
-    "invblues": {"name": "Inverted Blues", "colors": ["#F7FBFF", "#C6DBEF", "#4292C6", "#08519C", "#08306B"]},
-    "ncview": {"name": "NcView", "colors": ["#00008F", "#008BFF", "#87FF77", "#FF8700", "8C0000"]},
-    "occam": {"name": "Occam", "colors": ["#511FCC", "#0082D2", "#32C86A", "#A07232", "#781F1F"]},
-    "occam_pastel-30": {"name": "Occam Pastel", "colors": ["#DB58A6", "#5B91DE", "#73C644", "#BDA541", "#FF3233"]},
-    "orpu": {"name": "Purple White Orange", "colors": ["#542788", "#B2ABD2", "#FEE0B6", "#E08214", "#B35806"]},
-    "pastels": {"name": "Pastels", "colors": ["#D6D6FF", "#5A75ED", "#CDDB70", "#E6561E", "#C2915D"]},
-    "rainbow": {"name": "Rainbow", "colors": ["#00008F", "#008BFF", "#87FF77", "#FF8700", "#8C0000"]},
-    "redblue": {"name": "Blue White Red", "colors": ["#0000FF", "#5555FF", "#AAAAFF", "#FFFFFF", "#FF0000"]},
-    "sst_36": {"name": "Sea Surface Temperature", "colors": ["#000099", "#0082E3", "#D7D400", "#FB6C00", "#990000"]},
-    "ylbu": {"name": "Yellow Blue", "colors": ["#FFFFD9", "#C7E9B4", "#1D91C0", "#253494", "#081D58"]},
-
-    # Color Brewer palettes
-    "blues": {"name": "Blues", "colors": ["#EFF3FF", "#BDD7E7", "#6BAED6", "#3182BD", "#08519C"]},
-    "brbg": {"name": "Brown White Blue-green", "colors": ["#A6611A", "#DFC27D", "#F5F5F5", "#80CDC1", "#018571"]},
-    "bugn": {"name": "Blue Green", "colors": ["#EDF8FB", "#B2E2E2", "#66C2A4", "#2CA25F", "#006D2C"]},
-    "bupu": {"name": "White Blue Purple", "colors": ["#EDF8FB", "#B3CDE3", "#8C96C6", "#8856A7", "#810F7C"]},
-    "gnbu": {"name": "Green Blue", "colors": ["#F0F9E8", "#BAE4BC", "#7BCCC4", "#43A2CA", "#0868AC"]},
-    "greens": {"name": "Greens", "colors": ["#EDF8E9", "#BAE4B3", "#74C476", "#31A354", "#006D2C"]},
-    "greys": {"name": "Greys", "colors": ["#F7F7F7", "#CCCCCC", "#969696", "#636363", "#252525"]},
-    "oranges": {"name": "Oranges", "colors": ["#FEEDDE", "#FDBE85", "#FD8D3C", "#E6550D", "#A63603"]},
-    "orrd": {"name": "White Orange Red", "colors": ["#FEF0D9", "#FDCC8A", "#FC8D59", "#E34A33", "#B30000"]},
-    "piyg": {"name": "Pink Yellow Green", "colors": ["#D01C8B", "#F1B6DA", "#F7F7F7", "#B8E186", "#4DAC26"]},
-    "prgn": {"name": "Purple White Green", "colors": ["#7B3294", "#C2A5CF", "#F7F7F7", "#A6DBA0", "#008837"]},
-    "pubu": {"name": "White Purple Blue", "colors": ["#F1EEF6", "#BDC9E1", "#74A9CF", "#2B8CBE", "#045A8D"]},
-    "pubugn": {"name": "White Purple Blue-green", "colors": ["#F6EFF7", "#BDC9E1", "#67A9CF", "#1C9099", "#016C59"]},
-    "puor": {"name": "Purple White Orange", "colors": ["#E66101", "#FDB863", "#F7F7F7", "#B2ABD2", "#5E3C99"]},
-    "purd": {"name": "White Purple Red", "colors": ["#F1EEF6", "#D7B5D8", "#DF65B0", "#DD1C77", "#980043"]},
-    "purples": {"name": "Purples", "colors": ["#F2F0F7", "#CBC9E2", "#9E9AC8", "#756BB1", "#54278F"]},
-    "rdbu": {"name": "Red White Blue", "colors": ["#CA0020", "#F4A582", "#F7F7F7", "#92C5DE", "#0571B0"]},
-    "rdgy": {"name": "Red White Grey", "colors": ["#CA0020", "#F4A582", "#FFFFFF", "#BABABA", "#404040"]},
-    "rdpu": {"name": "White Red Purple", "colors": ["#FEEBE2", "#FBB4B9", "#F768A1", "#C51B8A", "#7A0177"]},
-    "rdylbu": {"name": "Red Yellow Blue", "colors": ["#D7191C", "#FDAE61", "#FFFFBF", "#ABD9E9", "#2C7BB6"]},
-    "rdylgn": {"name": "Red Yellow Green", "colors": ["#D7191C", "#FDAE61", "#FFFFBF", "#A6D96A", "#1A9641"]},
-    "reds": {"name": "Reds", "colors": ["#FEE5D9", "#FCAE91", "#FB6A4A", "#DE2D26", "#A50F15"]},
-    "spectral": {"name": "Spectral", "colors": ["#D7191C", "#FDAE61", "#FFFFBF", "#ABDDA4", "#2B83BA"]},
-    "ylgn": {"name": "Yellow Green", "colors": ["#FFFFCC", "#C2E699", "#78C679", "#31A354", "#006837"]},
-    "ylgnbu": {"name": "Yellow Green Blue", "colors": ["#FFFFCC", "#A1DAB4", "#41B6C4", "#2C7FB8", "#253494"]},
-    "ylorbr": {"name": "Yellow Orange Brown", "colors": ["#FFFFD4", "#FED98E", "#FE9929", "#D95F0E", "#993404"]},
-    "ylorrd": {"name": "Yellow Orange Red", "colors": ["#FFFFB2", "#FECC5C", "#FD8D3C", "#F03B20", "#BD0026"]}
-}

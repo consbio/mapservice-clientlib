@@ -120,7 +120,16 @@ class THREDDSTestCase(ResourceTestCase):
 
         # Test all variables with default WMS version (1.3.0)
 
-        client = ThreddsResource.get(self.catalog_url, lazy=True)
+        styles_color_map = {
+            "ferret": {
+                "name": "Ferret",
+                "colors": ["#CC00FF", "#00994D", "#FFFF00", "#FF0000", "#990000"]
+            }
+        }
+        client = ThreddsResource.get(
+            self.catalog_url, lazy=True,
+            styles_color_map=styles_color_map
+        )
 
         self.assertEqual(client.id, "NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc")
         self.assertEqual(client.title, "macav2metdata.nc")
