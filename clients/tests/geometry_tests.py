@@ -731,6 +731,9 @@ class SpatialReferenceTestCase(GeometryTestCase):
 
         # Test as_dict in ESRI format
 
+        result = SpatialReference("3857").as_dict(esri_format=True)
+        self.assertEqual(result, {"srs": "3857"})
+
         result = SpatialReference(data).as_dict(esri_format=True)
         self.assertEqual(result, {"wkid": 3857})
 

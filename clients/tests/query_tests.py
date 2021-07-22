@@ -4,7 +4,7 @@ from restle.serializers import JSONSerializer, URLSerializer
 
 from ..query.actions import QueryAction
 from ..query.fields import DictField, ListField, ObjectField
-from ..query.fields import ExtentField, SpatialReferenceField
+from ..query.fields import BaseExtentField, ExtentField, SpatialReferenceField
 from ..query.fields import CommaSeparatedField, DrawingInfoField, TimeInfoField
 from ..query.fields import DRAWING_INFO_ALIASES, TIME_INFO_ALIASES
 from ..query.serializers import XMLToJSONSerializer
@@ -186,6 +186,30 @@ class FieldsTestCase(BaseTestCase):
         setattr(target, "renderer", get_object(getattr(target, "renderer")))
         self.assert_objects_are_equal(result, target)
 
+    def test_base_extent_field(self):
+        field = BaseExtentField(name="to_python")
+
+        with self.assertRaises(NotImplementedError):
+            field.to_python(None, None)
+        with self.assertRaises(NotImplementedError):
+            field.to_python("value", None)
+        with self.assertRaises(NotImplementedError):
+            field.to_python(["value"], None)
+
+        data = (get_extent(), get_spatial_reference())
+
+        target = data[0].as_dict()
+        result = field.to_value(data[0], None)
+        self.assertEqual(result, target)
+
+        target = data[1].as_dict()
+        result = field.to_value(data[1], None)
+        self.assertEqual(result, target)
+
+        target = [d.as_dict() for d in data]
+        result = field.to_value(data, None)
+        self.assertEqual(result, target)
+
     def test_extent_field(self):
 
         for web_mercator in (True, False):
@@ -232,18 +256,6 @@ class FieldsTestCase(BaseTestCase):
             result = field.to_value(objects, resource)
             self.assertEqual(result, target)
 
-    def test_time_info_field(self):
-
-        # Create test data from constant: key:reversed_key for each item in dict
-        value = {k: TIME_INFO_ALIASES[k][::-1] for k in TIME_INFO_ALIASES}
-        field = TimeInfoField(name="aliases")
-        result = field.to_python(value, None)
-        # The target will have aliased properties for each value in the test data
-        target = get_object({
-            v: TIME_INFO_ALIASES[k][::-1] for k, v in TIME_INFO_ALIASES.items()
-        })
-        self.assert_objects_are_equal(result, target)
-
     def test_spatial_reference_field(self):
 
         data = (
@@ -283,6 +295,18 @@ class FieldsTestCase(BaseTestCase):
         target = [t.as_dict() for t in target]
         result = field.to_value(objects, None)
         self.assertEqual(result, target)
+
+    def test_time_info_field(self):
+
+        # Create test data from constant: key:reversed_key for each item in dict
+        value = {k: TIME_INFO_ALIASES[k][::-1] for k in TIME_INFO_ALIASES}
+        field = TimeInfoField(name="aliases")
+        result = field.to_python(value, None)
+        # The target will have aliased properties for each value in the test data
+        target = get_object({
+            v: TIME_INFO_ALIASES[k][::-1] for k, v in TIME_INFO_ALIASES.items()
+        })
+        self.assert_objects_are_equal(result, target)
 
 
 class ActionsTestCase(BaseTestCase):
