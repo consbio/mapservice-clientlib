@@ -182,7 +182,7 @@ client.service_client.full_extent  # ArcGISResource.full_extent
 
 ### Extent Utilities
 
-Public and private ScienceBase items may be queried:
+Extent objects have a number of useful methods. Here are some examples that support projection:
 
 ```python
 from clients.utils.geometry import Extent
@@ -195,6 +195,7 @@ extent_from_dict = Extent({
 web_mercator_extent = extent_from_dict.project_to_web_mercator()
 
 extent_from_list = Extent(
+    # In order of xmin, ymin, xmax, ymax
     [-20037508.342789244, -20037471.205137067, 20037508.342789244, 20037471.20513706],
     spatial_reference="EPSG:3857"
 )
