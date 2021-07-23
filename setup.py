@@ -23,7 +23,7 @@ with open("README.md") as readme:
 
 
 setup(
-    name="mapservice-clients",
+    name="mapservice-clientlib",
     description="Library to query mapservices including ArcGIS, THREDDS, WMS and ScienceBase",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -37,7 +37,7 @@ setup(
         "Pillow==7.2.*", "pyproj==2.6.1", "python-ags==0.3.2", "sciencebasepy==1.6.4"
     ],
     tests_require=["mock", "requests-mock"],
-    url="https://github.com/consbio/mapservice-clients",
+    url="https://github.com/consbio/mapservice-clientlib",
     license="BSD",
     cmdclass={"test": RunTests}
 )
