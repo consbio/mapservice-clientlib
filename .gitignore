@@ -5,5 +5,5 @@
 __pycache__/
 /build/
 /dist/
-/mapservices-clientlib.egg-info/
-/mapservices_clientlib.egg-info/
+/mapservice-clientlib.egg-info/
+/mapservice_clientlib.egg-info/
