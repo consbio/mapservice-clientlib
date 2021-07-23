@@ -28,9 +28,9 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     keywords="arcgis,thredds,ncwms,wms,sciencebase,geospatial,gis,mapservice,map service,clients,mapservice_clientlib",
-    version="0.1",
+    version="0.1.0",
     packages=[
-        "clients", "clients.tests"
+        "clients", "clients.query", "clients.tests", "clients.utils"
     ],
     install_requires=[
         "gis-metadata-parser", "parserutils>=1.2.4", "restle",
