@@ -8,7 +8,7 @@ from parserutils.collections import setdefaults
 
 from ..arcgis import ArcGISSecureResource, MapServerResource, FeatureServerResource, ImageServerResource
 from ..arcgis import MapLayerResource, FeatureLayerResource, GeometryServiceClient
-from ..exceptions import BadExtent, BadTileScheme, NoLayers, ValidationError
+from ..exceptions import BadExtent, BadTileScheme, NoLayers, UnsupportedVersion
 from ..exceptions import ContentError, HTTPError, ImageError, ServiceError
 from ..query.fields import RENDERER_DEFAULTS
 from ..utils.conversion import to_renderer
@@ -172,15 +172,21 @@ class ArcGISTestCase(ResourceTestCase):
         # Test service level errors
 
         error_url = self.map_version_error_url
-        with self.assertRaises(ValidationError, msg=f"ValidationError not raised for map service: {error_url}"):
+        with self.assertRaises(
+            UnsupportedVersion, msg=f"UnsupportedVersion not raised for map service: {error_url}"
+        ):
             MapServerResource.get(error_url, lazy=False)
 
         error_url = self.feature_version_error_url
-        with self.assertRaises(ValidationError, msg=f"ValidationError not raised for feature service: {error_url}"):
+        with self.assertRaises(
+            UnsupportedVersion, msg=f"UnsupportedVersion not raised for feature service: {error_url}"
+        ):
             FeatureServerResource.get(error_url, lazy=False)
 
         error_url = self.image_version_error_url
-        with self.assertRaises(ValidationError, msg=f"ValidationError not raised for image service: {error_url}"):
+        with self.assertRaises(
+            UnsupportedVersion, msg=f"UnsupportedVersion not raised for image service: {error_url}"
+        ):
             ImageServerResource.get(error_url, lazy=False)
 
         error_url = self.empty_url
@@ -212,11 +218,11 @@ class ArcGISTestCase(ResourceTestCase):
         # Test layer level errors
 
         error_url = self.map_layer_version_error_url
-        with self.assertRaises(ValidationError, msg=f"ValidationError not raised for map layer: {error_url}"):
+        with self.assertRaises(UnsupportedVersion, msg=f"ValidationError not raised for map layer: {error_url}"):
             MapLayerResource.get(error_url, lazy=False)
 
         error_url = self.feature_layer_version_error_url
-        with self.assertRaises(ValidationError, msg=f"ValidationError not raised for feature layer: {error_url}"):
+        with self.assertRaises(UnsupportedVersion, msg=f"ValidationError not raised for feature layer: {error_url}"):
             FeatureLayerResource.get(error_url, lazy=False)
 
         session = self.mock_mapservice_session(self.empty_path)
@@ -233,6 +239,50 @@ class ArcGISTestCase(ResourceTestCase):
                 MapLayerResource.get(self.map_layer_url, lazy=False, session=session)
             with self.assertRaises(ServiceError, msg=f"ServiceError not raised for feature layer: {error_url}"):
                 FeatureLayerResource.get(self.feature_layer_url, lazy=False, session=session)
+
+    @requests_mock.Mocker()
+    def test_bypass_version(self, mock_request):
+        self.mock_arcgis_client(mock_request, "error")
+
+        feature_layers_url = "https://arcgis.com/errors/arcgis/rest/services/Version/FeatureServer/layers?f=json"
+        self.mock_mapservice_request(mock_request.post, feature_layers_url, self.feature_layer_id_path)
+
+        map_layers_url = "https://arcgis.com/errors/arcgis/rest/services/Version/MapServer/layers?f=json"
+        self.mock_mapservice_request(mock_request.get, map_layers_url, self.map_layers_path)
+
+        map_legend_url = "https://arcgis.com/errors/arcgis/rest/services/Version/MapServer/legend/?f=json"
+        self.mock_mapservice_request(mock_request.get, map_legend_url, self.map_legend_path)
+
+        # Test image server version bypass
+
+        error_url = self.image_version_error_url
+        client = ImageServerResource.get(error_url, lazy=False, strict=False, bypass_version=True)
+        self.assertEqual(client.name, "bad_version")
+        self.assertEqual(client.version, 10.01)
+
+        # Test feature server and layer version bypass
+
+        error_url = self.feature_version_error_url
+        client = FeatureServerResource.get(error_url, lazy=False, strict=False, bypass_version=True)
+        self.assertEqual(client.service_description, "bad_version")
+        self.assertEqual(client.version, 10.0)
+
+        error_url = self.feature_layer_version_error_url
+        client = FeatureLayerResource.get(error_url, lazy=False, strict=False, bypass_version=True)
+        self.assertEqual(client.name, "bad_version")
+        self.assertEqual(client.version, 10.0)
+
+        # Test map server and layer version bypass
+
+        error_url = self.map_version_error_url
+        client = MapServerResource.get(error_url, lazy=False, strict=False, bypass_version=True)
+        self.assertEqual(client.service_description, "bad_version")
+        self.assertEqual(client.version, 10)
+
+        error_url = self.map_layer_version_error_url
+        client = MapLayerResource.get(error_url, lazy=False, strict=False, bypass_version=True)
+        self.assertEqual(client.name, "bad_version")
+        self.assertEqual(client.version, 10)
 
     @requests_mock.Mocker()
     def test_valid_geometry_request(self, mock_request):

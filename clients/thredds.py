@@ -117,6 +117,8 @@ class ThreddsResource(ClientResource):
     def _get(self, url, styles_color_map=None, spatial_ref=None, wms_version=None, **kwargs):
         """ Overridden to initialize URL's derived from a THREDDS endpoint """
 
+        super(ThreddsResource, self)._get(url, **kwargs)
+
         has_trailing = has_trailing_slash(url)
         parts = url_to_parts(url)._asdict()
 

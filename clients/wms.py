@@ -84,6 +84,8 @@ class NcWMSLayerResource(ClientResource):
     def _get(self, url, color_map=None, layer_data=None, **kwargs):
         """ Overridden to capture data known only to the parent NcWMSLayerResource """
 
+        super(NcWMSLayerResource, self)._get(url, **kwargs)
+
         self._color_map = color_map or {}
         self._layer_data = layer_data or {}
 
@@ -510,6 +512,8 @@ class WMSResource(ClientResource):
 
     def _get(self, url, spatial_ref=None, styles_color_map=None, token=None, token_id="token", version=None, **kwargs):
         """ Overridden to do some initialization and capture version and target coordinate reference """
+
+        super(WMSResource, self)._get(url, **kwargs)
 
         self._behind_proxy = self._url.rfind("http://") > 0 or self._url.rfind("https://") > 0
 

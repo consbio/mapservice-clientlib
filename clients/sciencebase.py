@@ -244,6 +244,8 @@ class ScienceBaseResource(ClientResource):
         If none of the above are provided, this resource will work only with public ScienceBase items.
         """
 
+        super(ScienceBaseResource, self)._get(url, **kwargs)
+
         self._external_id = get_base_url(url, True).split("/")[-1]
 
         # Prepare USGS (josso) session

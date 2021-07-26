@@ -22,7 +22,9 @@ class ClientResource(Resource):
     minimum_version = None
     supported_versions = ()
 
-    _session = None
+    # Defaults for vars instantiated in Resource.get
+
+    _bypass_version = False
     _layer_session = None
 
     def __init__(self, default_spatial_ref=None, **kwargs):
@@ -36,6 +38,9 @@ class ClientResource(Resource):
             self.default_spatial_ref = default_spatial_ref
 
         super(ClientResource, self).__init__(session=session, **kwargs)
+
+        self._lazy = True
+        self._params = self._params or {}
 
         # Convert casing of field names to expected values from API
 
@@ -105,10 +110,10 @@ class ClientResource(Resource):
 
         bulk_keys = bulk_key.split(".") if bulk_key else None
 
-        return cls._bulk_get(self._url, bulk_data, bulk_keys, bulk_defaults=bulk_defaults)
+        return cls._bulk_get(self._url, bulk_data, bulk_keys, bulk_defaults=bulk_defaults, **kwargs)
 
     @classmethod
-    def _bulk_get(cls, url, bulk_data, bulk_keys, objects=None, obj=None, fields=None, bulk_defaults=None):
+    def _bulk_get(cls, url, bulk_data, bulk_keys, objects=None, obj=None, fields=None, bulk_defaults=None, **kwargs):
         """
         Recursively iterates over bulk_keys nested in bulk_data, applying accumulated field data to each.
         Values found at the innermost nested levels overwrite values at the same key above, and only values
@@ -159,6 +164,7 @@ class ClientResource(Resource):
                     setdefaults(data, bulk_defaults)
 
                 resource = cls()
+                resource._get(url, **kwargs)
                 resource._url = url
                 resource.populate_field_values(data)
                 objects.append(resource)
@@ -173,7 +179,6 @@ class ClientResource(Resource):
         self = super(ClientResource, cls).get(url, strict=strict, lazy=True, session=session)
         self._lazy = lazy
         self._strict = strict
-        self._layer_session = kwargs.pop("layer_session", None)
 
         self._get(url, strict=strict, lazy=lazy, session=session, **kwargs)
 
@@ -184,6 +189,9 @@ class ClientResource(Resource):
 
     def _get(self, url, **kwargs):
         """ Override in children to implement pre-load functionality after instance creation in get """
+
+        self._bypass_version = kwargs.pop("bypass_version", False)
+        self._layer_session = kwargs.pop("layer_session", None) or self._session
 
     def _load_resource(self, as_unicode=True):
         """ Overridden to customize clients exception handling """
@@ -280,6 +288,9 @@ class ClientResource(Resource):
 
     def validate_version(self, version=None):
         """ Validates version against min and max defined on resource """
+
+        if self._bypass_version:
+            return
 
         version = version or self.version
         invalid, supported = None, None

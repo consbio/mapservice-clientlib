@@ -143,6 +143,8 @@ class ArcGISSecureResource(ClientResource):
     def _get(self, url, username=None, password=None, token=None, **kwargs):
         """ Overridden to capture URL info, and manage optional secure ArcGIS credentials """
 
+        super(ArcGISSecureResource, self)._get(url, **kwargs)
+
         parsed_url = urlsplit(url)
 
         self.hostname = parsed_url.netloc
@@ -551,6 +553,7 @@ class MapServerResource(ArcGISTiledImageResource):
             layer_url,
             strict=self._strict,
             session=(self._layer_session or self._session),
+            bypass_version=self._bypass_version,
             bulk_key="layers", bulk_defaults={"currentVersion": self.version},
             **self.arcgis_credentials
         )
@@ -567,38 +570,38 @@ class MapServerResource(ArcGISTiledImageResource):
 
         # Load all legends from the only known legend end point, and assign them to each layer
 
-        if "/MapServer" in self._url:
-            legend_url = "{0}/legend/".format(self._url.strip("/"))
-            legend_elements = MapLegendResource.bulk_get(
-                legend_url,
-                strict=self._strict,
-                session=(self._layer_session or self._session),
-                bulk_key="layers.legend", bulk_defaults={"currentVersion": self.version},
-                **self.arcgis_credentials
-            )
+        legend_url = "{0}/legend/".format(self._url.strip("/"))
+        legend_elements = MapLegendResource.bulk_get(
+            legend_url,
+            strict=self._strict,
+            session=(self._layer_session or self._session),
+            bypass_version=self._bypass_version,
+            bulk_key="layers.legend", bulk_defaults={"currentVersion": self.version},
+            **self.arcgis_credentials
+        )
 
-            # Assign separately queried legend elements to respective layers
+        # Assign separately queried legend elements to respective layers
 
-            legend_map = accumulate_items((le.layer_id, le) for le in legend_elements)
-            for layer in self.layers:
-                layer.legend = legend_map.get(layer.id, [])
+        legend_map = accumulate_items((le.layer_id, le) for le in legend_elements)
+        for layer in self.layers:
+            layer.legend = legend_map.get(layer.id, [])
 
-            # Update legend element images for raster layers with more than three elements
+        # Update legend element images for raster layers with more than three elements
 
-            for layer in (l for l in self.layers if "raster" in l.type.lower() and len(l.legend) >= 3):
-                max_colors = max([count_colors(base64_to_image(l.image_base64)) for l in layer.legend])
+        for layer in (l for l in self.layers if "raster" in l.type.lower() and len(l.legend) >= 3):
+            max_colors = max([count_colors(base64_to_image(l.image_base64)) for l in layer.legend])
 
-                if max_colors and max_colors > 3 and len(layer.legend) == 3:
-                    # If there are more than 3 colors (transparent, border, fill), then this is stretched.
-                    # But we only need to do something different if there are 3 patches (most common)
-                    images = []
-                    for element in layer.legend:
-                        images.append(base64_to_image(element.image_base64))
-                        element.image_base64 = None
-                        element.url = None
+            if max_colors and max_colors > 3 and len(layer.legend) == 3:
+                # If there are more than 3 colors (transparent, border, fill), then this is stretched.
+                # But we only need to do something different if there are 3 patches (most common)
+                images = []
+                for element in layer.legend:
+                    images.append(base64_to_image(element.image_base64))
+                    element.image_base64 = None
+                    element.url = None
 
-                    # Only middle element gets the color patch
-                    layer.legend[1].image_base64 = image_to_base64(stack_images_vertically(images))
+                # Only middle element gets the color patch
+                layer.legend[1].image_base64 = image_to_base64(stack_images_vertically(images))
 
     def get_image(
         self, extent, width, height, custom_renderers=None, layer_defs=None, layers="", time="", **kwargs

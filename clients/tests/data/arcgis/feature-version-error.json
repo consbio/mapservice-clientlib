@@ -1,7 +1,7 @@
 {
   "currentVersion": 10.0,
   "serviceItemId": "bad_version",
-  "serviceDescription": "",
+  "serviceDescription": "bad_version",
   "hasVersionedData": false,
   "supportsDisconnectedEditing": false,
   "hasStaticData": false,

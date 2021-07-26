@@ -252,11 +252,27 @@ class ClientResourceTestCase(ResourceTestCase):
 
     def test_validate_version(self):
 
+        # Test minimum version support
+
         session = self.mock_mapservice_session(self.min_path)
+        client = TestClientResource.get(
+            self.min_url, lazy=False, session=session, bypass_version=True
+        )
+        self.assertEqual(client.id, "invalid_min")
+        self.assertEqual(client.version, 9.9)
+
         with self.assertRaises(UnsupportedVersion):
             TestClientResource.get(self.min_url, lazy=False, session=session)
 
+        # Test maximum version support
+
         session = self.mock_mapservice_session(self.max_path)
+        client = TestClientResource.get(
+            self.min_url, lazy=False, session=session, bypass_version=True
+        )
+        self.assertEqual(client.id, "invalid_max")
+        self.assertEqual(client.version, 70.8)
+
         with self.assertRaises(UnsupportedVersion):
             TestClientResource.get(self.max_url, lazy=False, session=session)
 
