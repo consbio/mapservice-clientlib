@@ -1,8 +1,6 @@
 import copy
 import requests
 
-from keyring.util.properties import ClassProperty
-
 from parserutils.collections import setdefaults, wrap_value
 from parserutils.strings import ALPHANUMERIC, snake_to_camel
 from restle.resources import Resource
@@ -10,6 +8,7 @@ from restle.exceptions import HTTPException, MissingFieldException, NotFoundExce
 
 from .exceptions import ClientError, ContentError, HTTPError, MissingFields
 from .exceptions import NetworkError, ServiceError, ServiceTimeout, UnsupportedVersion
+from .utils import classproperty
 from .utils.conversion import to_words
 
 
@@ -69,7 +68,7 @@ class ClientResource(Resource):
     def service_url(self, value):
         self._service_url = value
 
-    @ClassProperty
+    @classproperty
     @classmethod
     def client_name(cls):
         return to_words(cls).replace("resource", "client")
