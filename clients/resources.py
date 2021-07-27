@@ -1,6 +1,8 @@
 import copy
 import requests
 
+from keyring.util.properties import ClassProperty
+
 from parserutils.collections import setdefaults, wrap_value
 from parserutils.strings import ALPHANUMERIC, snake_to_camel
 from restle.resources import Resource
@@ -8,6 +10,7 @@ from restle.exceptions import HTTPException, MissingFieldException, NotFoundExce
 
 from .exceptions import ClientError, ContentError, HTTPError, MissingFields
 from .exceptions import NetworkError, ServiceError, ServiceTimeout, UnsupportedVersion
+from .utils.conversion import to_words
 
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (compatible; +https://databasin.org)"
@@ -65,6 +68,11 @@ class ClientResource(Resource):
     @service_url.setter
     def service_url(self, value):
         self._service_url = value
+
+    @ClassProperty
+    @classmethod
+    def client_name(cls):
+        return to_words(cls).replace("resource", "client")
 
     @classmethod
     def bulk_get(cls, url, strict=True, session=None, bulk_key=None, bulk_defaults=None, **kwargs):
@@ -275,15 +283,18 @@ class ClientResource(Resource):
             present = set((snake_to_camel(k) if to_camel else k).lower() for k in data)
             missing = [m for m in self._required_fields if m.lower() not in present]
 
+            fields = ", ".join(missing)
+            client = self.client_name
+
             raise MissingFields(
-                "The map service is missing required fields",
+                f"The {client} client is missing required fields: {fields}",
                 missing=missing, underlying=ex, url=self._url
             )
 
         self.validate_version()
 
     def get_image(self, extent, width, height, **kwargs):
-        class_name = self.__class__.__name__
+        class_name = type(self).__name__
         raise NotImplementedError(f"{class_name}.get_image")
 
     def validate_version(self, version=None):

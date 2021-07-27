@@ -956,7 +956,7 @@ class FeatureLayerResource(ArcGISLayerResource):
         :param query_results:
             An executed query as defined by clients.query.actions.QueryAction
         """
-        class_name = self.__class__.__name__
+        class_name = type(self).__name__
         raise NotImplementedError(f"{class_name}.generate_sub_image")
 
 

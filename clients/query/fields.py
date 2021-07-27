@@ -157,7 +157,7 @@ class BaseExtentField(DictField):
             return [self._py_to_val(o, resource) for o in obj]
 
     def _val_to_py(self, value, resource):
-        class_name = self.__class__.__name__
+        class_name = type(self).__name__
         raise NotImplementedError(f"{class_name}._val_to_py")
 
     def _py_to_val(self, obj, resource):

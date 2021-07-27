@@ -1,11 +1,25 @@
 import json
 
-from parserutils.numbers import is_number
+from parserutils.strings import camel_to_snake
 
 from ..query.fields import RENDERER_ALIASES
 from ..query.fields import DictField, ObjectField
 
 from .geometry import Extent
+
+
+def to_words(cls_instance_or_name, as_string=True):
+
+    if isinstance(cls_instance_or_name, type):
+        class_name = cls_instance_or_name.__name__
+    elif not isinstance(cls_instance_or_name, str):
+        class_name = type(cls_instance_or_name).__name__
+    else:
+        class_name = cls_instance_or_name
+
+    class_words = camel_to_snake(class_name).split("_")
+
+    return " ".join(class_words) if as_string else class_words
 
 
 def to_object(json_or_dict, aliases=None, from_camel=True, defaults=None):

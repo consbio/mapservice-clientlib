@@ -124,15 +124,23 @@ class ClientResourceTestCase(ResourceTestCase):
 
         return session
 
+    def test_client_name(self):
+
+        result = TestResource.client_name
+        self.assertEqual(result, "test client")
+
+        result = TestResource().client_name
+        self.assertEqual(result, "test client")
+
     def test_valid_bulk_get(self):
 
         # Test without bulk keys (flat JSON array)
         session = self.mock_bulk_session(self.bulk_path)
-        self.assert_bulk_clients(TestClientResource.bulk_get(self.bulk_url, session=session))
+        self.assert_bulk_clients(TestResource.bulk_get(self.bulk_url, session=session))
 
         # Test with bulk keys (nested JSON array)
         session = self.mock_bulk_session(self.bulk_key_path)
-        self.assert_bulk_clients(TestClientResource.bulk_get(self.bulk_key_url, bulk_key="objects", session=session))
+        self.assert_bulk_clients(TestResource.bulk_get(self.bulk_key_url, bulk_key="objects", session=session))
 
     def test_invalid_bulk_get(self):
 
@@ -140,7 +148,7 @@ class ClientResourceTestCase(ResourceTestCase):
 
         session = self.mock_bulk_session(self.bulk_path, ok=False)
         with self.assertRaises(HTTPError):
-            TestClientResource.bulk_get(self.bulk_url, session=session)
+            TestResource.bulk_get(self.bulk_url, session=session)
 
         # Test invalid JSON response
 
@@ -148,7 +156,7 @@ class ClientResourceTestCase(ResourceTestCase):
         session.get.return_value.json.side_effect = ValueError
 
         with self.assertRaises(ContentError):
-            TestClientResource.bulk_get(self.bulk_url, session=session)
+            TestResource.bulk_get(self.bulk_url, session=session)
 
         # Test all other explicitly handled exceptions
 
@@ -156,15 +164,15 @@ class ClientResourceTestCase(ResourceTestCase):
 
         session.get.side_effect = exceptions.Timeout
         with self.assertRaises(ServiceTimeout):
-            TestClientResource.bulk_get(self.bulk_url, session=session)
+            TestResource.bulk_get(self.bulk_url, session=session)
 
         session.get.side_effect = exceptions.RequestException
         with self.assertRaises(NetworkError):
-            TestClientResource.bulk_get(self.bulk_url, session=session)
+            TestResource.bulk_get(self.bulk_url, session=session)
 
     def test_valid_load_resource(self):
         session = self.mock_mapservice_session(self.client_path)
-        client = TestClientResource.get(self.client_url, lazy=False, session=session)
+        client = TestResource.get(self.client_url, lazy=False, session=session)
 
         self.assertEqual(client.minimum_version, 10)
         self.assertEqual(client.supported_versions, (10.2, 30, 40.5))
@@ -203,7 +211,7 @@ class ClientResourceTestCase(ResourceTestCase):
 
         session = self.mock_mapservice_session(self.client_path, ok=False)
         with self.assertRaises(HTTPError):
-            TestClientResource.get(self.client_url, lazy=False, session=session)
+            TestResource.get(self.client_url, lazy=False, session=session)
 
         # Test invalid JSON response
 
@@ -211,7 +219,7 @@ class ClientResourceTestCase(ResourceTestCase):
         session.get.return_value.json.side_effect = ValueError
 
         with self.assertRaises(ContentError):
-            TestClientResource.get(self.not_json_url, lazy=False, session=session)
+            TestResource.get(self.not_json_url, lazy=False, session=session)
 
         # Test service errors for unauthorized and permission denied
 
@@ -220,7 +228,7 @@ class ClientResourceTestCase(ResourceTestCase):
         for status_code in (401, 403):
             session.get.return_value.status_code = status_code
             with self.assertRaises(ServiceError):
-                TestClientResource.get(self.client_url, lazy=False, session=session)
+                TestResource.get(self.client_url, lazy=False, session=session)
 
         # Test all other explicitly handled exceptions
 
@@ -228,25 +236,25 @@ class ClientResourceTestCase(ResourceTestCase):
 
         session.get.side_effect = exceptions.Timeout
         with self.assertRaises(ServiceTimeout):
-            TestClientResource.get(self.client_url, lazy=False, session=session)
+            TestResource.get(self.client_url, lazy=False, session=session)
 
         session.get.side_effect = exceptions.RequestException
         with self.assertRaises(NetworkError):
-            TestClientResource.get(self.client_url, lazy=False, session=session)
+            TestResource.get(self.client_url, lazy=False, session=session)
 
         session.get.side_effect = UnicodeEncodeError("ascii", r"\x00\x00", 1, 2, "invalid bytes")
         with self.assertRaises(UnicodeEncodeError):
-            TestClientResource.get(self.client_url, lazy=False, session=session)
+            TestResource.get(self.client_url, lazy=False, session=session)
 
     def test_get_image(self):
         session = self.mock_mapservice_session(self.client_path)
 
-        client = TestClientResource.get(self.client_url, lazy=False, session=session)
+        client = TestResource.get(self.client_url, lazy=False, session=session)
         with self.assertRaises(NotImplementedError):
             client.get_image(get_extent(), 32, 32)
 
         session = self.mock_bulk_session(self.bulk_path)
-        for client in TestClientResource.bulk_get(self.bulk_url, session=session):
+        for client in TestResource.bulk_get(self.bulk_url, session=session):
             with self.assertRaises(NotImplementedError):
                 client.get_image(get_extent(), 32, 32)
 
@@ -255,29 +263,29 @@ class ClientResourceTestCase(ResourceTestCase):
         # Test minimum version support
 
         session = self.mock_mapservice_session(self.min_path)
-        client = TestClientResource.get(
+        client = TestResource.get(
             self.min_url, lazy=False, session=session, bypass_version=True
         )
         self.assertEqual(client.id, "invalid_min")
         self.assertEqual(client.version, 9.9)
 
         with self.assertRaises(UnsupportedVersion):
-            TestClientResource.get(self.min_url, lazy=False, session=session)
+            TestResource.get(self.min_url, lazy=False, session=session)
 
         # Test maximum version support
 
         session = self.mock_mapservice_session(self.max_path)
-        client = TestClientResource.get(
+        client = TestResource.get(
             self.min_url, lazy=False, session=session, bypass_version=True
         )
         self.assertEqual(client.id, "invalid_max")
         self.assertEqual(client.version, 70.8)
 
         with self.assertRaises(UnsupportedVersion):
-            TestClientResource.get(self.max_url, lazy=False, session=session)
+            TestResource.get(self.max_url, lazy=False, session=session)
 
 
-class TestClientResource(ClientResource):
+class TestResource(ClientResource):
 
     incoming_casing = "camel"
     minimum_version = 10
