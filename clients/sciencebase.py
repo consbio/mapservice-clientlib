@@ -222,6 +222,7 @@ class ScienceBaseResource(ClientResource):
             self._service_client = WMSResource.get(
                 self.service_url, lazy=True, token=self._token, token_id="josso"
             )
+            self.josso_credentials.update(self._service_client.wms_credentials)
 
         if not self._lazy:
             self._service_client._load_resource()

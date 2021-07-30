@@ -68,7 +68,9 @@ class WMSTestCase(ResourceTestCase):
 
         self.assertEqual(client.version, version)
         self.assertEqual(client._token, token)
+        self.assertEqual(client._token_id, "token")
         self.assertEqual(client._params.get("token"), token)
+        self.assertEqual(client.wms_credentials, {"token_id": "token", "token": token})
 
         self.assertEqual(client.feature_info_formats, ["image/png", "text/xml"])
         self.assertEqual(client.map_formats, ["image/png", "image/gif", "image/jpeg"])
@@ -267,7 +269,8 @@ class WMSTestCase(ResourceTestCase):
         client = WMSResource.get(
             self.wms_url,
             lazy=False, session=session,
-            spatial_ref="EPSG:900913", token=token, version=version
+            spatial_ref="EPSG:900913",
+            token_id="josso", token=token, version=version
         )
 
         # Test service level information
@@ -275,7 +278,7 @@ class WMSTestCase(ResourceTestCase):
         if not token:
             self.assertEqual(client.wms_url, self.wms_url)
         else:
-            self.assertEqual(client.wms_url, f"{self.wms_url}?token={token}")
+            self.assertEqual(client.wms_url, f"{self.wms_url}?josso={token}")
 
         self.assertEqual(client.title, "WMS Demo Server for MapServer")
         self.assertEqual(client.description, "This demonstration server showcases MapServer")
@@ -283,7 +286,9 @@ class WMSTestCase(ResourceTestCase):
 
         self.assertEqual(client.version, version)
         self.assertEqual(client._token, token)
-        self.assertEqual(client._params.get("token"), token)
+        self.assertEqual(client._token_id, "josso")
+        self.assertEqual(client._params.get("josso"), token)
+        self.assertEqual(client.wms_credentials, {"token_id": "josso", "josso": token})
 
         self.assertEqual(client.feature_info_formats, ["text/html", "application/vnd.ogc.gml", "text/plain"])
         self.assertEqual(client.map_formats, ["image/png", "image/jpeg", "application/json"])

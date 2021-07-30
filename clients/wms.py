@@ -523,18 +523,20 @@ class WMSResource(ClientResource):
         self._ordered_layers = []  # Populated before resource is loaded, or anytime afterwards if self._lazy
 
         self._spatial_ref = spatial_ref or self.default_spatial_ref
+        self.styles_color_map = styles_color_map or {}
 
         self._token = token
+        self._token_id = token_id
         if token is not None:
             self._params[token_id] = token
+
+        self.wms_credentials = {"token_id": self._token_id, self._token_id: self._token}
 
         self._params["version"] = version or WMS_KNOWN_VERSIONS[-1]
 
         # Populated before resource is loaded: must not be implemented as field definitions
         self.leaf_layers = {}
         self.root_layers = []
-
-        self.styles_color_map = styles_color_map or {}
 
     def _load_resource(self, as_unicode=False):
         """ Overridden to query XML as ASCII the first time: prevents unicode errors and duplicate requests """
@@ -716,7 +718,7 @@ class WMSResource(ClientResource):
                 "version": (params or {}).get("version") or self.version
             }
             if self._token:
-                image_params["token"] = self._token
+                image_params[self._token_id] = self._token
 
             if image_params["version"] == WMS_KNOWN_VERSIONS[1]:
                 image_params["exceptions"] = "XML"
