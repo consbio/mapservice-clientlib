@@ -22,6 +22,7 @@ from .query.actions import QueryAction
 from .query.fields import CommaSeparatedField, DrawingInfoField, ExtentField
 from .query.fields import ObjectField, SpatialReferenceField, TimeInfoField
 from .resources import ClientResource, DEFAULT_USER_AGENT
+from .utils import classproperty
 from .utils.conversion import to_renderer
 from .utils.geometry import Extent, TileLevels, SpatialReference
 from .utils.images import base64_to_image, count_colors, image_to_base64, overlay_images
@@ -68,6 +69,8 @@ class ArcGISResource(ClientResource):
 
     time_enabled = False
     time_info = TimeInfoField(required=False)
+
+    _client_descriptor = "ArcGIS"
 
     def get_time_info_prop(self, prop, default=None):
         val = getattr(self.time_info, prop, None)
@@ -179,6 +182,12 @@ class ArcGISServerResource(ArcGISResource, ArcGISSecureResource):
     spatial_reference = SpatialReferenceField()
 
     tables = ObjectField(class_name="Table", required=False)
+
+    @classproperty
+    @classmethod
+    def service_name(cls):
+        service_name = super(ArcGISServerResource, cls).service_name
+        return service_name.replace("server service", "service")
 
     def populate_field_values(self, data):
 
@@ -503,6 +512,8 @@ class MapLegendResource(ArcGISSecureResource):
     height = IntegerField()
     width = IntegerField()
     values = ObjectField(class_name="LegendValue", required=False)
+
+    _client_descriptor = ArcGISResource._client_descriptor
 
     class Meta:
         case_sensitive_fields = False

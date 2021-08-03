@@ -127,10 +127,18 @@ class ClientResourceTestCase(ResourceTestCase):
     def test_client_name(self):
 
         result = TestResource.client_name
-        self.assertEqual(result, "test client")
+        self.assertEqual(result, "custom test client")
 
         result = TestResource().client_name
-        self.assertEqual(result, "test client")
+        self.assertEqual(result, "custom test client")
+
+    def test_service_name(self):
+
+        result = TestResource.service_name
+        self.assertEqual(result, "custom test service")
+
+        result = TestResource().service_name
+        self.assertEqual(result, "custom test service")
 
     def test_valid_bulk_get(self):
 
@@ -300,6 +308,8 @@ class TestResource(ClientResource):
     list_field = ListField(default=[])
     object_field = ObjectField(class_name="Field", required=False)
     spatial_reference = SpatialReferenceField(required=False)
+
+    _client_descriptor = "custom"
 
     class Meta:
         case_sensitive_fields = False

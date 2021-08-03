@@ -7,7 +7,7 @@ from ags import exceptions as ags
 from parserutils.collections import setdefaults
 
 from ..arcgis import ArcGISSecureResource, MapServerResource, FeatureServerResource, ImageServerResource
-from ..arcgis import MapLayerResource, FeatureLayerResource, GeometryServiceClient
+from ..arcgis import MapLayerResource, MapLegendResource, FeatureLayerResource, GeometryServiceClient
 from ..exceptions import BadExtent, BadTileScheme, NoLayers, UnsupportedVersion
 from ..exceptions import ContentError, HTTPError, ImageError, ServiceError
 from ..query.fields import RENDERER_DEFAULTS
@@ -156,6 +156,46 @@ class ArcGISTestCase(ResourceTestCase):
             self.mock_mapservice_request(mock_request.get, self.map_legend_url, self.map_legend_path)
         else:
             raise AssertionError(f"Invalid service type: {service_type}")
+
+    def test_client_name(self):
+
+        result = MapServerResource.client_name
+        self.assertEqual(result, "ArcGIS map server client")
+
+        result = MapLayerResource.client_name
+        self.assertEqual(result, "ArcGIS map layer client")
+
+        result = MapLegendResource.client_name
+        self.assertEqual(result, "ArcGIS map legend client")
+
+        result = FeatureServerResource.client_name
+        self.assertEqual(result, "ArcGIS feature server client")
+
+        result = FeatureLayerResource.client_name
+        self.assertEqual(result, "ArcGIS feature layer client")
+
+        result = ImageServerResource.client_name
+        self.assertEqual(result, "ArcGIS image server client")
+
+    def test_service_name(self):
+
+        result = MapServerResource.service_name
+        self.assertEqual(result, "ArcGIS map service")
+
+        result = MapLayerResource.service_name
+        self.assertEqual(result, "ArcGIS map layer service")
+
+        result = MapLegendResource.service_name
+        self.assertEqual(result, "ArcGIS map legend service")
+
+        result = FeatureServerResource.service_name
+        self.assertEqual(result, "ArcGIS feature service")
+
+        result = FeatureLayerResource.service_name
+        self.assertEqual(result, "ArcGIS feature layer service")
+
+        result = ImageServerResource.service_name
+        self.assertEqual(result, "ArcGIS image service")
 
     @requests_mock.Mocker()
     def test_invalid_urls(self, mock_request):

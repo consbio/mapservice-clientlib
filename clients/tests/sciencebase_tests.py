@@ -131,6 +131,16 @@ class ScienceBaseTestCase(ResourceTestCase):
         else:
             raise AssertionError(f"Invalid service type: {service_type}")
 
+    def test_client_name(self):
+
+        result = ScienceBaseResource.client_name
+        self.assertEqual(result, "ScienceBase client")
+
+    def test_service_name(self):
+
+        result = ScienceBaseResource.service_name
+        self.assertEqual(result, "ScienceBase service")
+
     @requests_mock.Mocker()
     def test_invalid_sciencebase_urls(self, mock_request):
 

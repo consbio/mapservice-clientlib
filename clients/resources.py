@@ -18,13 +18,19 @@ DEFAULT_USER_AGENT = "Mozilla/5.0 (compatible; +https://databasin.org)"
 class ClientResource(Resource):
     """ Overridden to provide bulk get functionality and to validate version and extents """
 
-    client_user_agent = DEFAULT_USER_AGENT
+    # Public class / instance variables
+
     default_spatial_ref = None
     incoming_casing = "camel"
     minimum_version = None
     supported_versions = ()
 
-    # Defaults for vars instantiated in Resource.get
+    # Private class / instance constants
+
+    _client_descriptor = None
+    _client_user_agent = DEFAULT_USER_AGENT
+
+    # Private variables instantiated in Resource.get
 
     _bypass_version = False
     _layer_session = None
@@ -34,7 +40,7 @@ class ClientResource(Resource):
         session = kwargs.pop("session", None)
         if not session:
             session = requests.Session()
-            session.headers["User-agent"] = self.client_user_agent
+            session.headers["User-agent"] = self._client_user_agent
 
         if default_spatial_ref:
             self.default_spatial_ref = default_spatial_ref
@@ -60,6 +66,28 @@ class ClientResource(Resource):
                 f[0].upper() + f[1:] if self.incoming_casing == "pascal" else f for f in required
             ]
 
+    @classmethod
+    def _display_name(cls):
+        descriptor = cls._client_descriptor or ""
+
+        display_name = to_words(cls)
+        display_name = display_name.replace("science base", "ScienceBase")
+        display_name = display_name.replace("thredds", "THREDDS")
+        display_name = display_name.replace("nc wms", "NcWMS")
+        display_name = display_name.replace("wms", "WMS")
+
+        return f"{descriptor} {display_name}".strip()
+
+    @classproperty
+    @classmethod
+    def client_name(cls):
+        return cls._display_name().replace("resource", "client")
+
+    @classproperty
+    @classmethod
+    def service_name(cls):
+        return cls._display_name().replace("resource", "service")
+
     @property
     def service_url(self):
         return getattr(self, "_service_url", self._url)
@@ -67,11 +95,6 @@ class ClientResource(Resource):
     @service_url.setter
     def service_url(self, value):
         self._service_url = value
-
-    @classproperty
-    @classmethod
-    def client_name(cls):
-        return to_words(cls).replace("resource", "client")
 
     @classmethod
     def bulk_get(cls, url, strict=True, session=None, bulk_key=None, bulk_defaults=None, **kwargs):
@@ -265,7 +288,7 @@ class ClientResource(Resource):
         params = self._params if params is None else params
 
         headers = kwargs.pop("headers", self._session.headers)
-        headers["User-agent"] = self.client_user_agent
+        headers["User-agent"] = self._client_user_agent
 
         response = self._session.get(url, params=params, headers=headers, **kwargs)
         response.raise_for_status()
@@ -286,7 +309,7 @@ class ClientResource(Resource):
             client = self.client_name
 
             raise MissingFields(
-                f"The {client} client is missing required fields: {fields}",
+                f"The {client} is missing required fields: {fields}",
                 missing=missing, underlying=ex, url=self._url
             )
 

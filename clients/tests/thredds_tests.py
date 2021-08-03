@@ -59,6 +59,16 @@ class THREDDSTestCase(ResourceTestCase):
         self.mock_mapservice_request(mock_request.get, self.layer_url, self.layer_path)
         self.mock_mapservice_request(mock_request.get, self.layer_menu_url, self.layer_menu_path)
 
+    def test_client_name(self):
+
+        result = ThreddsResource.client_name
+        self.assertEqual(result, "THREDDS client")
+
+    def test_service_name(self):
+
+        result = ThreddsResource.service_name
+        self.assertEqual(result, "THREDDS service")
+
     @requests_mock.Mocker()
     @mock.patch("clients.thredds.get_remote_element")
     def test_invalid_thredds_url(self, mock_request, mock_metadata):

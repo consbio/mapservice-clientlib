@@ -413,6 +413,28 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(first_layer.child_layers, [])
         self.assertEqual(first_layer.leaf_layers, {})
 
+    def test_client_name(self):
+
+        result = WMSResource.client_name
+        self.assertEqual(result, "WMS client")
+
+        result = WMSLayerResource.client_name
+        self.assertEqual(result, "WMS layer client")
+
+        result = NcWMSLayerResource.client_name
+        self.assertEqual(result, "NcWMS layer client")
+
+    def test_service_name(self):
+
+        result = WMSResource.service_name
+        self.assertEqual(result, "WMS service")
+
+        result = WMSLayerResource.service_name
+        self.assertEqual(result, "WMS layer service")
+
+        result = NcWMSLayerResource.service_name
+        self.assertEqual(result, "NcWMS layer service")
+
     def test_invalid_wms_url(self):
 
         session = self.mock_mapservice_session(self.data_directory / "test.html")
