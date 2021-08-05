@@ -54,6 +54,9 @@ class WMSTestCase(ResourceTestCase):
             session=session, layer_session=layer_session,
             styles_color_map=styles_color_map
         )
+        self.assertEqual(set(client._required_fields), {
+            "Title", "Abstract", "Version", "FullExtent"
+        })
 
         # Test service level information
 
@@ -261,6 +264,9 @@ class WMSTestCase(ResourceTestCase):
             lazy=False, session=session,
             spatial_ref="EPSG:3978", token=token, version=version
         )
+        self.assertEqual(set(client._required_fields), {
+            "Title", "Abstract", "Version", "FullExtent"
+        })
         self.assertEqual(len(client.ordered_layers), 4)
         self.assertEqual(client.spatial_ref.srs, WMS_SRS_DEFAULT)
 

@@ -124,6 +124,10 @@ class THREDDSTestCase(ResourceTestCase):
         self.assertEqual(client.wms_version, "1.1.1")
         self.assertEqual(client._catalog_url, self.catalog_url.replace(".xml", ".html"))
         self.assertEqual(client._service_url, self.catalog_url)
+        self.assertEqual(set(client._required_fields), {
+            "id", "name", "authority", "version",
+            "dataSize", "dataFormat", "dataType", "modified", "services"
+        })
 
         # Test population of related-endpoint-specific fields
         self.assertEqual(client.access_constraints, None)

@@ -265,6 +265,9 @@ class ScienceBaseTestCase(ResourceTestCase):
             token=token, username=username,
             arcgis_credentials=arcgis_credentials
         )
+        self.assertEqual(set(client._required_fields), {
+            "id", "title", "body", "provenance", "itemsettings", "tags"
+        })
 
         self.assertEqual(client._token, token)
         self.assertEqual(client._username, username)

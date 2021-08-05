@@ -378,6 +378,11 @@ class ArcGISTestCase(ResourceTestCase):
 
         client = MapServerResource.get(self.map_url, lazy=False)
 
+        self.assertEqual(set(client._required_fields), {
+            "description", "capabilities", "serviceDescription",
+            "fullExtent", "initialExtent", "spatialReference", "mapname", "supportedImageFormatTypes"
+        })
+
         # ArcGISResource
         self.assertEqual(client.version, 10.5)
         self.assertEqual(client.description, "This data set represents the extent of wetlands and deepwater habitats.")
@@ -659,6 +664,11 @@ class ArcGISTestCase(ResourceTestCase):
 
         client = FeatureServerResource.get(self.feature_url, lazy=False)
 
+        self.assertEqual(set(client._required_fields), {
+            "currentversion", "description", "capabilities", "serviceDescription",
+            "fullExtent", "initialExtent", "spatialReference", "maxRecordCount", "units", "layers"
+        })
+
         # ArcGISResource
         self.assertEqual(client.version, 10.81)
         self.assertEqual(client.description, "")
@@ -852,6 +862,13 @@ class ArcGISTestCase(ResourceTestCase):
         self.mock_arcgis_client(mock_request, "image")
 
         client = ImageServerResource.get(self.image_url, lazy=False)
+
+        self.assertEqual(set(client._required_fields), {
+            "currentversion", "description", "capabilities", "serviceDescription",
+            "fullExtent", "initialExtent", "name", "bandCount",
+            "maxValues", "meanValues", "minValues",
+            "pixelSizeX", "pixelSizeY", "pixelType", "stdvvalues"
+        })
 
         # ArcGISResource
         self.assertEqual(client.version, 10.5)

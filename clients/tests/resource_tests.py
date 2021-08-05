@@ -7,7 +7,7 @@ from ..exceptions import ContentError, HTTPError, NetworkError
 from ..exceptions import ServiceError, ServiceTimeout, UnsupportedVersion
 from ..query.fields import CommaSeparatedField, DictField, ExtentField
 from ..query.fields import ListField, ObjectField, SpatialReferenceField
-from ..resources import ClientResource
+from ..resources import DEFAULT_USER_AGENT, ClientResource
 
 from .utils import ResourceTestCase, get_extent
 
@@ -38,8 +38,16 @@ class ClientResourceTestCase(ResourceTestCase):
 
         client = clients[0]
 
+        # Class level constants
+        self.assertEqual(client.default_spatial_ref, "EPSG:4326")
+        self.assertEqual(client.incoming_casing, "camel")
         self.assertEqual(client.minimum_version, 10)
         self.assertEqual(client.supported_versions, (10.2, 30, 40.5))
+        self.assertEqual(client._client_user_agent, DEFAULT_USER_AGENT)
+        self.assertEqual(client._session.headers.get("User-agent"), DEFAULT_USER_AGENT)
+        self.assertEqual(client._required_fields, [])
+
+        # Instance properties
         self.assertEqual(client.id, "first")
         self.assertEqual(client.version, 10.2)
         self.assertEqual(client.comma_separated, ["one", "two", "three"])
@@ -71,8 +79,16 @@ class ClientResourceTestCase(ResourceTestCase):
 
         client = clients[1]
 
+        # Class level constants
+        self.assertEqual(client.default_spatial_ref, "EPSG:4326")
+        self.assertEqual(client.incoming_casing, "camel")
         self.assertEqual(client.minimum_version, 10)
         self.assertEqual(client.supported_versions, (10.2, 30, 40.5))
+        self.assertEqual(client._client_user_agent, DEFAULT_USER_AGENT)
+        self.assertEqual(client._session.headers.get("User-agent"), DEFAULT_USER_AGENT)
+        self.assertEqual(client._required_fields, [])
+
+        # Instance properties
         self.assertEqual(client.id, "second")
         self.assertEqual(client.version, 40.5)
         self.assertEqual(client.comma_separated, ["four", "five", "six"])
@@ -105,8 +121,16 @@ class ClientResourceTestCase(ResourceTestCase):
 
         client = clients[2]
 
+        # Class level constants
+        self.assertEqual(client.default_spatial_ref, "EPSG:4326")
+        self.assertEqual(client.incoming_casing, "camel")
         self.assertEqual(client.minimum_version, 10)
         self.assertEqual(client.supported_versions, (10.2, 30, 40.5))
+        self.assertEqual(client._client_user_agent, DEFAULT_USER_AGENT)
+        self.assertEqual(client._session.headers.get("User-agent"), DEFAULT_USER_AGENT)
+        self.assertEqual(client._required_fields, [])
+
+        # Instance properties
         self.assertEqual(client.id, None)
         self.assertEqual(client.version, 30)
         self.assertEqual(client.comma_separated, None)
@@ -182,8 +206,15 @@ class ClientResourceTestCase(ResourceTestCase):
         session = self.mock_mapservice_session(self.client_path)
         client = TestResource.get(self.client_url, lazy=False, session=session)
 
+        # Class level constants
+        self.assertEqual(client.default_spatial_ref, "EPSG:4326")
+        self.assertEqual(client.incoming_casing, "camel")
         self.assertEqual(client.minimum_version, 10)
         self.assertEqual(client.supported_versions, (10.2, 30, 40.5))
+        self.assertEqual(client._client_user_agent, DEFAULT_USER_AGENT)
+        self.assertEqual(client._required_fields, [])
+
+        # Instance properties
         self.assertEqual(client.id, "single")
         self.assertEqual(client.version, 10.2)
         self.assertEqual(client.comma_separated, ["one", "two", "three"])
@@ -295,6 +326,7 @@ class ClientResourceTestCase(ResourceTestCase):
 
 class TestResource(ClientResource):
 
+    default_spatial_ref = "EPSG:4326"
     incoming_casing = "camel"
     minimum_version = 10
     supported_versions = (10.2, 30, 40.5)
