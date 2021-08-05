@@ -1,7 +1,9 @@
 import requests_mock
 
 from unittest import mock
+from sciencebasepy import SbSession
 
+from ..sciencebase import SCIENCE_BASE_CONTENT_TYPES
 from ..sciencebase import ScienceBaseResource, ScienceBaseSession
 from ..exceptions import HTTPError, MissingFields, NoLayers, ValidationError
 from ..utils.geometry import Extent
@@ -11,6 +13,7 @@ from .utils import ResourceTestCase
 
 def mock_sbsession_login():
     def sbsession_login(self, username, password):
+        self._username = username
         self._jossosessionid = f"{username}:{password}"
         return self._jossosessionid
     return sbsession_login
@@ -131,6 +134,15 @@ class ScienceBaseTestCase(ResourceTestCase):
         else:
             raise AssertionError(f"Invalid service type: {service_type}")
 
+    def assert_sciencebase_session(self, client, username=None, token=None):
+        session = client._session
+
+        self.assertTrue(isinstance(session, SbSession))
+        self.assertEqual(session._username, username)
+        self.assertEqual(session._jossosessionid, token)
+        self.assertTrue(session._session.headers.get("Accept"), SCIENCE_BASE_CONTENT_TYPES)
+        self.assertEqual(session._session.params, {"josso": token})
+
     def test_client_name(self):
 
         result = ScienceBaseResource.client_name
@@ -174,8 +186,11 @@ class ScienceBaseTestCase(ResourceTestCase):
             ScienceBaseResource.get(self.unpublished_url, lazy=False)
 
     @requests_mock.Mocker()
-    def test_valid_sciencebase_sessions(self, mock_request):
+    @mock.patch("clients.sciencebase.SbSession.login", new_callable=mock_sbsession_login)
+    def test_valid_sciencebase_sessions(self, mock_request, mock_login):
         self.mock_service_client(mock_request, "session")
+
+        # Test direct session instantiation
 
         session_json = ScienceBaseSession().get_json(self.deprecated_url)
         self.assertEqual(set(session_json.keys()), {"id", "name", "description"})
@@ -185,6 +200,37 @@ class ScienceBaseTestCase(ResourceTestCase):
 
         session_json = ScienceBaseSession().get_json(self.wms_item_url)
         self.assertEqual(set(session_json.keys()), WMS_ITEM_KEYS)
+
+        # Test session instantiation through ScienceBaseResource
+
+        session_kwargs = {
+            "token": "usgs_session.id",
+            "username": "usgs_session.uid"
+        }
+
+        session = None
+        client = ScienceBaseResource.get(self.arcgis_item_url, session=session, **session_kwargs)
+        self.assert_sciencebase_session(client, **session_kwargs)
+
+        session = SbSession
+        client = ScienceBaseResource.get(self.arcgis_item_url, session=session, **session_kwargs)
+        self.assert_sciencebase_session(client, **session_kwargs)
+
+        session = SbSession()
+        client = ScienceBaseResource.get(self.arcgis_item_url, session=session, **session_kwargs)
+        self.assert_sciencebase_session(client, **session_kwargs)
+
+        session = ScienceBaseSession
+        client = ScienceBaseResource.get(self.arcgis_item_url, session=session, **session_kwargs)
+        self.assert_sciencebase_session(client, **session_kwargs)
+
+        session = ScienceBaseSession()
+        client = ScienceBaseResource.get(self.arcgis_item_url, session=session, **session_kwargs)
+        self.assert_sciencebase_session(client, **session_kwargs)
+
+        session = ScienceBaseSession(josso_session_id="usgs_session.id", username="usgs_session.uid")
+        client = ScienceBaseResource.get(self.arcgis_item_url, session=session, **session_kwargs)
+        self.assert_sciencebase_session(client, **session_kwargs)
 
     @requests_mock.Mocker()
     def test_invalid_sciencebase_sessions(self, mock_request):

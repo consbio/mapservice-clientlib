@@ -38,9 +38,11 @@ class ClientResource(Resource):
     def __init__(self, default_spatial_ref=None, **kwargs):
 
         session = kwargs.pop("session", None)
-        if not session:
+        if isinstance(session, type):
+            session = session()
+        elif not session:
             session = requests.Session()
-            session.headers["User-agent"] = self._client_user_agent
+            session.headers.update({"User-agent": self._client_user_agent})
 
         if default_spatial_ref:
             self.default_spatial_ref = default_spatial_ref

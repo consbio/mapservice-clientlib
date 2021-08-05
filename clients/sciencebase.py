@@ -16,6 +16,19 @@ SCIENCE_BASE_CONTENT_TYPES = "text/html,application/json,application/xhtml+xml,a
 SCIENCE_BASE_TOKEN_IDS = {"arcgis": "token", "wms": "josso"}
 
 
+def init_sbsession(sbsession, josso_session_id=None, username=None):
+    """ Set private variables used in SbSession to reuse active login session """
+
+    sbsession._username = username
+    sbsession._session.headers.update({"Accept": SCIENCE_BASE_CONTENT_TYPES})
+
+    if josso_session_id:
+        sbsession._jossosessionid = josso_session_id
+        sbsession._session.params.update({"josso": josso_session_id})
+
+    return sbsession
+
+
 class ScienceBaseSession(SbSession, object):
     """
     A client for managing requests against ScienceBase using session management.
@@ -23,21 +36,11 @@ class ScienceBaseSession(SbSession, object):
     session id created when a user logs in with their USGS credentials.
     """
 
-    _session_content_types = SCIENCE_BASE_CONTENT_TYPES
-
     def __init__(self, josso_session_id=None, username=None):
         """ Overridden to reuse active login credentials without new login """
 
         super(ScienceBaseSession, self).__init__()
-
-        # Set private variables that are used in SbSession
-
-        self._username = username
-        self._session.headers["Accept"] = self._session_content_types
-
-        if josso_session_id:
-            self._jossosessionid = josso_session_id
-            self._session.params = {"josso": josso_session_id}
+        init_sbsession(self, josso_session_id=josso_session_id, username=username)
 
     def get_public_url(self, response):
         return self._remove_josso_param(response.url)
@@ -251,7 +254,12 @@ class ScienceBaseResource(ClientResource):
 
         # Prepare USGS (josso) session
 
-        self._session = ScienceBaseSession(josso_session_id=token, username=username)
+        session_kwargs = {"josso_session_id": token, "username": username}
+        if isinstance(self._session, SbSession):
+            self._session = init_sbsession(self._session, **session_kwargs)
+        else:
+            self._session = ScienceBaseSession(**session_kwargs)
+
         self._username = username
         self._token = token
 
