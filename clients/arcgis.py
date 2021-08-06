@@ -13,12 +13,10 @@ from ags import exceptions as ags
 from ags.admin.server import ServerAdmin
 from parserutils.collections import accumulate_items, setdefaults
 from parserutils.urls import get_base_url
-from restle.actions import Action
 from restle.fields import TextField, IntegerField, BooleanField, NumberField, ToManyField
-from restle.serializers import URLSerializer, JSONSerializer
 
 from .exceptions import BadExtent, BadTileScheme, ContentError, HTTPError, ImageError, NoLayers, ServiceError
-from .query.actions import QueryAction
+from .query.arcgis import FEATURE_LAYER_QUERY, FEATURE_LAYER_TIME_QUERY, FEATURE_SERVER_QUERY
 from .query.fields import CommaSeparatedField, DrawingInfoField, ExtentField
 from .query.fields import ObjectField, SpatialReferenceField, TimeInfoField
 from .resources import ClientResource, DEFAULT_USER_AGENT
@@ -818,62 +816,8 @@ class FeatureLayerResource(ArcGISLayerResource):
     templates = ObjectField(class_name="Template", required=False)
     types = ObjectField(class_name="Type", required=False)
 
-    query = QueryAction(
-        "query",
-        http_method="POST",
-        optional_params=(
-            "f", "where", "object_ids", "geometry", "geometry_type", "in_sr", "spatial_rel", "relation_param", "time",
-            "distance", "units", "out_fields", "return_geometry", "max_allowable_offset", "geometry_precision",
-            "out_sr", "gdb_version", "return_distinct_values", "return_ids_only", "return_count_only",
-            "return_extent_only", "order_by_fields", "group_by_fields_for_statistics", "out_statistics", "return_z",
-            "return_m", "multipatch_option", "result_offset", "result_record_count", "token"
-        ),
-        param_defaults={"f": "json"},
-        param_aliases={
-            "object_ids": "objectIds",
-            "geometry_type": "geometryType",
-            "in_sr": "inSR",
-            "spatial_rel": "spatialRel",
-            "relation_param": "relationParam",
-            "out_fields": "outFields",
-            "return_geometry": "returnGeometry",
-            "max_allowable_offset": "maxAllowableOffset",
-            "geometry_precision": "geometryPrecision",
-            "out_sr": "outSR",
-            "gdb_version": "gdbVersion",
-            "return_distinct_values": "returnDistinctValues",
-            "return_ids_only": "returnIdsOnly",
-            "return_count_only": "returnCountOnly",
-            "return_extent_only": "returnExtentOnly",
-            "order_by_fields": "orderByFields",
-            "group_by_fields_for_statistics": "groupByFieldsForStatistics",
-            "out_statistics": "outStatistics",
-            "return_z": "returnZ",
-            "return_m": "returnM",
-            "multipatch_option": "multipatchOption",
-            "result_offset": "resultOffset",
-            "result_record_count": "resultRecordCount"
-        },
-        params_via_post=True,
-        serializer=URLSerializer,
-        deserializer=JSONSerializer,
-        response_type=Action.DICT_RESPONSE
-    )
-
-    # Only applicable for Tablo datasets
-    time_query = QueryAction(
-        "time-query",
-        http_method="POST",
-        optional_params=(
-            "f", "token"
-        ),
-        param_defaults={"f": "json"},
-        param_aliases={},
-        params_via_post=True,
-        serializer=URLSerializer,
-        deserializer=JSONSerializer,
-        response_type=Action.DICT_RESPONSE
-    )
+    query = FEATURE_LAYER_QUERY
+    time_query = FEATURE_LAYER_TIME_QUERY
 
     class Meta:
         case_sensitive_fields = False
@@ -989,33 +933,7 @@ class FeatureServerResource(ArcGISServerResource):
 
     layers = ToManyField(FeatureLayerResource, "partial", id_field="id", relative_path="{id}")
 
-    query = QueryAction(
-        "query",
-        http_method="POST",
-        optional_params=(
-            "f", "layer_defs", "geometry", "geometry_type", "in_sr", "spatial_rel", "time", "out_sr", "gdb_version",
-            "return_geometry", "max_allowable_offset", "return_ids_only", "return_count_only", "return_z", "return_m",
-            "geometry_precision"
-        ),
-        param_defaults={"f": "json"},
-        param_aliases={
-            "layer_defs": "layerDefs",
-            "geometry_type": "geometryType",
-            "in_sr": "inSR",
-            "spatial_rel": "spatialRel",
-            "gdb_version": "gdbVersion",
-            "return_geometry": "returnGeometry",
-            "max_allowable_offset": "maxAllowableOffset",
-            "return_ids_only": "returnIdsOnly",
-            "return_count_only": "returnCountOnly",
-            "return_z": "returnZ",
-            "return_m": "returnM",
-            "geometry_precision": "geometryPrecision"
-        },
-        params_via_post=True,
-        serializer=URLSerializer,
-        response_type=Action.DICT_RESPONSE
-    )
+    query = FEATURE_SERVER_QUERY
 
     class Meta:
         case_sensitive_fields = False
