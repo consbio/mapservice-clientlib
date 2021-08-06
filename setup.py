@@ -28,12 +28,12 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     keywords="arcgis,thredds,ncwms,wms,sciencebase,geospatial,gis,mapservice,map service,clients,mapservice_clientlib",
-    version="0.1.4",
+    version="0.1.5",
     packages=[
         "clients", "clients.query", "clients.tests", "clients.utils"
     ],
     install_requires=[
-        "gis-metadata-parser", "parserutils>=1.2.4", "restle",
+        "gis-metadata-parser", "parserutils>=1.2.4", "restle>=0.5.1",
         "Pillow==7.2.*", "pyproj==2.6.1", "python-ags==0.3.2", "sciencebasepy==1.6.4"
     ],
     tests_require=["mock", "requests-mock"],
