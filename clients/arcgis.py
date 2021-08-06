@@ -17,6 +17,7 @@ from restle.fields import TextField, IntegerField, BooleanField, NumberField, To
 
 from .exceptions import BadExtent, BadTileScheme, ContentError, HTTPError, ImageError, NoLayers, ServiceError
 from .query.arcgis import FEATURE_LAYER_QUERY, FEATURE_LAYER_TIME_QUERY, FEATURE_SERVER_QUERY
+from .query.arcgis import FEATURE_LAYER_PARAMS, FEATURE_LAYER_TIME_PARAMS
 from .query.fields import CommaSeparatedField, DrawingInfoField, ExtentField
 from .query.fields import ObjectField, SpatialReferenceField, TimeInfoField
 from .resources import ClientResource, DEFAULT_USER_AGENT
@@ -137,7 +138,7 @@ class ArcGISSecureResource(ClientResource):
         except Exception:
             # Ignore all others: failure here for any reason should never stop an import
             # Even if token is required, the same lack of access will stop the import later
-            logger.warning("ArcGIS map server client failed to generate token")
+            logger.warning(f"ArcGIS secure client failed to generate token")
 
         return server_admin
 
@@ -613,7 +614,7 @@ class MapServerResource(ArcGISTiledImageResource):
                 layer.legend[1].image_base64 = image_to_base64(stack_images_vertically(images))
 
     def get_image(
-        self, extent, width, height, custom_renderers=None, layer_defs=None, layers="", time="", **kwargs
+        self, extent, width, height, custom_renderers=None, layer_defs="", layers="", time="", **kwargs
     ):
         """
         Note: if this service is tiled, extent will be modified to allow fetching tiles at appropriate zoom level.
@@ -630,9 +631,9 @@ class MapServerResource(ArcGISTiledImageResource):
         image_params = {
             "dpi": 96,
             "transparent": True,
-            "layers": layers,
-            "layerdefs": layer_defs,
-            "time": time
+            "layers": layers or "",
+            "layerdefs": layer_defs or "",
+            "time": time or ""
         }
         image_params.update(kwargs)
 
@@ -850,13 +851,18 @@ class FeatureLayerResource(ArcGISLayerResource):
 
         # Break up very large result sets by querying just the IDs of matching features
 
+        query_kwargs = {k: v for k, v in kwargs.items() if k in FEATURE_LAYER_PARAMS}
+        if any(k not in query_kwargs for k in kwargs):
+            extras = ", ".join(k for k in kwargs if k not in query_kwargs)
+            logger.warning(f"Ignoring {self.client_name} query fields: {extras}")
+
         id_query = self.query(
             where=layer_def or "",
-            time=time,
+            time=time or "",
             geometry=extent.as_json_string(),
             geometry_type="esriGeometryEnvelope",
             return_ids_only=True,
-            **kwargs
+            **query_kwargs
         )
         if "error" in id_query:
             self.handle_error(
@@ -884,7 +890,7 @@ class FeatureLayerResource(ArcGISLayerResource):
                 object_field=id_query["objectIdFieldName"],
                 formatted_id_list=json.dumps(object_ids_to_get).replace("[", "(").replace("]", ")")
             )
-            query_results = self.query(where=id_where_clause, out_sr=3857, out_fields="*", **kwargs)
+            query_results = self.query(where=id_where_clause, out_sr=3857, out_fields="*", **query_kwargs)
 
             if "error" in query_results:
                 self.handle_error(
@@ -901,8 +907,15 @@ class FeatureLayerResource(ArcGISLayerResource):
 
         return full_image
 
-    def get_time_image(self, extent, width, height):
-        return self.generate_sub_image(extent, width, height, TIME_SUMMARY_RENDERER, self.time_query())
+    def get_time_image(self, extent, width, height, **kwargs):
+        query_kwargs = {k: v for k, v in kwargs.items() if k in FEATURE_LAYER_TIME_PARAMS}
+        if any(k not in query_kwargs for k in kwargs):
+            extras = ", ".join(k for k in kwargs if k not in query_kwargs)
+            logger.warning(f"Ignoring {self.client_name} query fields: {extras}")
+
+        return self.generate_sub_image(
+            extent, width, height, TIME_SUMMARY_RENDERER, self.time_query(**query_kwargs)
+        )
 
     def generate_sub_image(self, extent, width, height, renderer, query_results):
         """

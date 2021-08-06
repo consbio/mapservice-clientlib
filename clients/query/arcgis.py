@@ -4,16 +4,17 @@ from restle.serializers import URLSerializer, JSONSerializer
 from .actions import QueryAction
 
 
+FEATURE_LAYER_PARAMS = (
+    "f", "where", "object_ids", "geometry", "geometry_type", "in_sr", "spatial_rel", "relation_param", "time",
+    "distance", "units", "out_fields", "return_geometry", "max_allowable_offset", "geometry_precision",
+    "out_sr", "gdb_version", "return_distinct_values", "return_ids_only", "return_count_only",
+    "return_extent_only", "order_by_fields", "group_by_fields_for_statistics", "out_statistics", "return_z",
+    "return_m", "multipatch_option", "result_offset", "result_record_count", "token"
+)
 FEATURE_LAYER_QUERY = QueryAction(
     "query",
     http_method="POST",
-    optional_params=(
-        "f", "where", "object_ids", "geometry", "geometry_type", "in_sr", "spatial_rel", "relation_param", "time",
-        "distance", "units", "out_fields", "return_geometry", "max_allowable_offset", "geometry_precision",
-        "out_sr", "gdb_version", "return_distinct_values", "return_ids_only", "return_count_only",
-        "return_extent_only", "order_by_fields", "group_by_fields_for_statistics", "out_statistics", "return_z",
-        "return_m", "multipatch_option", "result_offset", "result_record_count", "token"
-    ),
+    optional_params=FEATURE_LAYER_PARAMS,
     param_defaults={"f": "json"},
     param_aliases={
         "object_ids": "objectIds",
@@ -46,12 +47,11 @@ FEATURE_LAYER_QUERY = QueryAction(
     response_type=Action.DICT_RESPONSE
 )
 
+FEATURE_LAYER_TIME_PARAMS = ("f", "token")
 FEATURE_LAYER_TIME_QUERY = QueryAction(
     "time-query",
     http_method="POST",
-    optional_params=(
-        "f", "token"
-    ),
+    optional_params=FEATURE_LAYER_TIME_PARAMS,
     param_defaults={"f": "json"},
     param_aliases={},
     params_via_post=True,
@@ -61,14 +61,15 @@ FEATURE_LAYER_TIME_QUERY = QueryAction(
 )
 
 
+FEATURE_SERVER_PARAMS = (
+    "f", "layer_defs", "geometry", "geometry_type", "in_sr", "spatial_rel", "time", "out_sr", "gdb_version",
+    "return_geometry", "max_allowable_offset", "return_ids_only", "return_count_only", "return_z", "return_m",
+    "geometry_precision"
+)
 FEATURE_SERVER_QUERY = QueryAction(
     "query",
     http_method="POST",
-    optional_params=(
-        "f", "layer_defs", "geometry", "geometry_type", "in_sr", "spatial_rel", "time", "out_sr", "gdb_version",
-        "return_geometry", "max_allowable_offset", "return_ids_only", "return_count_only", "return_z", "return_m",
-        "geometry_precision"
-    ),
+    optional_params=FEATURE_SERVER_PARAMS,
     param_defaults={"f": "json"},
     param_aliases={
         "layer_defs": "layerDefs",

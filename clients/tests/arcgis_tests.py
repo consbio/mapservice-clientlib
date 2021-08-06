@@ -818,7 +818,7 @@ class ArcGISTestCase(ResourceTestCase):
         custom_renderers = {0: renderer.get_data()}
         layer_defs = {0: '("FID" IN (0))'}
 
-        self.assert_get_image(client)
+        self.assert_get_image(client, token="nope", ignore="yep")
 
         self.assert_get_image(
             client,
@@ -845,7 +845,9 @@ class ArcGISTestCase(ResourceTestCase):
             client.get_image(get_extent(web_mercator=True), 100, 100)
 
         with self.assertRaises(NotImplementedError):
-            client.layers[0].get_time_image(get_extent(web_mercator=True), 100, 100)
+            client.layers[0].get_time_image(
+                get_extent(web_mercator=True), 100, 100, token="nope", ignore="yep"
+            )
 
         # Test with invalid feature data
 
