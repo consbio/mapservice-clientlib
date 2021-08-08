@@ -472,7 +472,7 @@ class WMSResource(ClientResource):
     has_time = BooleanField(default=False)
     is_ncwms = BooleanField(default=False)
     supported_spatial_refs = ListField(required=False)
-    spatial_ref = SpatialReferenceField(required=False)
+    spatial_reference = SpatialReferenceField(required=False)
 
     supported_versions = WMS_KNOWN_VERSIONS
 
@@ -620,9 +620,9 @@ class WMSResource(ClientResource):
         web_mercator_srs = sorted(web_mercator_srs.intersection(supported_spatial_refs))
 
         if self._spatial_ref in web_mercator_srs:
-            wms_data["spatial_ref"] = self._spatial_ref
+            wms_data["spatial_reference"] = self._spatial_ref
         elif web_mercator_srs:
-            wms_data["spatial_ref"] = web_mercator_srs[0]
+            wms_data["spatial_reference"] = web_mercator_srs[0]
 
         # Populate fields with coerced, non-layer data (layers are nested to represent parent/child relationships)
 
@@ -648,10 +648,10 @@ class WMSResource(ClientResource):
         """
 
         if not isinstance(extent, Extent):
-            spatial_ref = getattr(extent, "spatial_reference", None) or self.spatial_ref
+            spatial_ref = getattr(extent, "spatial_reference", None) or self.spatial_reference
             extent = Extent(extent, spatial_reference=spatial_ref)
 
-        if self.spatial_ref is None:
+        if self.spatial_reference is None:
             supported_srs = ",".join(self.supported_spatial_refs)
             image_error = f"Invalid coordinate system identifier (Web Mercator required): {supported_srs}"
             raise ImageError(image_error, url=self.wms_url)

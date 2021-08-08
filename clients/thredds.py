@@ -128,7 +128,7 @@ class ThreddsResource(ClientResource):
         parts["path"][-1] = "catalog.xml"
         self._service_url = parts_to_url(parts, trailing_slash=has_trailing)
 
-        self.spatial_ref = SpatialReference(spatial_ref or self.default_spatial_ref)
+        self.spatial_reference = SpatialReference(spatial_ref or self.default_spatial_ref)
         self.wms_version = wms_version or WMS_KNOWN_VERSIONS[-1]
 
         self.styles_color_map = styles_color_map or {}
@@ -352,7 +352,7 @@ class ThreddsResource(ClientResource):
         """
 
         if not isinstance(extent, Extent):
-            spatial_ref = getattr(extent, "spatial_reference", None) or self.spatial_ref
+            spatial_ref = getattr(extent, "spatial_reference", None) or self.spatial_reference
             extent = Extent(extent, spatial_reference=spatial_ref)
 
         if not layer_ids:

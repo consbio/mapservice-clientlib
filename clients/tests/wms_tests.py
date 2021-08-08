@@ -91,7 +91,7 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.has_dimensions, True)
         self.assertEqual(client.has_time, True)
         self.assertEqual(client.is_ncwms, True)
-        self.assertEqual(client.spatial_ref.srs, WMS_SRS_DEFAULT)
+        self.assertEqual(client.spatial_reference.srs, WMS_SRS_DEFAULT)
 
         layer_ids = {"pr-tasmax-tasmin_day_precipitation_flux/pr-tasmax-tasmin_day"}
 
@@ -268,7 +268,7 @@ class WMSTestCase(ResourceTestCase):
             "Title", "Abstract", "Version", "FullExtent"
         })
         self.assertEqual(len(client.ordered_layers), 4)
-        self.assertEqual(client.spatial_ref.srs, WMS_SRS_DEFAULT)
+        self.assertEqual(client.spatial_reference.srs, WMS_SRS_DEFAULT)
 
         # Test all variables with specified WMS version
 
@@ -312,7 +312,7 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.has_dimensions, False)
         self.assertEqual(client.has_time, False)
         self.assertEqual(client.is_ncwms, False)
-        self.assertEqual(client.spatial_ref.srs, "EPSG:900913")
+        self.assertEqual(client.spatial_reference.srs, "EPSG:900913")
 
         layer_ids = {"continents", "country_bounds", "cities", "bluemarble"}
 
@@ -574,7 +574,7 @@ class WMSTestCase(ResourceTestCase):
             client.get_image(extent, 100, 100, layer_ids=["layer1"], image_format="invalid_format")
         with self.assertRaises(ImageError):
             # Missing spatial reference
-            client.spatial_ref = None
+            client.spatial_reference = None
             client.get_image(client.full_extent, *valid_image_args)
 
         # Test bad image responses

@@ -154,7 +154,7 @@ class THREDDSTestCase(ResourceTestCase):
 
         self.assertEqual(client.feature_info_formats, ["image/png", "text/xml"])
         self.assertEqual(client.layer_drawing_limit, 1)
-        self.assertEqual(client.spatial_ref.srs, "EPSG:3857")
+        self.assertEqual(client.spatial_reference.srs, "EPSG:3857")
 
         # Derived from service fields
 
