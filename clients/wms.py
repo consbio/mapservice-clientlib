@@ -58,7 +58,7 @@ class NcWMSLayerResource(ClientResource):
 
     copyright_text = TextField(name="copyright")
     more_info = TextField()
-    full_extent = ExtentField(name="bbox")
+    full_extent = ExtentField(name="bbox", esri_format=False)
 
     num_color_bands = IntegerField()
     log_scaling = BooleanField()
@@ -151,13 +151,13 @@ class WMSLayerResource(ClientResource):
     _metadata_url = DictField(name="MetadataURL", default=[])
     _style = DictField(default={}, aliases={"Name": "id"})
 
-    _geographic_extent = ExtentField(name="EX_GeographicBoundingBox", required=False, aliases={
+    _geographic_extent = ExtentField(name="EX_GeographicBoundingBox", esri_format=False, required=False, aliases={
         "southBoundLatitude": "ymin",
         "eastBoundLongitude": "xmax",
         "northBoundLatitude": "ymax",
         "westBoundLongitude": "xmin"
     })
-    _old_bbox_extent = ExtentField(name="BoundingBox", required=False, aliases={
+    _old_bbox_extent = ExtentField(name="BoundingBox", esri_format=False, required=False, aliases={
         "minx": "xmin",
         "miny": "ymin",
         "maxx": "xmax",
@@ -165,7 +165,7 @@ class WMSLayerResource(ClientResource):
         "CRS": "spatial_reference",
         "SRS": "spatial_reference"
     })
-    _old_latlon_extent = ExtentField(name="LatLonBoundingBox", required=False, aliases={
+    _old_latlon_extent = ExtentField(name="LatLonBoundingBox", esri_format=False, required=False, aliases={
         "minx": "xmin",
         "miny": "ymin",
         "maxx": "xmax",
@@ -186,7 +186,7 @@ class WMSLayerResource(ClientResource):
 
     attribution = DictField(default={})
     dimensions = DictField(default={})
-    full_extent = ExtentField(required=False)
+    full_extent = ExtentField(required=False, esri_format=False)
     metadata_urls = DictField(required=False)
     styles = ListField(required=False)
     supported_spatial_refs = ListField(required=False)
@@ -467,12 +467,12 @@ class WMSResource(ClientResource):
     keywords = ListField(required=False)
     layer_drawing_limit = IntegerField(required=False)
 
-    full_extent = ExtentField()
+    full_extent = ExtentField(esri_format=False)
     has_dimensions = BooleanField(default=False)
     has_time = BooleanField(default=False)
     is_ncwms = BooleanField(default=False)
     supported_spatial_refs = ListField(required=False)
-    spatial_reference = SpatialReferenceField(required=False)
+    spatial_reference = SpatialReferenceField(required=False, esri_format=False)
 
     supported_versions = WMS_KNOWN_VERSIONS
 
@@ -603,8 +603,10 @@ class WMSResource(ClientResource):
 
         # Prepare layer dependent data
 
-        # Union of all leaf layer extents in Web Mercator (root layers recursively union leafs)
-        wms_data["full_extent"] = union_extent(l.full_extent for l in self.root_layers).as_dict()
+        # Union all leaf layer extents in Web Mercator (root layers recursively union leafs)
+        wms_data["full_extent"] = union_extent(
+            l.full_extent for l in self.root_layers
+        ).as_dict(esri_format=False)
 
         time_for_dimensions = [l.has_time for l in self.leaf_layers.values() if l.has_dimensions]
         wms_data["has_dimensions"] = bool(time_for_dimensions)

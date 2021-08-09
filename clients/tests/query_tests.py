@@ -196,19 +196,23 @@ class FieldsTestCase(BaseTestCase):
         with self.assertRaises(NotImplementedError):
             field.to_python(["value"], None)
 
-        data = (get_extent(), get_spatial_reference())
+        for esri_format in (True, False):
+            field = BaseExtentField(esri_format=esri_format, name="to_python")
+            self.assertEqual(field.esri_format, esri_format)
 
-        target = data[0].as_dict()
-        result = field.to_value(data[0], None)
-        self.assertEqual(result, target)
+            data = (get_extent(), get_spatial_reference())
 
-        target = data[1].as_dict()
-        result = field.to_value(data[1], None)
-        self.assertEqual(result, target)
+            target = data[0].as_dict(esri_format=esri_format)
+            result = field.to_value(data[0], None)
+            self.assertEqual(result, target)
 
-        target = [d.as_dict() for d in data]
-        result = field.to_value(data, None)
-        self.assertEqual(result, target)
+            target = data[1].as_dict(esri_format=esri_format)
+            result = field.to_value(data[1], None)
+            self.assertEqual(result, target)
+
+            target = [d.as_dict(esri_format=esri_format) for d in data]
+            result = field.to_value(data, None)
+            self.assertEqual(result, target)
 
     def test_extent_field(self):
 
@@ -227,17 +231,19 @@ class FieldsTestCase(BaseTestCase):
             )
 
             # Test each form of an extent individually
-            for extent in extent_data:
-                field = ExtentField(name="to_python")
-                target = Extent(extent, spatial_ref).as_dict()
+            for esri_format in (True, False):
+                for extent in extent_data:
+                    field = ExtentField(esri_format=esri_format, name="to_python")
+                    self.assertEqual(field.esri_format, esri_format)
 
-                result = field.to_python(extent, resource)
-                self.assertEqual(result.as_dict(), target)
+                    target = Extent(extent, spatial_ref).as_dict(esri_format=esri_format)
+                    result = field.to_python(extent, resource)
+                    self.assertEqual(result.as_dict(esri_format=esri_format), target)
 
-                obj = result
-                field = ExtentField(name="to_value")
-                result = field.to_value(obj, resource)
-                self.assertEqual(result, target)
+                    obj = result
+                    field = ExtentField(esri_format=esri_format, name="to_value")
+                    result = field.to_value(obj, resource)
+                    self.assertEqual(result, target)
 
             # Test multiple extent values in a list
 
@@ -245,16 +251,17 @@ class FieldsTestCase(BaseTestCase):
             spatial_ref = get_spatial_reference_dict()
             resource = ClientResource(default_spatial_ref=spatial_ref["srs"])
 
-            field = ExtentField(name="to_python")
-            target = [Extent(e, spatial_ref).as_dict() for e in extent_data]
+            for esri_format in (True, False):
+                field = ExtentField(esri_format=esri_format, name="to_python")
+                target = [Extent(e, spatial_ref).as_dict(esri_format=esri_format) for e in extent_data]
 
-            result = field.to_python(extent_data, resource)
-            self.assertEqual([r.as_dict() for r in result], target)
+                result = field.to_python(extent_data, resource)
+                self.assertEqual([r.as_dict(esri_format=esri_format) for r in result], target)
 
-            objects = result
-            field = ExtentField(name="to_value")
-            result = field.to_value(objects, resource)
-            self.assertEqual(result, target)
+                objects = result
+                field = ExtentField(esri_format=esri_format, name="to_value")
+                result = field.to_value(objects, resource)
+                self.assertEqual(result, target)
 
     def test_spatial_reference_field(self):
 
@@ -265,17 +272,19 @@ class FieldsTestCase(BaseTestCase):
         )
 
         # Test each form of a spatial reference individually
-        for value in data:
-            field = SpatialReferenceField(name="to_python")
-            target = SpatialReference(value)
+        for esri_format in (True, False):
+            for value in data:
+                field = SpatialReferenceField(esri_format=esri_format, name="to_python")
+                self.assertEqual(field.esri_format, esri_format)
 
-            result = field.to_python(value, None)
-            self.assert_objects_are_equal(result, target)
+                target = SpatialReference(value)
+                result = field.to_python(value, None)
+                self.assert_objects_are_equal(result, target)
 
-            obj = result
-            field = SpatialReferenceField(name="to_value")
-            result = field.to_value(obj, None)
-            self.assertEqual(result, target.as_dict())
+                obj = result
+                field = SpatialReferenceField(esri_format=esri_format, name="to_value")
+                result = field.to_value(obj, None)
+                self.assertEqual(result, target.as_dict(esri_format=esri_format))
 
         # Test multiple spatial reference values in a list
 
@@ -284,17 +293,18 @@ class FieldsTestCase(BaseTestCase):
             get_spatial_reference_dict(False)
         )
 
-        field = SpatialReferenceField(name="to_python")
-        target = [SpatialReference(v) for v in data]
+        for esri_format in (True, False):
+            field = SpatialReferenceField(esri_format=esri_format, name="to_python")
+            target = [SpatialReference(v) for v in data]
 
-        result = field.to_python(data, None)
-        self.assert_objects_are_equal(result, target)
+            result = field.to_python(data, None)
+            self.assert_objects_are_equal(result, target)
 
-        objects = result
-        field = SpatialReferenceField(name="to_value")
-        target = [t.as_dict() for t in target]
-        result = field.to_value(objects, None)
-        self.assertEqual(result, target)
+            objects = result
+            field = SpatialReferenceField(esri_format=esri_format, name="to_value")
+            target = [t.as_dict(esri_format=esri_format) for t in target]
+            result = field.to_value(objects, None)
+            self.assertEqual(result, target)
 
     def test_time_info_field(self):
 

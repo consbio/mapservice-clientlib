@@ -61,7 +61,7 @@ class ThreddsResource(ClientResource):
 
     access_constraints = TextField(required=False)
     description = TextField(required=False)
-    full_extent = ExtentField(required=False)
+    full_extent = ExtentField(required=False, esri_format=False)
     keywords = ListField(default=[])
     spatial_resolution = TextField(required=False)
 

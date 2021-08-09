@@ -55,6 +55,7 @@ class ListField(fields.ListField):
 
     def __init__(self, wrap=True, *args, **kwargs):
         self.wrap = wrap
+
         super(ListField, self).__init__(*args, **kwargs)
 
     def to_python(self, value, resource):
@@ -136,6 +137,11 @@ class DrawingInfoField(ObjectField):
 
 class BaseExtentField(DictField):
 
+    def __init__(self, esri_format=True, *args, **kwargs):
+        self.esri_format = esri_format
+
+        super(BaseExtentField, self).__init__(*args, **kwargs)
+
     def to_python(self, value, resource):
         """ Overridden to manage conversion of multiple incoming vals """
 
@@ -161,7 +167,7 @@ class BaseExtentField(DictField):
         raise NotImplementedError(f"{class_name}._val_to_py")
 
     def _py_to_val(self, obj, resource):
-        return obj.as_dict()
+        return obj.as_dict(self.esri_format)
 
 
 class ExtentField(BaseExtentField):
@@ -183,6 +189,7 @@ class TimeInfoField(ObjectField):
 
     def __init__(self, *args, **kwargs):
         aliases = dict(TIME_INFO_ALIASES)
+
         super(TimeInfoField, self).__init__(class_name="TimeInfo", aliases=aliases, *args, **kwargs)
 
 
