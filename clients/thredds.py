@@ -412,12 +412,14 @@ class ThreddsResource(ClientResource):
                 "styles": ",".join(wrap_value(style_ids)),
                 "version": (params or {}).get("version") or self.wms_version
             }
+
+            spatial_ref_srs = extent.spatial_reference.srs or self.spatial_reference.srs
             if image_params["version"] == WMS_KNOWN_VERSIONS[1]:
                 image_params["exceptions"] = "XML"
-                image_params["crs"] = extent.spatial_reference.srs
+                image_params["crs"] = spatial_ref_srs
             else:
                 image_params["exceptions"] = WMS_EXCEPTION_FORMAT
-                image_params["srs"] = extent.spatial_reference.srs
+                image_params["srs"] = spatial_ref_srs
 
             # Note: time and custom params may require ordering to match layer - not clear from docs
             if time_range:
@@ -455,7 +457,7 @@ class ThreddsResource(ClientResource):
             )
         except (IOError, ValueError) as ex:
             raise ImageError(
-                "The WMS service did not return a valid image",
+                "The THREDDS service did not return a valid image",
                 params=image_params, underlying=ex, url=self._wms_url
             )
 

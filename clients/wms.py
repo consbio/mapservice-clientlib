@@ -467,7 +467,7 @@ class WMSResource(ClientResource):
     keywords = ListField(required=False)
     layer_drawing_limit = IntegerField(required=False)
 
-    full_extent = ExtentField(esri_format=False)
+    full_extent = ExtentField(required=False, esri_format=False)
     has_dimensions = BooleanField(default=False)
     has_time = BooleanField(default=False)
     is_ncwms = BooleanField(default=False)
@@ -601,12 +601,7 @@ class WMSResource(ClientResource):
         elif not self._lazy:
             self._populate_ordered_layers()  # Process ordered layers after nested structure is loaded
 
-        # Prepare layer dependent data
-
-        # Union all leaf layer extents in Web Mercator (root layers recursively union leafs)
-        wms_data["full_extent"] = union_extent(
-            l.full_extent for l in self.root_layers
-        ).as_dict(esri_format=False)
+        # Prepare leaf layer dependent data
 
         time_for_dimensions = [l.has_time for l in self.leaf_layers.values() if l.has_dimensions]
         wms_data["has_dimensions"] = bool(time_for_dimensions)
@@ -629,6 +624,9 @@ class WMSResource(ClientResource):
         # Populate fields with coerced, non-layer data (layers are nested to represent parent/child relationships)
 
         super(WMSResource, self).populate_field_values(wms_data)
+
+        # Union all leaf layer extents in Web Mercator (root layers recursively union leafs)
+        self.full_extent = union_extent(l.full_extent for l in self.root_layers)
 
     def _populate_ordered_layers(self):
         """ Must be called after root layers and complete nested layer structure have been loaded """
@@ -722,12 +720,13 @@ class WMSResource(ClientResource):
             if self._token:
                 image_params[self._token_id] = self._token
 
+            spatial_ref_srs = extent.spatial_reference.srs or self.spatial_reference.srs
             if image_params["version"] == WMS_KNOWN_VERSIONS[1]:
                 image_params["exceptions"] = "XML"
-                image_params["crs"] = extent.spatial_reference.srs
+                image_params["crs"] = spatial_ref_srs
             else:
                 image_params["exceptions"] = WMS_EXCEPTION_FORMAT
-                image_params["srs"] = extent.spatial_reference.srs
+                image_params["srs"] = spatial_ref_srs
 
             if time_range:
                 # Unclear in docs if time and custom params require ordering to match layer
