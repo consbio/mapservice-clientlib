@@ -157,7 +157,7 @@ def stack_images_vertically(images, background_color=(0, 0, 0, 0)):
     for next_image in images:
         if next_image.mode != "RGBA":
             next_image = next_image.convert("RGBA")
-        image.paste(next_image, (0, height_offset), image)
+        image.paste(next_image, (0, height_offset), next_image)
         height_offset += next_image.size[1]
 
     return image
