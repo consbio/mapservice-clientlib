@@ -8,6 +8,7 @@ from itertools import product
 from math import cos, fabs, radians, sqrt
 from parserutils.numbers import is_number
 from pyproj import Proj, transform
+from pyproj.exceptions import CRSError
 
 from ..exceptions import BadExtent, BadSpatialReference
 
@@ -326,8 +327,12 @@ class Extent(object):
 
         source_srs = self.spatial_reference.srs
         from_epsg = source_srs.strip().upper().startswith("EPSG:")
-        source_proj = Proj(init=source_srs) if from_epsg else Proj(str(source_srs))
-        target_proj = Proj(init=target_srs) if ":" in target_srs else Proj(str(target_srs))
+
+        try:
+            source_proj = Proj(init=source_srs) if from_epsg else Proj(str(source_srs))
+            target_proj = Proj(init=target_srs) if ":" in target_srs else Proj(str(target_srs))
+        except CRSError:
+            raise BadSpatialReference(f"Invalid SRS value: {source_srs}")
 
         edge_points = 9
 
@@ -453,11 +458,11 @@ class SpatialReference(object):
                 spatial_reference=spatial_reference
             )
 
-        self.srs = str(self.srs or "").upper()
+        self.srs = str(self.srs or "")
 
-        if self.srs == "CRS:84":
+        if self.srs.upper() == "CRS:84":
             self.srs = "EPSG:4326"
-        if not self.wkid and self.srs.startswith("EPSG:"):
+        if not self.wkid and self.srs.upper().startswith("EPSG:"):
             self.wkid = self.srs.split(":")[-1]
 
         if not (self.srs or self.wkid or self.wkt):
@@ -504,16 +509,12 @@ class SpatialReference(object):
     def is_valid_proj4_projection(self):
         """ If true, this can be projected using proj4; otherwise, need to use some external service to project """
 
-        srs_prefix, srs_val = None, None
-        if ":" in self.srs:
-            srs_prefix, srs_val = self.srs.split(":", 1)
-
         # Only WKIDs < 33000 map to EPSG codes, as per
         #    http://gis.stackexchange.com/questions/18651/do-arcgis-spatialreference-object-factory-codes-correspond-with-epsg-numbers
         return (
-            self.is_web_mercator() or
+            bool(self.srs) or
             bool(self.wkid and self.wkid < 33000) or
-            (srs_prefix == "EPSG" and is_number(srs_val))
+            self.is_web_mercator()
         )
 
 

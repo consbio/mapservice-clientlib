@@ -800,15 +800,16 @@ class SpatialReferenceTestCase(GeometryTestCase):
 
     def test_spatial_reference_is_valid_proj4_projection(self):
 
-        self.assertFalse(SpatialReference({"srs": 4326}).is_valid_proj4_projection())
         self.assertFalse(SpatialReference({"wkid": 33000}).is_valid_proj4_projection())
+        self.assertFalse(SpatialReference({"wkt": WEB_MERCATOR_WKT}).is_valid_proj4_projection())
 
         self.assertTrue(get_spatial_reference(web_mercator=True).is_valid_proj4_projection())
 
         for wkid in (1, 3857, 102100, 102113, 32999):
             self.assertTrue(SpatialReference({"wkid": wkid}).is_valid_proj4_projection())
 
-        for srs in ("EPSG:3857", "EPSG:3785", "EPSG:900913", "EPSG:102113", "EPSG:4326"):
+        proj4_format_srs = "+units=m +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+        for srs in ("EPSG:3857", "EPSG:3785", "EPSG:900913", "EPSG:102113", "EPSG:4326", proj4_format_srs):
             self.assertTrue(SpatialReference(srs).is_valid_proj4_projection())
 
 
