@@ -92,12 +92,15 @@ class ScienceBaseSession(SbSession, object):
         else:
             item_permissions = item_settings["permissions"]
 
-            read_access_control_list = item_json["permissions"].get("read", {}).get("acl", ["PUBLIC"])
+            read_permissions = item_json["permissions"].get("read") or {}
+            write_permissions = item_json["permissions"].get("write") or {}
+
+            read_access_control_list = read_permissions.get("acl") or ["PUBLIC"]
             is_private = "PUBLIC" not in read_access_control_list  # PUBLIC is stripped out by following
             read_access_control_list = (perm.split(":", 1) for perm in read_access_control_list if ":" in perm)
             item_permissions["read"] = accumulate_items((k.lower(), v) for k, v in read_access_control_list)
 
-            write_access_control_list = item_json["permissions"].get("write", {}).get("acl", [])
+            write_access_control_list = write_permissions.get("acl") or []
             write_access_control_list = (perm.split(":", 1) for perm in write_access_control_list if ":" in perm)
             item_permissions["write"] = accumulate_items((k.lower(), v) for k, v in read_access_control_list)
 
@@ -390,8 +393,8 @@ class ScienceBaseResource(ClientResource):
                 o for o in valid_contacts if (o.get("type") or "").lower() in self.data_provider_types
             )
             for originator in originator_contacts:
-                originator_txt = originator["name"]
-                if originator.get("organization", {}).get("display_text"):
+                originator_txt = originator["name"] or ""
+                if (originator.get("organization") or {}).get("display_text"):
                     originator_txt += "({})".format(originator["organization"]["display_text"])
                 elif originator.get("company"):
                     originator_txt += "({})".format(originator["company"])
