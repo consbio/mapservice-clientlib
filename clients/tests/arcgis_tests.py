@@ -300,6 +300,11 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.name, "bad_version")
         self.assertEqual(client.version, 10.01)
 
+        client = ImageServerResource.get(error_url, lazy=True, strict=False, bypass_version=False)
+        client._bypass_version = True
+        self.assertEqual(client.name, "bad_version")
+        self.assertEqual(client.version, 10.01)
+
         # Test feature server and layer version bypass
 
         error_url = self.feature_version_error_url
@@ -307,8 +312,18 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.service_description, "bad_version")
         self.assertEqual(client.version, 10.0)
 
+        client = FeatureServerResource.get(error_url, lazy=True, strict=False, bypass_version=False)
+        client._bypass_version = True
+        self.assertEqual(client.service_description, "bad_version")
+        self.assertEqual(client.version, 10.0)
+
         error_url = self.feature_layer_version_error_url
         client = FeatureLayerResource.get(error_url, lazy=False, strict=False, bypass_version=True)
+        self.assertEqual(client.name, "bad_version")
+        self.assertEqual(client.version, 10.0)
+
+        client = FeatureLayerResource.get(error_url, lazy=True, strict=False, bypass_version=False)
+        client._bypass_version = True
         self.assertEqual(client.name, "bad_version")
         self.assertEqual(client.version, 10.0)
 
@@ -319,8 +334,18 @@ class ArcGISTestCase(ResourceTestCase):
         self.assertEqual(client.service_description, "bad_version")
         self.assertEqual(client.version, 10)
 
+        client = MapServerResource.get(error_url, lazy=True, strict=False, bypass_version=False)
+        client._bypass_version = True
+        self.assertEqual(client.service_description, "bad_version")
+        self.assertEqual(client.version, 10)
+
         error_url = self.map_layer_version_error_url
         client = MapLayerResource.get(error_url, lazy=False, strict=False, bypass_version=True)
+        self.assertEqual(client.name, "bad_version")
+        self.assertEqual(client.version, 10)
+
+        client = MapLayerResource.get(error_url, lazy=True, strict=False, bypass_version=False)
+        client._bypass_version = True
         self.assertEqual(client.name, "bad_version")
         self.assertEqual(client.version, 10)
 

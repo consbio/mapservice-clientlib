@@ -302,9 +302,13 @@ class ClientResourceTestCase(ResourceTestCase):
         # Test minimum version support
 
         session = self.mock_mapservice_session(self.min_path)
-        client = TestResource.get(
-            self.min_url, lazy=False, session=session, bypass_version=True
-        )
+
+        client = TestResource.get(self.min_url, lazy=False, session=session, bypass_version=True)
+        self.assertEqual(client.id, "invalid_min")
+        self.assertEqual(client.version, 9.9)
+
+        client = TestResource.get(self.min_url, lazy=True, session=session, bypass_version=True)
+        client._bypass_version = True
         self.assertEqual(client.id, "invalid_min")
         self.assertEqual(client.version, 9.9)
 
@@ -314,9 +318,13 @@ class ClientResourceTestCase(ResourceTestCase):
         # Test maximum version support
 
         session = self.mock_mapservice_session(self.max_path)
-        client = TestResource.get(
-            self.min_url, lazy=False, session=session, bypass_version=True
-        )
+
+        client = TestResource.get(self.max_url, lazy=False, session=session, bypass_version=True)
+        self.assertEqual(client.id, "invalid_max")
+        self.assertEqual(client.version, 70.8)
+
+        client = TestResource.get(self.max_url, lazy=True, session=session, bypass_version=True)
+        client._bypass_version = True
         self.assertEqual(client.id, "invalid_max")
         self.assertEqual(client.version, 70.8)
 
