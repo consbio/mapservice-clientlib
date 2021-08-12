@@ -7,7 +7,7 @@ from io import BytesIO
 
 from gis_metadata.iso_metadata_parser import IsoParser
 from gis_metadata.utils import format_xpaths, ParserProperty
-from parserutils.collections import reduce_value, wrap_value
+from parserutils.collections import wrap_value
 from parserutils.elements import get_remote_element
 from parserutils.urls import has_trailing_slash, url_to_parts, parts_to_url
 from restle.fields import TextField
@@ -138,14 +138,20 @@ class ThreddsResource(ClientResource):
 
         # Flatten nested dataset metadata and service info
 
-        dataset_info = data.pop("dataset")
-        dataset_detail = reduce_value(dataset_info.pop("dataset", None))
+        dataset_info = data.pop("dataset", None)
+        if not dataset_info:
+            raise ValidationError(
+                message=f"{self.client_name} must specify at least one dataset",
+                datasets=dataset_info,
+                url=self._url
+            )
 
+        dataset_detail = dataset_info.pop("dataset", None)
         if dataset_detail and isinstance(dataset_detail, dict):
             dataset_info.update(dataset_detail)
-        else:
+        elif dataset_detail:
             raise ValidationError(
-                message="THREDDS resource must specify one dataset",
+                message=f"{self.client_name} must specify only one dataset",
                 datasets=dataset_info,
                 url=self._url
             )

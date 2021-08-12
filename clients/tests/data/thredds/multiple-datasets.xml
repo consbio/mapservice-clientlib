@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.0.1">
+  <service name="all" serviceType="Compound" base="">
+    <service name="http" serviceType="HTTPServer" base="/thredds/fileServer/" />
+    <service name="wms" serviceType="WMS" base="/thredds/wms/" />
+    <service name="iso" serviceType="ISO" base="/thredds/iso/" />
+  </service>
+  <dataset name="DATABASIN" ID="NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN">
+    <metadata inherited="true">
+      <serviceName>all</serviceName>
+      <authority>northwestknowledge.net</authority>
+      <dataType>GRID</dataType>
+      <dataFormat>netCDF</dataFormat>
+    </metadata>
+    <dataset name="macav2metdata.nc" ID="NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc" urlPath="NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc">
+      <dataSize units="Mbytes">231.9</dataSize>
+      <date type="modified">2017-04-28T17:32:01Z</date>
+    </dataset>
+    <dataset name="macav2metdata.nc" ID="NWCSC_IS_NO_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc" urlPath="NWCSC_IS_NO_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc">
+      <dataSize units="Mbytes">231.9</dataSize>
+      <date type="modified">2017-04-28T17:32:01Z</date>
+    </dataset>
+  </dataset>
+</catalog>

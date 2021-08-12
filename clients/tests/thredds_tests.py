@@ -74,38 +74,37 @@ class THREDDSTestCase(ResourceTestCase):
     def test_invalid_thredds_url(self, mock_request, mock_metadata):
 
         # Test with invalid url
-
         session = self.mock_mapservice_session(self.data_directory / "test.html")
         with self.assertRaises(HTTPError):
             ThreddsResource.get("http://www.google.com/test", session=session, lazy=False)
 
         # Test with invalid catalog url
-
         session = self.mock_mapservice_session(self.catalog_path)
         with self.assertRaises(HTTPError):
             broken_url = f"{self.base_url}/catalog/{self.service_path}/catalog.xml"
             ThreddsResource.get(broken_url, session=session, lazy=False)
 
-        # Test with missing catalog dataset
+        # Test with multiple catalog datasets
+        session = self.mock_mapservice_session(self.thredds_directory / "multiple-datasets.xml")
+        with self.assertRaises(ValidationError):
+            ThreddsResource.get(self.catalog_url, session=session, lazy=False)
 
-        session = self.mock_mapservice_session(self.thredds_directory / "invalid-catalog.xml")
+        # Test with missing catalog dataset
+        session = self.mock_mapservice_session(self.thredds_directory / "missing-dataset.xml")
         with self.assertRaises(ValidationError):
             ThreddsResource.get(self.catalog_url, session=session, lazy=False)
 
         # Test with missing metadata endpoint
-
         session = self.mock_mapservice_session(self.thredds_directory / "invalid-iso-catalog.xml")
         with self.assertRaises(ValidationError):
             ThreddsResource.get(self.catalog_url, session=session, lazy=False)
 
         # Test with missing WMS endpoint
-
         session = self.mock_mapservice_session(self.thredds_directory / "invalid-wms-catalog.xml")
         with self.assertRaises(ValidationError):
             ThreddsResource.get(self.catalog_url, session=session, lazy=False)
 
         # Test with broken layer menu endpoint
-
         self.mock_thredds_client(mock_request, mock_metadata)
         self.mock_mapservice_request(mock_request.get, self.layer_menu_url, self.layer_menu_path, ok=False)
 

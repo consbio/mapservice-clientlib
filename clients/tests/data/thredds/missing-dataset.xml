@@ -5,5 +5,5 @@
     <service name="wms" serviceType="WMS" base="/thredds/wms/" />
     <service name="iso" serviceType="ISO" base="/thredds/iso/" />
   </service>
-  <dataset name="DATABASIN" ID="nope" />
+  <dataset/>
 </catalog>
