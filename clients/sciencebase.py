@@ -282,7 +282,12 @@ class ScienceBaseResource(ClientResource):
             arcgis_pass = arcgis_credentials.get("password")
 
             if arcgis_user and arcgis_pass:
-                server_admin = ArcGISSecureResource.generate_token(self._url, arcgis_user, arcgis_pass)
+                # Shim: The first access of the self.service_url property returns the wrong value. As a temporary
+                # measure, we call self.service_url here, so that it's real usage on the next line will yield the
+                # correct value.
+                self.service_url
+
+                server_admin = ArcGISSecureResource.generate_token(self.service_url, arcgis_user, arcgis_pass)
                 if server_admin.token:
                     arcgis_credentials["token"] = server_admin.token
 
