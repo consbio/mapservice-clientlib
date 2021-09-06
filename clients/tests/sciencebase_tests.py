@@ -282,6 +282,8 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertEqual(service_client._params.get("token"), "arcgis_token")
         self.assertEqual(service_client.arcgis_credentials, {"token": "arcgis_token", "username": "arcgis_user"})
 
+        self.assertEqual(client.service_name, "ScienceBase service")
+        self.assertEqual(client.service_token, "arcgis_token")
         self.assertEqual(client.service_version, 10.5)
         self.assertEqual(client.service_version, service_client.version)
         self.assertEqual(client.arcgis_credentials, {"token": "arcgis_token", "username": "arcgis_user"})
@@ -437,6 +439,8 @@ class ScienceBaseTestCase(ResourceTestCase):
         self.assertEqual(service_client._params.get("josso"), token)
         self.assertEqual(service_client.wms_credentials, {"josso": token, "token_id": "josso"})
 
+        self.assertEqual(client.service_name, "ScienceBase service")
+        self.assertEqual(client.service_token, token)
         self.assertEqual(client.service_version, "1.3.0")
         self.assertEqual(client.service_version, service_client.version)
         self.assertEqual(client.josso_credentials, {"josso": token, "username": username, "token_id": "josso"})

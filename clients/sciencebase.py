@@ -210,6 +210,11 @@ class ScienceBaseResource(ClientResource):
         return self.get_service_client().full_extent
 
     @property
+    def service_token(self):
+        """ :return: either the WMS or ArcGIS client's token """
+        return self.get_service_client()._token
+
+    @property
     def service_version(self):
         """ :return: either the WMS or ArcGIS client's version """
         return self.get_service_client().version
@@ -221,7 +226,9 @@ class ScienceBaseResource(ClientResource):
             return self._service_client
 
         elif self.service_type == "arcgis":
-            self._service_client = MapServerResource.get(self.service_url, lazy=True, **self.arcgis_credentials)
+            self._service_client = MapServerResource.get(
+                self.service_url, lazy=True, **(self.arcgis_credentials if self.private else {})
+            )
             self.arcgis_credentials.update(self._service_client.arcgis_credentials)
 
         elif self.service_type == "wms":
@@ -282,12 +289,8 @@ class ScienceBaseResource(ClientResource):
             arcgis_pass = arcgis_credentials.get("password")
 
             if arcgis_user and arcgis_pass:
-                # Shim: The first access of the self.service_url property returns the wrong value. As a temporary
-                # measure, we call self.service_url here, so that it's real usage on the next line will yield the
-                # correct value.
-                self.service_url
-
-                server_admin = ArcGISSecureResource.generate_token(self.service_url, arcgis_user, arcgis_pass)
+                # Referencing `self.settings.service_url` forces the resource to populate field values for correct URL
+                server_admin = ArcGISSecureResource.generate_token(self.settings.service_url, arcgis_user, arcgis_pass)
                 if server_admin.token:
                     arcgis_credentials["token"] = server_admin.token
 
@@ -323,11 +326,6 @@ class ScienceBaseResource(ClientResource):
         self.service_token_id = self.settings.service_token_id
         self.service_type = self.settings.service_type
         self.service_url = self.settings.service_url
-
-        if self.service_type == "arcgis":
-            self.service_token = self.arcgis_credentials["token"]
-        else:
-            self.service_token = self._token
 
         # Parse dates from provenance object
 
