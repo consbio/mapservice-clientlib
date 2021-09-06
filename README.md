@@ -1,6 +1,6 @@
 # mapservice-clientlib
 
-[![Build Status](https://travis-ci.com/consbio/mapservice-clientlib.png?branch=main)](https://travis-ci.com/consbio/mapservice-clientlib)
+[![Build Status](https://api.travis-ci.com/consbio/mapservice-clientlib.png?branch=main)](https://app.travis-ci.com/github/consbio/mapservice-clientlib)
 [![Coverage Status](https://coveralls.io/repos/github/consbio/mapservice-clientlib/badge.svg?branch=main)](https://coveralls.io/github/consbio/mapservice-clientlib?branch=main)
 
 
