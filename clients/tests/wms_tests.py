@@ -78,8 +78,8 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.keywords, ["ncwms", "server"])
         self.assertEqual(client.layer_drawing_limit, 1 if is_max_version else None)
         self.assertEqual(
-            client.full_extent.as_list(),
-            [-15696047.830489751, 5012341.860907212, -5788613.783964222, 18295676.048854347]
+            client.full_extent.as_list(precision=7),
+            [-15696047.8304898, 5012341.8609072, -5788613.7839642, 18295676.0488543]
         )
         self.assertEqual(client.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(
