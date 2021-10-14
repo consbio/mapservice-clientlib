@@ -79,7 +79,7 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.layer_drawing_limit, 1 if is_max_version else None)
         self.assertEqual(
             client.full_extent.as_list(),
-            [-15696047.830489751, 5012341.860907214, -5788613.783964222, 18295676.048854332]
+            [-15696047.830489751, 5012341.860907212, -5788613.783964222, 18295676.048854347]
         )
         self.assertEqual(client.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(
@@ -146,8 +146,8 @@ class WMSTestCase(ResourceTestCase):
             self.assertEqual(first_layer._old_latlon_extent, None)
 
         self.assertEqual(
-            first_layer.full_extent.as_list(),
-            [-15696047.830489751, 5012341.860907214, -5788613.783964222, 18295676.048854332]
+            first_layer.full_extent.as_list(precision=7),
+            [-15696047.8304898, 5012341.8609072, -5788613.7839642, 18295676.0488543]
         )
         self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(
@@ -297,8 +297,8 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.keywords, ["DEMO", "WMS"])
         self.assertEqual(client.layer_drawing_limit, None)
         self.assertEqual(
-            client.full_extent.as_list(),
-            [-20037508.342789244, -20037471.205137067, 20037508.342789244, 20037471.20513706]
+            client.full_extent.as_list(precision=7),
+            [-20037508.3427892, -20037471.2051371, 20037508.3427892, 20037471.2051371]
         )
         self.assertEqual(client.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(
@@ -355,8 +355,8 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(first_layer._old_bbox_extent.spatial_reference.srs, "EPSG:4326")
 
         self.assertEqual(
-            first_layer.full_extent.as_list(),
-            [-19833459.716165174, -7323146.544576741, 19968824.216969796, 14888598.992608657]
+            first_layer.full_extent.as_list(precision=7),
+            [-19833459.7161652, -7323146.5445767, 19968824.2169698, 14888598.9926087]
         )
         self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(

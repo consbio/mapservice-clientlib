@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mapservice-clientlib"
-version = "1.0.3"
+version = "2.0"
 description = "Library to query mapservices including ArcGIS, THREDDS, WMS and ScienceBase"
 authors = ["dharvey-consbio <dani.harvey@consbio.org>"]
 keywords = ["arcgis", "thredds", "ncwms", "wms", "sciencebase", "geospatial", "gis", "mapservice", "map service", "clients", "mapservice_clientlib"]
@@ -13,12 +13,12 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 gis-metadata-parser = "^2.0"
 parserutils = "^2.0.1"
 restle = "^0.5.1"
 Pillow = "7.2.*"
-pyproj = "2.6.1"
+pyproj = "^3.2.1"
 python-ags = "^0.3.2"
 sciencebasepy = "1.6.4"
 

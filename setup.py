@@ -28,7 +28,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     keywords="arcgis,thredds,ncwms,wms,sciencebase,geospatial,gis,mapservice,map service,clients,mapservice_clientlib",
-    version="1.0.3",
+    version="2.0",
     packages=[
         "clients", "clients.query", "clients.utils"
     ],

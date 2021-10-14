@@ -177,7 +177,7 @@ class THREDDSTestCase(ResourceTestCase):
         self.assertEqual(client.description, "Downscaled daily meteorological data of Precipitation from Average.")
         self.assertEqual(
             client.full_extent.as_list(),
-            [-13889573.693873862, 2883446.5788958766, -7465511.412678699, 6342327.290465648]
+            [-13889573.693873862, 2883446.5788958776, -7465511.412678699, 6342327.290465648]
         )
         self.assertEqual(client.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(client.keywords, [
@@ -223,7 +223,7 @@ class THREDDSTestCase(ResourceTestCase):
 
         self.assertEqual(
             Extent(first_layer.full_extent).as_list(),
-            [-13889573.693873862, 2883446.5788958766, -7465511.412678699, 6342327.290465648]
+            [-13889573.693873862, 2883446.5788958776, -7465511.412678699, 6342327.290465648]
         )
         self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
 

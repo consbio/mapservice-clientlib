@@ -2,7 +2,7 @@
 name = "certifi"
 version = "2021.10.8"
 description = "Python package for providing Mozilla's CA Bundle."
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -47,7 +47,7 @@ parserutils = ">=2.0.1,<3.0.0"
 
 [[package]]
 name = "idna"
-version = "3.2"
+version = "3.3"
 description = "Internationalized Domain Names in Applications (IDNA)"
 category = "dev"
 optional = false
@@ -99,11 +99,14 @@ graphviz = ["graphviz"]
 
 [[package]]
 name = "pyproj"
-version = "2.6.1"
+version = "3.2.1"
 description = "Python interface to PROJ (cartographic projections and coordinate transformations library)"
 category = "main"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.7"
+
+[package.dependencies]
+certifi = "*"
 
 [[package]]
 name = "python-ags"
@@ -197,8 +200,8 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.6"
-content-hash = "bcff1f1ddcca8f8568609d1b08adc5d4887bcb6eaecd5ee9ca5e4284ef786f57"
+python-versions = "^3.7"
+content-hash = "b84d201c979d8701b84854806f8bd00b64840a9278a2173d3913a30d379967e0"
 
 [metadata.files]
 certifi = [
@@ -222,8 +225,8 @@ gis-metadata-parser = [
     {file = "gis_metadata_parser-2.0-py3-none-any.whl", hash = "sha256:0e6eba6d706e8efbf8fd09b31266124e593eca779d6a93d0c304f29858ca45f7"},
 ]
 idna = [
-    {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},
-    {file = "idna-3.2.tar.gz", hash = "sha256:467fbad99067910785144ce333826c71fb0e63a425657295239737f7ecd125f3"},
+    {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
+    {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
 ]
 mock = [
     {file = "mock-4.0.3-py3-none-any.whl", hash = "sha256:122fcb64ee37cfad5b3f48d7a7d51875d7031aaf3d8be7c42e2bee25044eee62"},
@@ -269,23 +272,26 @@ pipdeptree = [
     {file = "pipdeptree-2.2.0.tar.gz", hash = "sha256:21a89e77d6eae635685e8af5ecd56561f092f8216bb290e7ae5362885d611f60"},
 ]
 pyproj = [
-    {file = "pyproj-2.6.1-cp35-cp35m-macosx_10_6_intel.whl", hash = "sha256:9c0d9a2888837d001444f9165180d5e1812954a31b03d3d716d49adb6c70b70f"},
-    {file = "pyproj-2.6.1-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:4a3435e3fb51614e22f8fd57322693834b88b19685ff761d22c36be5ca836a59"},
-    {file = "pyproj-2.6.1-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:6da8fd4a09fc77f2750c63851bd8cd8cf4d1876573033ec6c44d29f5b4b3cea1"},
-    {file = "pyproj-2.6.1-cp35-cp35m-manylinux2010_x86_64.whl", hash = "sha256:3c64f3ecd3126b57dd21d2c51fbb2ba68d3120d63b6c07f9ca547d51aef8a783"},
-    {file = "pyproj-2.6.1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:11553895789640149f908a8e077cca67ae2535df071cc2f6d3b0ebcbf8adf02e"},
-    {file = "pyproj-2.6.1-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:9a36ba27000783d14b7b4d5c393f014cf77482168c8d31c2bb27e065b46ae56e"},
-    {file = "pyproj-2.6.1-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:7e46989a0a27e700fdc011b65e058ac7d117f4a756b5a5ec9c27386fa91b47b5"},
-    {file = "pyproj-2.6.1-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:e7d08ee78d32cfa4507c1d458a9fd5cf2e8a60e3fd8b9fe9fc2f3847b1021635"},
-    {file = "pyproj-2.6.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:925cf84980c032d2aff2c9fb78dd909b0b35d7f217c16c39a52c6b0678d5e7eb"},
-    {file = "pyproj-2.6.1-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:14865a582a5872ff64a90fa607a1554109d4440268050ca077be7e5d7642543d"},
-    {file = "pyproj-2.6.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:aac668630b359d5df0bb6bd4474758088e2fd28aec0320e827f4fa4ad6ba6902"},
-    {file = "pyproj-2.6.1-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:c4f3eb92c33d0f77d109b2f38cdb8e092d122484ffabf14e295cdde9e6536b0b"},
-    {file = "pyproj-2.6.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:166fce0649b40042f2ac2e5b6e13ac35be2b494681b9ed20a74f99ab59fd9fa2"},
-    {file = "pyproj-2.6.1-cp38-cp38-manylinux1_i686.whl", hash = "sha256:794be2206253a324f31caab8dd12c5de36119b5784a36cde30d0902cb78a7bb2"},
-    {file = "pyproj-2.6.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:9692d2a6b373cdb2741da23afaaf7947c4ff3b5a9e2b9d8ffeaa52eebe09bfff"},
-    {file = "pyproj-2.6.1-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:b4704d43fe7f7ebeffdd7bea61b361cd1c9ed6a7178b9b7b7477c56271f60e15"},
-    {file = "pyproj-2.6.1.tar.gz", hash = "sha256:52556f245f1112f121091937b47738d1fbcbd0f13be6fb32689de31ab0975d24"},
+    {file = "pyproj-3.2.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:ce554616880ab59110af9baa2948b4442d2961e20390df00cea49782b7c779fe"},
+    {file = "pyproj-3.2.1-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:40ed2a66d93af811abac9fd2581685a2aade22a6753501f2f9760893ee6b0828"},
+    {file = "pyproj-3.2.1-cp37-cp37m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:8e6821a472f03e3604413b562536e05cb7926c3bd85bfc423c88c4909871f692"},
+    {file = "pyproj-3.2.1-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8a732342136fa57112de717109c2b853a4df3e4e2de56e42da7a2b61e67f0b29"},
+    {file = "pyproj-3.2.1-cp37-cp37m-win32.whl", hash = "sha256:b87eda8647d71f27ed81c43da9d8e0b841a403378b645e8dc1d015e9f5133ed1"},
+    {file = "pyproj-3.2.1-cp37-cp37m-win_amd64.whl", hash = "sha256:f2eb0ee7e4183c1c4e2f450cccff09734b59ff929619bad3a4df97a87e3a3d1f"},
+    {file = "pyproj-3.2.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:76dd8a9dbd67a42e5ab8afe0e4a4167f0dfcd8f07e12541852c5289abf49e28f"},
+    {file = "pyproj-3.2.1-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:b73973908688a0845ebd78871ed2edcca35d1fad8e90983a416a49aadb350f28"},
+    {file = "pyproj-3.2.1-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:00ec0cdd218cc8e7c823a9fe7c705b1e55926fe3a9460ef2048403757f9897ec"},
+    {file = "pyproj-3.2.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c7d7097b969c7a3f114fcce379021e59c843c1c7b1b9b3f1bb2aa65019793800"},
+    {file = "pyproj-3.2.1-cp38-cp38-win32.whl", hash = "sha256:e61c34b1b5a6b8df2ecf5abdbf8dd69322001ebc1971d0897919e4004512c476"},
+    {file = "pyproj-3.2.1-cp38-cp38-win_amd64.whl", hash = "sha256:50d312cb7610f93f02f07b7da5b96469c52645717bebe6530ac7214cc69c068e"},
+    {file = "pyproj-3.2.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:faadb5795e99321b5135263080348e184b927352c6331a06c2fcfe77a07ad215"},
+    {file = "pyproj-3.2.1-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:d355ddf4cb29e77cb38e152354fb6ef6796d699d37e1a67a2427890ce2341162"},
+    {file = "pyproj-3.2.1-cp39-cp39-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:28026ddf4d779e6bcbbd45954a0ca017348d819f27deb503e860be4eb88f5218"},
+    {file = "pyproj-3.2.1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c5fb6283da84be5dc909f3f681490fd43de1b3694e9b5bed1ca7bc875130cb93"},
+    {file = "pyproj-3.2.1-cp39-cp39-win32.whl", hash = "sha256:604e8041ee0a17eec0fac4e7e10b2f11f45ab49676a4f26eb63753ebb9ba38b0"},
+    {file = "pyproj-3.2.1-cp39-cp39-win_amd64.whl", hash = "sha256:8cf6f7c62a7c4144771a330381198e53bff782c0345af623b8989b1913acb919"},
+    {file = "pyproj-3.2.1-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:19e6a7c6d31624b9971639036679fad35460045fd99c0c484899134b6bbf84cc"},
+    {file = "pyproj-3.2.1.tar.gz", hash = "sha256:4a936093825ff55b24c1fc6cc093541fcf6d0f6d406589ed699e62048ebf3877"},
 ]
 python-ags = [
     {file = "python-ags-0.3.2.tar.gz", hash = "sha256:eab9983eca8b050a5cee6d7de5441c1dacc3f6b71830f6c8376d78ff1bb9212b"},

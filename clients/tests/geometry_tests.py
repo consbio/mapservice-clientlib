@@ -536,18 +536,19 @@ class ExtentTestCase(GeometryTestCase):
             Extent(extent_dict).project_to_web_mercator()
 
         # Invalid projection coordinates
-        extent_dict["spatialReference"] = "EPSG:9001"
+        extent_dict = {"xmax": float('inf'), "xmin": float('inf'), "ymax": float('inf'), "ymin": float('inf')}
         with self.assertRaises(ValueError, msg="Invalid projection coordinates"):
-            Extent(extent_dict).project_to_web_mercator()
+            Extent(extent_dict, spatial_reference=4326).project_to_web_mercator()
 
         # Test success cases
 
         mercator_srs = "EPSG:3857"
+        projected_target = [-20037508.3427892, -20037471.2051371, 20037508.3427892, 20037471.2051371]
 
         # Test reprojection of WGS84 extent to Web Mercator
-        target = [GLOBAL_EXTENT_WEB_MERCATOR[0], -20037471.205137067, GLOBAL_EXTENT_WEB_MERCATOR[2], 20037471.20513706]
+        target = projected_target
         result = extent.project_to_web_mercator()
-        self.assertEqual(result.as_list(), target)
+        self.assertEqual(result.as_list(precision=7), target)
         self.assertEqual(result.spatial_reference.srs, mercator_srs)
 
         # Test original WGS84 extent is corrected after reprojection
@@ -556,9 +557,9 @@ class ExtentTestCase(GeometryTestCase):
         self.assertEqual(extent.spatial_reference.srs, "EPSG:4326")
 
         # Test reprojection when extent is already Web Mercator (unchanged)
-        target = [GLOBAL_EXTENT_WEB_MERCATOR[0], -20037471.205137067, GLOBAL_EXTENT_WEB_MERCATOR[2], 20037471.20513706]
+        target = projected_target
         result = Extent(target, spatial_reference=mercator_srs).project_to_web_mercator()
-        self.assertEqual(result.as_list(), target)
+        self.assertEqual(result.as_list(precision=7), target)
         self.assertEqual(result.spatial_reference.srs, mercator_srs)
 
     def test_extent_get_scale_string(self):
@@ -585,21 +586,21 @@ class ExtentTestCase(GeometryTestCase):
         scale = 2311162.217155
         width = 946
         height = 627
-        target = [-289237.7150310926, -191704.06693921625, 289237.7150310926, 191704.0669392088]
+        target = [-289237.7150311, -191704.0669392, 289237.7150311, 191704.0669392]
 
         # Test in WGS84
         extent = get_extent(web_mercator=False)
-        result = extent.set_to_center_and_scale(scale, width, height).as_list()
+        result = extent.set_to_center_and_scale(scale, width, height).as_list(precision=7)
         self.assertEqual(result, target)
 
         # Test in WGS84 corrected
         extent = Extent(GLOBAL_EXTENT_WGS84_CORRECTED, spatial_reference="EPSG:4326")
-        result = extent.set_to_center_and_scale(scale, width, height).as_list()
+        result = extent.set_to_center_and_scale(scale, width, height).as_list(precision=7)
         self.assertEqual(result, target)
 
         # Test in Web Mercator
         extent = get_extent(web_mercator=True)
-        result = extent.set_to_center_and_scale(scale, width, height).as_list()
+        result = extent.set_to_center_and_scale(scale, width, height).as_list(precision=7)
         self.assertEqual(result, target)
 
     def test_extract_significant_digits(self):
