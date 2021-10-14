@@ -535,11 +535,6 @@ class ExtentTestCase(GeometryTestCase):
         with self.assertRaises(ValueError, msg="Spatial reference is not valid for proj4"):
             Extent(extent_dict).project_to_web_mercator()
 
-        # Invalid projection coordinates
-        extent_dict = {"xmax": float('inf'), "xmin": float('inf'), "ymax": float('inf'), "ymin": float('inf')}
-        with self.assertRaises(ValueError, msg="Invalid projection coordinates"):
-            Extent(extent_dict, spatial_reference=4326).project_to_web_mercator()
-
         # Test success cases
 
         mercator_srs = "EPSG:3857"
