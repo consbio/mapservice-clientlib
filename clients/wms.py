@@ -764,7 +764,10 @@ class WMSResource(ClientResource):
         except requests.exceptions.HTTPError as ex:
             raise HTTPError(
                 "The WMS service image query did not respond correctly",
-                params=image_params, underlying=ex, url=self.wms_url
+                params=image_params,
+                underlying=ex,
+                url=self.wms_url,
+                status_code=getattr(ex.response, "status_code", None)
             )
         except (IOError, ValueError) as ex:
             raise ImageError(

@@ -59,7 +59,7 @@ class ScienceBaseSession(SbSession, object):
                 error = value["message"] if isinstance(value, dict) else value[0]["message"]
             except (IndexError, KeyError, ValueError):
                 error = f"ScienceBase denied your request for this item: {external_id}"
-            raise HTTPError(error, status_code=response.status_code, underlying=ex, url=url)
+            raise HTTPError(error, underlying=ex, url=url, status_code=response.status_code)
 
         return self._get_json(response, external_id)
 

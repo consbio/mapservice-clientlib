@@ -21,24 +21,33 @@ class ClientError(Exception):
         self.error_context.update({kw: arg for kw, arg in kwargs.items() if arg})
 
 
-class ContentError(ClientError, requests.exceptions.ContentDecodingError):
-
-    def __init__(self, message, params=None, **kwargs):
-        super(ContentError, self).__init__(message, **kwargs)
-        self.error_context["params"] = self.params = params
-
-
-class HTTPError(ClientError, requests.exceptions.HTTPError):
+class ClientRequestError(ClientError):
 
     def __init__(self, message, params=None, status_code=None, **kwargs):
-        super(HTTPError, self).__init__(message, **kwargs)
+        super(ClientRequestError, self).__init__(message, **kwargs)
 
         self.error_context["params"] = self.params = params
         self.error_context["status_code"] = self.status_code = status_code
 
 
-class NetworkError(ClientError, requests.exceptions.RequestException):
+class ContentError(ClientRequestError, requests.exceptions.ContentDecodingError):
     pass
+
+
+class HTTPError(ClientRequestError, requests.exceptions.HTTPError):
+    pass
+
+
+class NetworkError(ClientRequestError, requests.exceptions.RequestException):
+    pass
+
+
+class ServiceError(ClientRequestError):
+    """ A class to represent a range of service errors differentiated by status code """
+
+
+class ServiceTimeout(ServiceError, requests.exceptions.Timeout):
+    """ A class to represent server-side timeouts, not client (408) """
 
 
 class ImageError(ClientError):
@@ -48,22 +57,6 @@ class ImageError(ClientError):
 
         self.error_context["params"] = self.params = params
         self.error_context["tile_info"] = self.tile_info = tile_info
-
-
-class ServiceError(ClientError):
-    """ A class to represent a range of service errors differentiated by status code """
-
-    def __init__(self, message, status_code=None, **kwargs):
-        super(ServiceError, self).__init__(message, **kwargs)
-        self.error_context["status_code"] = self.status_code = status_code
-
-
-class ServiceTimeout(ServiceError, requests.exceptions.Timeout):
-    """ A class to represent server-side timeouts, not client (408) """
-
-    def __init__(self, message, status_code=504, **kwargs):
-        super(ServiceTimeout, self).__init__(message, **kwargs)
-        self.error_context["status_code"] = self.status_code = status_code
 
 
 class ValidationError(ClientError, AttributeError):

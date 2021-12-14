@@ -315,7 +315,9 @@ class ThreddsResource(ClientResource):
             except requests.exceptions.HTTPError as ex:
                 raise HTTPError(
                     "The THREDDS layer id query did not respond correctly",
-                    underlying=ex, url=self._layers_url
+                    underlying=ex,
+                    url=self._layers_url,
+                    status_code=getattr(ex.response, "status_code", None)
                 )
 
         label = data["label"]
@@ -459,7 +461,10 @@ class ThreddsResource(ClientResource):
         except requests.exceptions.HTTPError as ex:
             raise HTTPError(
                 "The THREDDS service image query did not respond correctly",
-                params=image_params, underlying=ex, url=self._wms_url
+                params=image_params,
+                underlying=ex,
+                url=self._wms_url,
+                status_code=getattr(ex.response, "status_code", None)
             )
         except (IOError, ValueError) as ex:
             raise ImageError(

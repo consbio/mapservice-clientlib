@@ -306,7 +306,10 @@ class ArcGISTiledImageResource(ArcGISServerResource):
         except requests.exceptions.HTTPError as ex:
             raise HTTPError(
                 "The ArcGIS service image query did not respond correctly",
-                params=image_params, underlying=ex, url=image_url
+                params=image_params,
+                underlying=ex,
+                url=image_url,
+                status_code=getattr(ex.response, "status_code", None)
             )
         except (IOError, ValueError) as ex:
             raise ImageError(
@@ -435,10 +438,12 @@ class ArcGISTiledImageResource(ArcGISServerResource):
         try:
             response = self._make_request(tile_url, tile_params)
         except requests.exceptions.HTTPError as ex:
-            status_code = getattr(getattr(ex, "response", None), "status_code", None)
             raise HTTPError(
                 "The ArcGIS single tile query did not respond correctly",
-                params=tile_params, status_code=status_code, underlying=ex, url=tile_url
+                params=tile_params,
+                underlying=ex,
+                url=tile_url,
+                status_code=getattr(ex.response, "status_code", None)
             )
 
         base_image.paste(
@@ -756,7 +761,10 @@ class GeometryServiceClient(object):
         except requests.exceptions.HTTPError as ex:
             raise HTTPError(
                 "The ArcGIS geometry service did not respond correctly",
-                params=params, status_code=response.status_code, underlying=ex, url=url
+                params=params,
+                underlying=ex,
+                url=url,
+                status_code=response.status_code
             )
 
         try:

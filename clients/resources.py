@@ -107,14 +107,12 @@ class ClientResource(Resource):
         try:
             response = self._make_request()
         except requests.exceptions.HTTPError as ex:
-            response = getattr(ex, "response", None)
-
-            reason = getattr(response, "reason", None)
-            status_code = getattr(response, "status_code", None)
+            reason = getattr(ex.response, "reason", None)
+            status_code = getattr(ex.response, "status_code", None)
 
             raise HTTPError(
                 f"The map service returned {status_code} ({reason})",
-                params=self._params, status_code=status_code, underlying=ex, url=self._url
+                params=self._params, underlying=ex, url=self._url, status_code=status_code
             )
         except requests.exceptions.Timeout as ex:
             status_code = getattr(getattr(ex, "response", None), "status_code", None)
@@ -122,14 +120,20 @@ class ClientResource(Resource):
 
             raise ServiceTimeout(
                 f"{timeout_error}: the map service did not respond in time",
-                status_code=status_code, underlying=ex, url=self._url
+                params=self._params,
+                underlying=ex,
+                url=self._url,
+                status_code=getattr(ex.response, "status_code", None)
             )
         except requests.exceptions.RequestException as ex:
             network_error = type(ex).__name__
 
             raise NetworkError(
                 f"{network_error}: the map service is unavailable",
-                underlying=ex, url=self._url
+                params=self._params,
+                underlying=ex,
+                url=self._url,
+                status_code=getattr(ex.response, "status_code", None)
             )
 
         try:
@@ -253,22 +257,27 @@ class ClientResource(Resource):
                 )
             raise HTTPError(
                 "The map service did not respond correctly",
-                params=self._params, underlying=ex, url=self._url
+                params=self._params, underlying=ex, url=self._url, status_code=status_code
             )
         except requests.exceptions.Timeout as ex:
-            status_code = getattr(getattr(ex, "response", None), "status_code", None)
             timeout_error = type(ex).__name__
 
             raise ServiceTimeout(
                 f"{timeout_error}: the map service did not respond in time",
-                status_code=status_code, underlying=ex, url=self._url
+                params=self._params,
+                underlying=ex,
+                url=self._url,
+                status_code=getattr(ex.response, "status_code", None)
             )
         except requests.exceptions.RequestException as ex:
             network_error = type(ex).__name__
 
             raise NetworkError(
                 f"{network_error}: the map service is unavailable",
-                underlying=ex, url=self._url
+                params=self._params,
+                underlying=ex,
+                url=self._url,
+                status_code=getattr(ex.response, "status_code", None)
             )
         except (SyntaxError, ValueError) as ex:
             unicode_error = isinstance(ex, UnicodeEncodeError)
