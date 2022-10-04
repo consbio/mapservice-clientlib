@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mapservice-clientlib"
-version = "2.1"
+version = "2.2.0"
 description = "Library to query mapservices including ArcGIS, THREDDS, WMS and ScienceBase"
 authors = ["dharvey-consbio <dani.harvey@consbio.org>"]
 keywords = ["arcgis", "thredds", "ncwms", "wms", "sciencebase", "geospatial", "gis", "mapservice", "map service", "clients", "mapservice_clientlib"]
