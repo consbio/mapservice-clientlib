@@ -34,7 +34,7 @@ setup(
     ],
     install_requires=[
         "gis-metadata-parser>=2.0", "parserutils>=2.0.1", "restle>=0.5.1",
-        "Pillow==7.2.*", "pyproj==2.6.1", "python-ags==0.3.2", "sciencebasepy==2.*"
+        "Pillow==^9.5", "pyproj==2.6.1", "python-ags==0.3.2", "sciencebasepy==2.*"
     ],
     tests_require=["mock", "requests-mock"],
     url="https://github.com/consbio/mapservice-clientlib",
