@@ -2,6 +2,7 @@
 .cache/
 .coverage
 .tox/
+.idea
 __pycache__/
 /build/
 /dist/

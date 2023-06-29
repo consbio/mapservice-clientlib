@@ -13,11 +13,11 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 gis-metadata-parser = "^2.0"
 parserutils = "^2.0.1"
 restle = "^0.5.1"
-Pillow = "7.2.*"
+Pillow = "^9.5"
 pyproj = "^3.2.1"
 python-ags = "^0.3.2"
 sciencebasepy = "^2.0.4"
