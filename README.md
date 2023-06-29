@@ -1,6 +1,6 @@
 # mapservice-clientlib
 
-![Published](https://github.com/consbio/mapservice-clientlib/actions/workflows/publish.yml/badge.svg)
+[![Published](https://github.com/consbio/mapservice-clientlib/actions/workflows/publish.yml/badge.svg)](https://pypi.org/project/mapservice-clientlib/)
 [![Coverage Status](https://coveralls.io/repos/github/consbio/mapservice-clientlib/badge.svg?branch=main)](https://coveralls.io/github/consbio/mapservice-clientlib?branch=main)
 
 A library to make web service calls to map service REST APIs easier. Currently supported:
