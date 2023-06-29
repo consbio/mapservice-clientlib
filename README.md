@@ -1,15 +1,14 @@
 # mapservice-clientlib
 
-[![Build Status](https://api.travis-ci.com/consbio/mapservice-clientlib.png?branch=main)](https://app.travis-ci.com/github/consbio/mapservice-clientlib)
+[![Published](https://github.com/consbio/mapservice-clientlib/actions/workflows/publish.yml/badge.svg)](https://pypi.org/project/mapservice-clientlib/)
 [![Coverage Status](https://coveralls.io/repos/github/consbio/mapservice-clientlib/badge.svg?branch=main)](https://coveralls.io/github/consbio/mapservice-clientlib?branch=main)
-
 
 A library to make web service calls to map service REST APIs easier. Currently supported:
 
-* ArcGIS (version 10.1 and greater)
-* THREDDS
-* WMS / NcWMS (versions 1.1.1 and 1.3.0)
-* ScienceBase
+- ArcGIS (version 10.1 and greater)
+- THREDDS
+- WMS / NcWMS (versions 1.1.1 and 1.3.0)
+- ScienceBase
 
 Each leverages the [restle](https://github.com/consbio/restle) library to represent queried map service data as Python objects.
 Each also provides some default functionality for rendering projected map service data as images, which may be overridden per class as needed.
@@ -20,11 +19,9 @@ Beyond this are some utilities for working with images (PIL) and extents (mostly
 
 Install with `pip install mapservice-clientlib`.
 
-
 ## Usage
 
 Below are some examples of each supported map service web API standard:
-
 
 ### ArcGIS Resources
 
@@ -72,7 +69,6 @@ client = GeometryServiceClient(geometry_url)
 extent = client.project_extent(old_extent, {'wkid': 3857}).limit_to_global_extent()
 ```
 
-
 ### WMS
 
 WMS services may be queried, with support for NcWMS
@@ -99,7 +95,6 @@ wms_image = WMSResource.get(
 )
 ```
 
-
 ### THREDDS
 
 THREDDS resources may be queried, with metadata from related WMS endpoint:
@@ -125,7 +120,6 @@ thredds_image = client.get_image(
     image_format="png"
 )
 ```
-
 
 ### ScienceBase
 
@@ -178,7 +172,6 @@ client = ScienceBaseResource.get(
 )
 client.service_client.full_extent  # ArcGISResource.full_extent
 ```
-
 
 ### Extent Utilities
 
