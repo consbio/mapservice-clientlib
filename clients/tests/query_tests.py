@@ -13,17 +13,24 @@ from ..utils.geometry import Extent, SpatialReference
 
 from .utils import BaseTestCase
 from .utils import get_extent, get_extent_dict, get_extent_list, get_extent_object
-from .utils import get_object, get_spatial_reference, get_spatial_reference_dict, get_spatial_reference_object
+from .utils import (
+    get_object,
+    get_spatial_reference,
+    get_spatial_reference_dict,
+    get_spatial_reference_object,
+)
 
 
 class FieldsTestCase(BaseTestCase):
-
     def test_dict_field(self):
         # Test with simple flat values (no conversion)
 
         flat_values = (
-            123, "456", [7, 8, 9], list("abc"),
-            {"a": "aaa", "b": "bbb", "c": "ccc"}
+            123,
+            "456",
+            [7, 8, 9],
+            list("abc"),
+            {"a": "aaa", "b": "bbb", "c": "ccc"},
         )
         for value in flat_values:
             target = value
@@ -37,7 +44,7 @@ class FieldsTestCase(BaseTestCase):
             "two": 2,
             "twentyTwo": 22,
             "abc": ["a", "b", "c"],
-            "def": {"g": "ggg", "h": "hhh", "i": "iii"}
+            "def": {"g": "ggg", "h": "hhh", "i": "iii"},
         }
 
         # Test without camel casing
@@ -54,7 +61,7 @@ class FieldsTestCase(BaseTestCase):
             "2": 2,
             "22": 22,
             "abc": ["a", "b", "c"],
-            "def": {"g": "ggg", "h": "hhh", "i": "iii"}
+            "def": {"g": "ggg", "h": "hhh", "i": "iii"},
         }
         result = field.to_python(value, None)
         self.assertEqual(result, target)
@@ -70,7 +77,7 @@ class FieldsTestCase(BaseTestCase):
             "twenty_two": 22,
             "abc": ["a", "b", "c"],
             "def": {"g": "ggg", "h": "hhh", "i": "iii"},
-            "ghi": None
+            "ghi": None,
         }
         result = field.to_python(value, None)
         self.assertEqual(result, target)
@@ -96,7 +103,7 @@ class FieldsTestCase(BaseTestCase):
             "two": 2,
             "twentyTwo": 22,
             "abc": ["a", "b", "c"],
-            "def": {"g": "ggg", "h": "hhh", "i": "iii"}
+            "def": {"g": "ggg", "h": "hhh", "i": "iii"},
         }
 
         field = ObjectField(name="no_camel", convert_camel=False)
@@ -107,26 +114,30 @@ class FieldsTestCase(BaseTestCase):
 
         field = ObjectField(name="camel", convert_camel=True)
         result = field.to_python(value, None)
-        target = get_object({
-            "one": 1,
-            "two": 2,
-            "twenty_two": 22,
-            "abc": ["a", "b", "c"],
-            "def": {"g": "ggg", "h": "hhh", "i": "iii"}
-        })
+        target = get_object(
+            {
+                "one": 1,
+                "two": 2,
+                "twenty_two": 22,
+                "abc": ["a", "b", "c"],
+                "def": {"g": "ggg", "h": "hhh", "i": "iii"},
+            }
+        )
         setattr(target, "def", get_object(getattr(target, "def")))
         self.assert_objects_are_equal(result, target)
 
         aliases = {"one": "1", "two": "2", "twentyTwo": "22"}
         field = ObjectField(name="camel_aliases", aliases=aliases, convert_camel=True)
         result = field.to_python(value, None)
-        target = get_object({
-            "1": 1,
-            "2": 2,
-            "22": 22,
-            "abc": ["a", "b", "c"],
-            "def": {"g": "ggg", "h": "hhh", "i": "iii"}
-        })
+        target = get_object(
+            {
+                "1": 1,
+                "2": 2,
+                "22": 22,
+                "abc": ["a", "b", "c"],
+                "def": {"g": "ggg", "h": "hhh", "i": "iii"},
+            }
+        )
         setattr(target, "def", get_object(getattr(target, "def")))
         self.assert_objects_are_equal(result, target)
 
@@ -162,27 +173,34 @@ class FieldsTestCase(BaseTestCase):
         field = DrawingInfoField(name="aliases")
         result = field.to_python(value, None)
         # The target will have aliased properties for each value in the test data
-        target = get_object({
-            v: DRAWING_INFO_ALIASES[k][::-1] for k, v in DRAWING_INFO_ALIASES.items()
-        })
+        target = get_object(
+            {v: DRAWING_INFO_ALIASES[k][::-1] for k, v in DRAWING_INFO_ALIASES.items()}
+        )
         self.assert_objects_are_equal(result, target)
 
-        value = {"a": "aaa", "b": "bbb", "c": "ccc", "renderer": {"field2": "second field val"}}
-        field = DrawingInfoField(name="renderer_fields")
-        result = field.to_python(value, None)
-        target = get_object({
+        value = {
             "a": "aaa",
             "b": "bbb",
             "c": "ccc",
-            "renderer": {
-                "default_symbol": None,
-                "field": None,
-                "field1": None,
-                "field2": "second field val",
-                "field3": None,
-                "label": None
+            "renderer": {"field2": "second field val"},
+        }
+        field = DrawingInfoField(name="renderer_fields")
+        result = field.to_python(value, None)
+        target = get_object(
+            {
+                "a": "aaa",
+                "b": "bbb",
+                "c": "ccc",
+                "renderer": {
+                    "default_symbol": None,
+                    "field": None,
+                    "field1": None,
+                    "field2": "second field val",
+                    "field3": None,
+                    "label": None,
+                },
             }
-        })
+        )
         setattr(target, "renderer", get_object(getattr(target, "renderer")))
         self.assert_objects_are_equal(result, target)
 
@@ -226,8 +244,8 @@ class FieldsTestCase(BaseTestCase):
                 get_extent_list(web_mercator),
                 Extent(
                     get_extent_list(web_mercator),
-                    spatial_reference=get_spatial_reference(web_mercator)
-                )
+                    spatial_reference=get_spatial_reference(web_mercator),
+                ),
             )
 
             # Test each form of an extent individually
@@ -236,7 +254,9 @@ class FieldsTestCase(BaseTestCase):
                     field = ExtentField(esri_format=esri_format, name="to_python")
                     self.assertEqual(field.esri_format, esri_format)
 
-                    target = Extent(extent, spatial_ref).as_dict(esri_format=esri_format)
+                    target = Extent(extent, spatial_ref).as_dict(
+                        esri_format=esri_format
+                    )
                     result = field.to_python(extent, resource)
                     self.assertEqual(result.as_dict(esri_format=esri_format), target)
 
@@ -253,10 +273,15 @@ class FieldsTestCase(BaseTestCase):
 
             for esri_format in (True, False):
                 field = ExtentField(esri_format=esri_format, name="to_python")
-                target = [Extent(e, spatial_ref).as_dict(esri_format=esri_format) for e in extent_data]
+                target = [
+                    Extent(e, spatial_ref).as_dict(esri_format=esri_format)
+                    for e in extent_data
+                ]
 
                 result = field.to_python(extent_data, resource)
-                self.assertEqual([r.as_dict(esri_format=esri_format) for r in result], target)
+                self.assertEqual(
+                    [r.as_dict(esri_format=esri_format) for r in result], target
+                )
 
                 objects = result
                 field = ExtentField(esri_format=esri_format, name="to_value")
@@ -268,7 +293,7 @@ class FieldsTestCase(BaseTestCase):
         data = (
             get_spatial_reference(),
             get_spatial_reference_dict(),
-            get_spatial_reference_object()
+            get_spatial_reference_object(),
         )
 
         # Test each form of a spatial reference individually
@@ -288,10 +313,7 @@ class FieldsTestCase(BaseTestCase):
 
         # Test multiple spatial reference values in a list
 
-        data = (
-            get_spatial_reference_dict(True),
-            get_spatial_reference_dict(False)
-        )
+        data = (get_spatial_reference_dict(True), get_spatial_reference_dict(False))
 
         for esri_format in (True, False):
             field = SpatialReferenceField(esri_format=esri_format, name="to_python")
@@ -313,14 +335,13 @@ class FieldsTestCase(BaseTestCase):
         field = TimeInfoField(name="aliases")
         result = field.to_python(value, None)
         # The target will have aliased properties for each value in the test data
-        target = get_object({
-            v: TIME_INFO_ALIASES[k][::-1] for k, v in TIME_INFO_ALIASES.items()
-        })
+        target = get_object(
+            {v: TIME_INFO_ALIASES[k][::-1] for k, v in TIME_INFO_ALIASES.items()}
+        )
         self.assert_objects_are_equal(result, target)
 
 
 class ActionsTestCase(BaseTestCase):
-
     def test_query_action_prepare_params(self):
 
         for web_mercator in (True, False):
@@ -331,26 +352,31 @@ class ActionsTestCase(BaseTestCase):
 
             action = QueryAction("/", deserializer=JSONSerializer)
 
-            params = action.prepare_params({
-                "extent_obj": extent,
-                "extent_dict": extent_dict,
-                "extent_list": extent_list,
-                "spatial_reference": spatial_ref
-            })
+            params = action.prepare_params(
+                {
+                    "extent_obj": extent,
+                    "extent_dict": extent_dict,
+                    "extent_list": extent_list,
+                    "spatial_reference": spatial_ref,
+                }
+            )
             target = {
                 "extent_obj": extent.as_json_string(),
                 "extent_dict": json.dumps(extent_dict),
                 "extent_list": json.dumps(extent_list),
-                "spatial_reference": spatial_ref.as_json_string()
+                "spatial_reference": spatial_ref.as_json_string(),
             }
         self.assertEqual(params[0], URLSerializer.to_string(target))
 
 
 class SerializersTestCase(BaseTestCase):
-
     def test_xml_to_json_serializer(self):
         serializer = XMLToJSONSerializer()
         serialized = '<a root="true"><b first="true">bbb</b><c>ccc</c>aaa</a>'
-        deserialized = {"b": {"first": "true", "value": "bbb"}, "c": ["ccc", "aaa"], "root": "true"}
+        deserialized = {
+            "b": {"first": "true", "value": "bbb"},
+            "c": ["ccc", "aaa"],
+            "root": "true",
+        }
 
         self.assertEqual(serializer.to_dict(serialized), deserialized)

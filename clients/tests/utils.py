@@ -52,16 +52,21 @@ def get_extent(web_mercator=False):
 
 def get_extent_dict(web_mercator=False):
     extent_dict = {
-        "xmin": -180.0, "ymin": -90.0, "xmax": 180.0, "ymax": 90.0,
-        "spatial_reference": get_spatial_reference_dict(web_mercator)
+        "xmin": -180.0,
+        "ymin": -90.0,
+        "xmax": 180.0,
+        "ymax": 90.0,
+        "spatial_reference": get_spatial_reference_dict(web_mercator),
     }
     if web_mercator:
-        extent_dict.update({
-            "xmin": -20037508.342789244,
-            "ymin": -20037471.205137067,
-            "xmax": 20037508.342789244,
-            "ymax": 20037471.20513706
-        })
+        extent_dict.update(
+            {
+                "xmin": -20037508.342789244,
+                "ymin": -20037471.205137067,
+                "xmax": 20037508.342789244,
+                "ymax": 20037471.20513706,
+            }
+        )
 
     return extent_dict
 
@@ -70,7 +75,12 @@ def get_extent_list(web_mercator=False):
     if not web_mercator:
         return [-180.0, -90.0, 180.0, 90.0]
     else:
-        return [-20037508.342789244, -20037471.205137067, 20037508.342789244, 20037471.20513706]
+        return [
+            -20037508.342789244,
+            -20037471.205137067,
+            20037508.342789244,
+            20037471.20513706,
+        ]
 
 
 def get_extent_object(web_mercator=False):
@@ -89,9 +99,9 @@ def get_object_properties(obj):
         return isinstance(val, (types.FunctionType, types.MethodType))  # callable(val)
 
     return {
-        prop for prop in dir(obj)
-        if not prop.startswith("__")
-        and not is_callable(getattr(obj, prop))
+        prop
+        for prop in dir(obj)
+        if not prop.startswith("__") and not is_callable(getattr(obj, prop))
     }
 
 
@@ -120,7 +130,6 @@ def mock_thread(target, args, kwargs=None):
 
 
 class BaseTestCase(unittest.TestCase):
-
     def setUp(self):
         self.data_directory = get_test_directory() / "data"
 
@@ -133,7 +142,9 @@ class BaseTestCase(unittest.TestCase):
         self.assertTrue(bool(props))
 
         for prop in props:
-            self.assertTrue(not prop or prop in target_data, f'Invalid test property "{prop}"')
+            self.assertTrue(
+                not prop or prop in target_data, f'Invalid test property "{prop}"'
+            )
 
         return props
 
@@ -144,7 +155,9 @@ class BaseTestCase(unittest.TestCase):
                 self.assert_object_field(obj, target_data[idx])
         else:
             props = self._assert_props(target_data, props)
-            obj_data = {k: v for k, v in obj_or_objects.get_data().items() if k in props}
+            obj_data = {
+                k: v for k, v in obj_or_objects.get_data().items() if k in props
+            }
 
             self.assertEqual(obj_data, target_data)
 
@@ -164,7 +177,9 @@ class BaseTestCase(unittest.TestCase):
                 if hasattr(target_val, "get_data"):
                     target_val = target_val.get_data()
 
-                self.assert_objects_are_equal(test_val, target_val, f'Invalid value for "{prop}"')
+                self.assert_objects_are_equal(
+                    test_val, target_val, f'Invalid value for "{prop}"'
+                )
 
     def assert_objects_are_equal(self, first, second, msg=None):
 
@@ -200,7 +215,10 @@ class BaseTestCase(unittest.TestCase):
 class GeometryTestCase(BaseTestCase):
 
     extent_props = {
-        "xmin": -180, "ymin": -90, "xmax": 180, "ymax": 90,
+        "xmin": -180,
+        "ymin": -90,
+        "xmax": 180,
+        "ymax": 90,
     }
 
     spatial_reference_props = {
@@ -214,38 +232,59 @@ class GeometryTestCase(BaseTestCase):
         self.assertTrue(extent is not None)
 
         self.assert_object_values(extent, self.extent_props, props)
-        self.assert_spatial_reference(getattr(extent, "spatial_reference", None), props="")
+        self.assert_spatial_reference(
+            getattr(extent, "spatial_reference", None), props=""
+        )
 
-    def assert_spatial_reference(self, spatial_reference, props="latest_wkid,srs,wkid,wkt"):
+    def assert_spatial_reference(
+        self, spatial_reference, props="latest_wkid,srs,wkid,wkt"
+    ):
         self.assertTrue(spatial_reference is not None)
-        self.assert_object_values(spatial_reference, self.spatial_reference_props, props)
+        self.assert_object_values(
+            spatial_reference, self.spatial_reference_props, props
+        )
 
 
 class ResourceTestCase(BaseTestCase):
-
     def setUp(self):
         super(ResourceTestCase, self).setUp()
 
         self.cookies = None
         self.headers = {"content-type": WMS_EXCEPTION_FORMAT}
 
-    def assert_get_image(self, client, target_hash=DEFAULT_IMG_HASH, extent=None, dimensions=None, **image_params):
+    def assert_get_image(
+        self,
+        client,
+        target_hash=DEFAULT_IMG_HASH,
+        extent=None,
+        dimensions=None,
+        **image_params,
+    ):
         client._session = self.mock_mapservice_session(
             self.data_directory / "test.png",
             mode="rb",
-            headers={"content-type": "image/png"}
+            headers={"content-type": "image/png"},
         )
 
         if dimensions is None:
             dimensions = DEFAULT_IMG_DIMS
-        img = client.get_image(extent or client.full_extent, *dimensions, **image_params)
+        img = client.get_image(
+            extent or client.full_extent, *dimensions, **image_params
+        )
 
         self.assertEqual(img.size, dimensions)
         self.assertEqual(img.mode, "RGBA")
         self.assertEqual(md5(img.tobytes()).hexdigest(), target_hash)
 
     def mock_mapservice_request(
-        self, mock_method, service_url, data_path, mode="r", ok=True, cookies=None, headers=None
+        self,
+        mock_method,
+        service_url,
+        data_path,
+        mode="r",
+        ok=True,
+        cookies=None,
+        headers=None,
     ):
 
         with open(data_path, mode=mode) as mapservice_data:
@@ -254,7 +293,7 @@ class ResourceTestCase(BaseTestCase):
                 status_code=200 if ok else 500,
                 text=mapservice_data.read(),
                 cookies=self.cookies if cookies is None else cookies,
-                headers=self.headers if headers is None else headers
+                headers=self.headers if headers is None else headers,
             )
 
     def mock_mapservice_session(self, data_path, mode="r", ok=True, headers=None):
@@ -279,7 +318,7 @@ class ResourceTestCase(BaseTestCase):
                 status_code=200 if ok else 500,
                 content=mapservice_content,
                 text=mapservice_text,
-                headers=mock_headers
+                headers=mock_headers,
             )
             if not ok:
                 response.raise_for_status.side_effect = requests.exceptions.HTTPError

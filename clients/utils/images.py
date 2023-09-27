@@ -10,11 +10,22 @@ from PIL import Image
 
 IMG_BASE64_PREFIX = b"data:image/png;base64,"
 IMG_FORMATS_BY_EXT = {
-    ".bmp": "BMP", ".dib": "DIB", ".gif": "GIF",
-    ".tif": "TIFF", ".tiff": "TIFF",
-    ".jfif": "JPEG", ".jpe": "JPEG", ".jpg": "JPEG", ".jpeg": "JPEG",
-    ".pbm": "PPM", ".pgm": "PPM", ".ppm": "PPM", ".pnm": "PPM",
-    ".png": "PNG", ".apng": "PNG", "": "PNG"
+    ".bmp": "BMP",
+    ".dib": "DIB",
+    ".gif": "GIF",
+    ".tif": "TIFF",
+    ".tiff": "TIFF",
+    ".jfif": "JPEG",
+    ".jpe": "JPEG",
+    ".jpg": "JPEG",
+    ".jpeg": "JPEG",
+    ".pbm": "PPM",
+    ".pgm": "PPM",
+    ".ppm": "PPM",
+    ".pnm": "PPM",
+    ".png": "PNG",
+    ".apng": "PNG",
+    "": "PNG",
 }
 IMG_SUPPORTED_FORMATS = set(IMG_FORMATS_BY_EXT.values())
 
@@ -76,15 +87,17 @@ def image_to_string(image, image_format=None, quality=None, optimize=None, prefi
         status_code = response.status_code
 
         if status_code != 200:
-            raise ValueError(f"Image request failed with {status_code} for: {image_str}")
+            raise ValueError(
+                f"Image request failed with {status_code} for: {image_str}"
+            )
         else:
             image = Image.open(io.BytesIO(response.content))
             return image_to_string(image, image_format, quality, optimize, prefix)
 
     if not prefix and image_str.startswith(IMG_BASE64_PREFIX):
-        image_str = image_str[len(IMG_BASE64_PREFIX):]
+        image_str = image_str[len(IMG_BASE64_PREFIX) :]
     elif prefix and not image_str.startswith(IMG_BASE64_PREFIX):
-        image_str = (IMG_BASE64_PREFIX + image_str)
+        image_str = IMG_BASE64_PREFIX + image_str
 
     return image_str.decode("ascii")
 

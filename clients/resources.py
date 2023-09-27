@@ -57,7 +57,8 @@ class ClientResource(Resource):
         to_camel = self.incoming_casing in {"camel", "pascal"}
         required = [
             snake_to_camel(f.name) if to_camel else f.name
-            for f in self._meta.fields if f.required and f.default is None
+            for f in self._meta.fields
+            if f.required and f.default is None
         ]
 
         if self.incoming_casing != "pascal":
@@ -65,7 +66,8 @@ class ClientResource(Resource):
         else:
             self._required_fields = [
                 # Capitalize only the first letter if Pascal: leave the rest camel-cased
-                f[0].upper() + f[1:] if self.incoming_casing == "pascal" else f for f in required
+                f[0].upper() + f[1:] if self.incoming_casing == "pascal" else f
+                for f in required
             ]
 
     @classmethod
@@ -99,7 +101,9 @@ class ClientResource(Resource):
         self._service_url = value
 
     @classmethod
-    def bulk_get(cls, url, strict=True, session=None, bulk_key=None, bulk_defaults=None, **kwargs):
+    def bulk_get(
+        cls, url, strict=True, session=None, bulk_key=None, bulk_defaults=None, **kwargs
+    ):
         """ Populates a list of resources with only one external map service request """
 
         self = cls.get(url, strict=strict, lazy=True, session=session, **kwargs)
@@ -112,7 +116,10 @@ class ClientResource(Resource):
 
             raise HTTPError(
                 f"The map service returned {status_code} ({reason})",
-                params=self._params, underlying=ex, url=self._url, status_code=status_code
+                params=self._params,
+                underlying=ex,
+                url=self._url,
+                status_code=status_code,
             )
         except requests.exceptions.Timeout as ex:
             status_code = getattr(getattr(ex, "response", None), "status_code", None)
@@ -123,7 +130,7 @@ class ClientResource(Resource):
                 params=self._params,
                 underlying=ex,
                 url=self._url,
-                status_code=getattr(ex.response, "status_code", None)
+                status_code=getattr(ex.response, "status_code", None),
             )
         except requests.exceptions.RequestException as ex:
             network_error = type(ex).__name__
@@ -133,7 +140,7 @@ class ClientResource(Resource):
                 params=self._params,
                 underlying=ex,
                 url=self._url,
-                status_code=getattr(ex.response, "status_code", None)
+                status_code=getattr(ex.response, "status_code", None),
             )
 
         try:
@@ -141,15 +148,29 @@ class ClientResource(Resource):
         except ValueError as ex:
             raise ContentError(
                 "The map service returned unparsable content",
-                params=self._params, underlying=ex, url=self._url
+                params=self._params,
+                underlying=ex,
+                url=self._url,
             )
 
         bulk_keys = bulk_key.split(".") if bulk_key else None
 
-        return cls._bulk_get(self._url, bulk_data, bulk_keys, bulk_defaults=bulk_defaults, **kwargs)
+        return cls._bulk_get(
+            self._url, bulk_data, bulk_keys, bulk_defaults=bulk_defaults, **kwargs
+        )
 
     @classmethod
-    def _bulk_get(cls, url, bulk_data, bulk_keys, objects=None, obj=None, fields=None, bulk_defaults=None, **kwargs):
+    def _bulk_get(
+        cls,
+        url,
+        bulk_data,
+        bulk_keys,
+        objects=None,
+        obj=None,
+        fields=None,
+        bulk_defaults=None,
+        **kwargs,
+    ):
         """
         Recursively iterates over bulk_keys nested in bulk_data, applying accumulated field data to each.
         Values found at the innermost nested levels overwrite values at the same key above, and only values
@@ -189,7 +210,9 @@ class ClientResource(Resource):
         for data in copy.deepcopy(wrap_value(bulk_data)):
             if bulk_keys:
                 obj.update({k: v for k, v in data.items() if simplify(k) in fields})
-                cls._bulk_get(url, data, list(bulk_keys), objects, obj, fields, bulk_defaults)
+                cls._bulk_get(
+                    url, data, list(bulk_keys), objects, obj, fields, bulk_defaults
+                )
             else:
                 if isinstance(data, dict):
                     data.update(obj)
@@ -212,7 +235,9 @@ class ClientResource(Resource):
         """ Overridden to capture strict and lazy settings in the instance """
 
         # Call lazily first for initialization only
-        self = super(ClientResource, cls).get(url, strict=strict, lazy=True, session=session)
+        self = super(ClientResource, cls).get(
+            url, strict=strict, lazy=True, session=session
+        )
         self._lazy = lazy
         self._strict = strict
 
@@ -238,7 +263,9 @@ class ClientResource(Resource):
             else:
                 # Uses response.content (not response.text) for ASCII serialization
                 response = self._make_request()
-                self.populate_field_values(self._meta.deserializer.to_dict(response.content))
+                self.populate_field_values(
+                    self._meta.deserializer.to_dict(response.content)
+                )
 
         except ClientError:
             raise  # Prevents double wrapping errors that inherit from types handled below
@@ -257,7 +284,10 @@ class ClientResource(Resource):
                 )
             raise HTTPError(
                 "The map service did not respond correctly",
-                params=self._params, underlying=ex, url=self._url, status_code=status_code
+                params=self._params,
+                underlying=ex,
+                url=self._url,
+                status_code=status_code,
             )
         except requests.exceptions.Timeout as ex:
             timeout_error = type(ex).__name__
@@ -267,7 +297,7 @@ class ClientResource(Resource):
                 params=self._params,
                 underlying=ex,
                 url=self._url,
-                status_code=getattr(ex.response, "status_code", None)
+                status_code=getattr(ex.response, "status_code", None),
             )
         except requests.exceptions.RequestException as ex:
             network_error = type(ex).__name__
@@ -277,7 +307,7 @@ class ClientResource(Resource):
                 params=self._params,
                 underlying=ex,
                 url=self._url,
-                status_code=getattr(ex.response, "status_code", None)
+                status_code=getattr(ex.response, "status_code", None),
             )
         except (SyntaxError, ValueError) as ex:
             unicode_error = isinstance(ex, UnicodeEncodeError)
@@ -289,7 +319,9 @@ class ClientResource(Resource):
             else:
                 raise ContentError(
                     "The map service returned unparsable content",
-                    params=self._params, underlying=ex, url=self._url
+                    params=self._params,
+                    underlying=ex,
+                    url=self._url,
                 )
 
     def _make_request(self, url=None, params=None, **kwargs):
@@ -321,7 +353,9 @@ class ClientResource(Resource):
 
             raise MissingFields(
                 f"The {client} is missing required fields: {fields}",
-                missing=missing, underlying=ex, url=self._url
+                missing=missing,
+                underlying=ex,
+                url=self._url,
             )
 
         self.validate_version()
@@ -349,5 +383,7 @@ class ClientResource(Resource):
         if invalid:
             raise UnsupportedVersion(
                 f"The map service version is not supported: {invalid}",
-                invalid=invalid, supported=supported, url=self._url
+                invalid=invalid,
+                supported=supported,
+                url=self._url,
             )

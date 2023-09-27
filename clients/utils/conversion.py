@@ -75,14 +75,8 @@ def to_symbol(json_or_dict, from_camel=True):
     :param from_camel: implies conversion back to ESRI values if False
     """
 
-    aliases = {
-        "imageData": "image",
-        "xoffset": "offset_x",
-        "yoffset": "offset_y"
-    }
-    defaults = [
-        "type", "style", "color", "width", "height"
-    ]
+    aliases = {"imageData": "image", "xoffset": "offset_x", "yoffset": "offset_y"}
+    defaults = ["type", "style", "color", "width", "height"]
 
     if from_camel:
         defaults.extend(("offset_x", "offset_y"))
@@ -93,7 +87,9 @@ def to_symbol(json_or_dict, from_camel=True):
     if not is_symbol(json_or_dict):
         symbol = None
     else:
-        symbol = to_object(json_or_dict, from_camel=from_camel, aliases=aliases, defaults=defaults)
+        symbol = to_object(
+            json_or_dict, from_camel=from_camel, aliases=aliases, defaults=defaults
+        )
         symbol.outline = to_symbol(getattr(symbol, "outline", None), from_camel)
 
     return symbol
@@ -127,7 +123,9 @@ def extent_to_polygon_wkt(extent_or_dict, **kwargs):
     else:
         extent = Extent(extent_or_dict).as_dict()
 
-    return "POLYGON(({xmin} {ymin}, {xmax} {ymin}, {xmax} {ymax}, {xmin} {ymax}, {xmin} {ymin}))".format(**extent)
+    return "POLYGON(({xmin} {ymin}, {xmax} {ymin}, {xmax} {ymax}, {xmin} {ymax}, {xmin} {ymin}))".format(
+        **extent
+    )
 
 
 def point_to_wkt(x, y, **kwargs):

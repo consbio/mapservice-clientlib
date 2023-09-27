@@ -22,7 +22,6 @@ class ClientError(Exception):
 
 
 class ClientRequestError(ClientError):
-
     def __init__(self, message, params=None, status_code=None, **kwargs):
         super(ClientRequestError, self).__init__(message, **kwargs)
 
@@ -51,7 +50,6 @@ class ServiceTimeout(ServiceError, requests.exceptions.Timeout):
 
 
 class ImageError(ClientError):
-
     def __init__(self, message, params=None, tile_info=None, **kwargs):
         super(ImageError, self).__init__(message, **kwargs)
 
@@ -60,27 +58,25 @@ class ImageError(ClientError):
 
 
 class ValidationError(ClientError, AttributeError):
-
     def __init__(self, message, **kwargs):
         super(ValidationError, self).__init__(message, **kwargs)
 
 
 class BadExtent(ValidationError, ValueError):
-
     def __init__(self, message, extent=None, **kwargs):
         super(BadExtent, self).__init__(message, **kwargs)
         self.error_context["extent"] = self.extent = extent
 
 
 class BadSpatialReference(BadExtent):
-
     def __init__(self, message, spatial_reference=None, **kwargs):
         super(BadSpatialReference, self).__init__(message, **kwargs)
-        self.error_context["spatial_reference"] = self.spatial_reference = spatial_reference
+        self.error_context[
+            "spatial_reference"
+        ] = self.spatial_reference = spatial_reference
 
 
 class BadTileScheme(ValidationError, ValueError):
-
     def __init__(self, message, tile_info=None, **kwargs):
         super(BadTileScheme, self).__init__(message, **kwargs)
         self.error_context["tile_info"] = self.tile_info = tile_info
@@ -91,17 +87,17 @@ class NoLayers(ValidationError):
 
 
 class MissingFields(ValidationError, MissingFieldException):
-
     def __init__(self, message, missing=None, **kwargs):
         super(MissingFields, self).__init__(message, **kwargs)
         self.error_context["missing"] = self.missing = wrap_value(missing)
 
 
 class UnsupportedVersion(ValidationError):
-
     def __init__(self, message, invalid=None, supported=None, **kwargs):
         super(UnsupportedVersion, self).__init__(message, **kwargs)
 
         self.invalid = invalid
         self.supported = wrap_value(supported)
-        self.error_context.update({"invalid": self.invalid, "supported": self.supported})
+        self.error_context.update(
+            {"invalid": self.invalid, "supported": self.supported}
+        )

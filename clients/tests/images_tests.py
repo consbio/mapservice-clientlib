@@ -5,7 +5,12 @@ from base64 import b64decode, b64encode
 from PIL import Image
 from unittest import mock
 
-from ..utils.images import base64_to_image, image_to_bytes, image_to_base64, image_to_string
+from ..utils.images import (
+    base64_to_image,
+    image_to_bytes,
+    image_to_base64,
+    image_to_string,
+)
 from ..utils.images import count_colors, make_color_transparent
 from ..utils.images import overlay_images, stack_images_vertically
 from ..utils.images import IMG_BASE64_PREFIX
@@ -20,7 +25,6 @@ def get_base64_for(image, image_format):
 
 
 class ImagesTestCase(BaseTestCase):
-
     def setUp(self):
         super(ImagesTestCase, self).setUp()
 
@@ -78,10 +82,7 @@ class ImagesTestCase(BaseTestCase):
         # Test invalid cases
 
         mock_get.return_value = mock.Mock(
-            ok=False,
-            reason="nope",
-            status_code=500,
-            content=b"Server Error"
+            ok=False, reason="nope", status_code=500, content=b"Server Error"
         )
 
         with self.assertRaises(ValueError):
@@ -97,28 +98,28 @@ class ImagesTestCase(BaseTestCase):
 
         # Test PNG conversion
         mock_get.return_value = mock.Mock(
-            ok=True,
-            reason="happy",
-            status_code=200,
-            content=b64decode(TEST_PNG_BASE64)
+            ok=True, reason="happy", status_code=200, content=b64decode(TEST_PNG_BASE64)
         )
         target = TEST_PNG_BASE64.decode("ascii")
-        image_str = image_to_string("https://not/an/image.png", quality=100, optimize=True, prefix=False)
+        image_str = image_to_string(
+            "https://not/an/image.png", quality=100, optimize=True, prefix=False
+        )
         self.assertEqual(image_str, target)
 
         target = (IMG_BASE64_PREFIX + target.encode("ascii")).decode()
-        image_str = image_to_string(b"https://not/an/image.png", quality=100, optimize=True)
+        image_str = image_to_string(
+            b"https://not/an/image.png", quality=100, optimize=True
+        )
         self.assertEqual(image_str, target)
 
         # Test JPEG conversion (must be tested without optimization)
         mock_get.return_value = mock.Mock(
-            ok=True,
-            reason="happy",
-            status_code=200,
-            content=b64decode(TEST_JPG_BASE64)
+            ok=True, reason="happy", status_code=200, content=b64decode(TEST_JPG_BASE64)
         )
         target = TEST_JPG_BASE64.decode("ascii")
-        image_str = image_to_string("https://not/an/image.jpg", image_format="JPEG", prefix=False)
+        image_str = image_to_string(
+            "https://not/an/image.jpg", image_format="JPEG", prefix=False
+        )
         self.assertEqual(image_str, target)
 
         target = (IMG_BASE64_PREFIX + target.encode("ascii")).decode()
@@ -134,7 +135,9 @@ class ImagesTestCase(BaseTestCase):
 
         # Test PNG conversion from image without prefix
         target = TEST_PNG_BASE64.decode()
-        image_str = image_to_string(self.test_png, quality=100, optimize=True, prefix=False)
+        image_str = image_to_string(
+            self.test_png, quality=100, optimize=True, prefix=False
+        )
         self.assertEqual(image_str, target)
 
         # Test JPEG conversion from image with prefix
@@ -159,7 +162,9 @@ class ImagesTestCase(BaseTestCase):
 
         # Test conversion from JPG string with truncated prefix
         target = TEST_JPG_BASE64.decode()
-        image_str = image_to_string((IMG_BASE64_PREFIX + TEST_JPG_BASE64).decode(), prefix=False)
+        image_str = image_to_string(
+            (IMG_BASE64_PREFIX + TEST_JPG_BASE64).decode(), prefix=False
+        )
         self.assertEqual(image_str, target)
 
         # Test conversion from PNG bytes with prefix
@@ -292,7 +297,6 @@ TEST_JPG_BYTES = (
     b"\xaak\xad\xa5yXw\x97}\xe3Ha3\xe4:\x96\x12\xa0k\xad\xa5yXw\x97}\xe3Ha3\xe4:\x96\x12\xa6\xba\xdaW\x95\x87yw\xde4"
     b"\x86\x13>C\xa9a*k\xad\xa5yXw\x97}\xe3Ha3\xe4:\x96\x12\xab\xae\xb0\xfdJ\xf2\xb0\xc4\x00~\xe5\xdf\xff\x00>4\x86"
     b"\x13>C\xa9a*\x0f\xff\xd9"
-
 )
 TEST_STACKED_JPG = (
     b"/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0"

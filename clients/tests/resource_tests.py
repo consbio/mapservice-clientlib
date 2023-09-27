@@ -13,7 +13,6 @@ from .utils import ResourceTestCase, get_extent
 
 
 class ClientResourceTestCase(ResourceTestCase):
-
     def setUp(self):
         super(ClientResourceTestCase, self).setUp()
 
@@ -52,26 +51,20 @@ class ClientResourceTestCase(ResourceTestCase):
         self.assertEqual(client.version, 10.2)
         self.assertEqual(client.comma_separated, ["one", "two", "three"])
         self.assertEqual(client.dict_field, {"a": "aaa", "b": "bbb", "c": "ccc"})
-        self.assertEqual(
-            client.extent.as_list(),
-            [-180.0, -90.0, 180.0, 90.0]
-        )
+        self.assertEqual(client.extent.as_list(), [-180.0, -90.0, 180.0, 90.0])
         self.assertEqual(client.extent.spatial_reference.srs, "EPSG:4326")
         self.assertEqual(client.list_field, ["ddd", "eee", "fff"])
 
-        self.assert_object_field(client.object_field, {
-            "type": "object",
-            "prop": "val",
-            "method": "callable",
-            "parent": {
+        self.assert_object_field(
+            client.object_field,
+            {
                 "type": "object",
-                "prop": "inherited"
+                "prop": "val",
+                "method": "callable",
+                "parent": {"type": "object", "prop": "inherited"},
+                "children": [{"type": "specialized"}, {"type": "aggregated"}],
             },
-            "children": [
-                {"type": "specialized"},
-                {"type": "aggregated"}
-            ]
-        })
+        )
 
         self.assertEqual(client.spatial_reference.srs, "EPSG:4326")
         self.assertEqual(client.spatial_reference.wkid, 4326)
@@ -95,25 +88,32 @@ class ClientResourceTestCase(ResourceTestCase):
         self.assertEqual(client.dict_field, {"x": "xxx", "y": "yyy", "z": "zzz"})
         self.assertEqual(
             client.extent.as_list(),
-            [-20037508.342789244, -20037471.205137067, 20037508.342789244, 20037471.20513706]
+            [
+                -20037508.342789244,
+                -20037471.205137067,
+                20037508.342789244,
+                20037471.20513706,
+            ],
         )
         self.assertEqual(client.extent.spatial_reference.srs, "EPSG:3857")
         self.assertEqual(client.list_field, ["ttt", "uuu", "vvv"])
 
-        self.assert_object_field(client.object_field, {
-            "type": "parent",
-            "prop": "inhertiable",
-            "parent": None,
-            "children": [{
-                "type": "object",
-                "prop": "val",
-                "method": "callable",
+        self.assert_object_field(
+            client.object_field,
+            {
+                "type": "parent",
+                "prop": "inhertiable",
+                "parent": None,
                 "children": [
-                    {"type": "specialized"},
-                    {"type": "aggregated"}
-                ]
-            }]
-        })
+                    {
+                        "type": "object",
+                        "prop": "val",
+                        "method": "callable",
+                        "children": [{"type": "specialized"}, {"type": "aggregated"}],
+                    }
+                ],
+            },
+        )
 
         self.assertEqual(client.spatial_reference.srs, "EPSG:3857")
         self.assertEqual(client.spatial_reference.wkid, 3857)
@@ -172,7 +172,11 @@ class ClientResourceTestCase(ResourceTestCase):
 
         # Test with bulk keys (nested JSON array)
         session = self.mock_bulk_session(self.bulk_key_path)
-        self.assert_bulk_clients(TestResource.bulk_get(self.bulk_key_url, bulk_key="objects", session=session))
+        self.assert_bulk_clients(
+            TestResource.bulk_get(
+                self.bulk_key_url, bulk_key="objects", session=session
+            )
+        )
 
     def test_invalid_bulk_get(self):
 
@@ -219,26 +223,20 @@ class ClientResourceTestCase(ResourceTestCase):
         self.assertEqual(client.version, 10.2)
         self.assertEqual(client.comma_separated, ["one", "two", "three"])
         self.assertEqual(client.dict_field, {"a": "aaa", "b": "bbb", "c": "ccc"})
-        self.assertEqual(
-            client.extent.as_list(),
-            [-180.0, -90.0, 180.0, 90.0]
-        )
+        self.assertEqual(client.extent.as_list(), [-180.0, -90.0, 180.0, 90.0])
         self.assertEqual(client.extent.spatial_reference.srs, "EPSG:4326")
         self.assertEqual(client.list_field, ["xxx", "yyy", "zzz"])
 
-        self.assert_object_field(client.object_field, {
-            "type": "object",
-            "prop": "val",
-            "method": "callable",
-            "parent": {
+        self.assert_object_field(
+            client.object_field,
+            {
                 "type": "object",
-                "prop": "inherited"
+                "prop": "val",
+                "method": "callable",
+                "parent": {"type": "object", "prop": "inherited"},
+                "children": [{"type": "specialized"}, {"type": "aggregated"}],
             },
-            "children": [
-                {"type": "specialized"},
-                {"type": "aggregated"}
-            ]
-        })
+        )
 
         self.assertEqual(client.spatial_reference.srs, "EPSG:4326")
         self.assertEqual(client.spatial_reference.wkid, 4326)
@@ -281,7 +279,9 @@ class ClientResourceTestCase(ResourceTestCase):
         with self.assertRaises(NetworkError):
             TestResource.get(self.client_url, lazy=False, session=session)
 
-        session.get.side_effect = UnicodeEncodeError("ascii", r"\x00\x00", 1, 2, "invalid bytes")
+        session.get.side_effect = UnicodeEncodeError(
+            "ascii", r"\x00\x00", 1, 2, "invalid bytes"
+        )
         with self.assertRaises(UnicodeEncodeError):
             TestResource.get(self.client_url, lazy=False, session=session)
 
@@ -303,11 +303,15 @@ class ClientResourceTestCase(ResourceTestCase):
 
         session = self.mock_mapservice_session(self.min_path)
 
-        client = TestResource.get(self.min_url, lazy=False, session=session, bypass_version=True)
+        client = TestResource.get(
+            self.min_url, lazy=False, session=session, bypass_version=True
+        )
         self.assertEqual(client.id, "invalid_min")
         self.assertEqual(client.version, 9.9)
 
-        client = TestResource.get(self.min_url, lazy=True, session=session, bypass_version=True)
+        client = TestResource.get(
+            self.min_url, lazy=True, session=session, bypass_version=True
+        )
         client._bypass_version = True
         self.assertEqual(client.id, "invalid_min")
         self.assertEqual(client.version, 9.9)
@@ -319,11 +323,15 @@ class ClientResourceTestCase(ResourceTestCase):
 
         session = self.mock_mapservice_session(self.max_path)
 
-        client = TestResource.get(self.max_url, lazy=False, session=session, bypass_version=True)
+        client = TestResource.get(
+            self.max_url, lazy=False, session=session, bypass_version=True
+        )
         self.assertEqual(client.id, "invalid_max")
         self.assertEqual(client.version, 70.8)
 
-        client = TestResource.get(self.max_url, lazy=True, session=session, bypass_version=True)
+        client = TestResource.get(
+            self.max_url, lazy=True, session=session, bypass_version=True
+        )
         client._bypass_version = True
         self.assertEqual(client.id, "invalid_max")
         self.assertEqual(client.version, 70.8)

@@ -15,7 +15,12 @@ from ..exceptions import BadExtent, BadSpatialReference
 
 EXTENT_KEYS = ("xmin", "ymin", "xmax", "ymax")
 SPATIAL_REF_KEYS = ("wkid", "wkt", "srs")
-GLOBAL_EXTENT_WEB_MERCATOR = (-20037508.342789244, -20037342.166152496, 20037508.342789244, 20037342.16615247)
+GLOBAL_EXTENT_WEB_MERCATOR = (
+    -20037508.342789244,
+    -20037342.166152496,
+    20037508.342789244,
+    20037342.16615247,
+)
 GLOBAL_EXTENT_WGS84 = (-180.0, -90.0, 180.0, 90.0)
 GLOBAL_EXTENT_WGS84_CORRECTED = (-180.0, -85.0511, 180.0, 85.0511)
 SQL_BOX_REGEX = re.compile("BOX\((.*) (.*),(.*) (.*)\)")
@@ -87,7 +92,9 @@ class Extent(object):
                 raise BadExtent("Invalid extent: missing required keys", extent=extent)
 
             if spatial_reference is None:
-                spatial_reference = extent.get("spatialReference", extent.get("spatial_reference"))
+                spatial_reference = extent.get(
+                    "spatialReference", extent.get("spatial_reference")
+                )
 
         elif isinstance(extent, (list, tuple)):
             self._original_format = "list"
@@ -112,21 +119,26 @@ class Extent(object):
             extent_type = type(extent).__name__
             raise BadExtent(
                 f"Invalid extent: must be dict, tuple or compatible object, not {extent_type}",
-                extent=extent
+                extent=extent,
             )
 
-        if any(not is_number(coord) for coord in (self.xmin, self.ymin, self.xmax, self.ymax)):
+        if any(
+            not is_number(coord)
+            for coord in (self.xmin, self.ymin, self.xmax, self.ymax)
+        ):
             raise BadExtent("Invalid extent coordinates", extent=extent)
         else:
             self.xmin, self.ymin, self.xmax, self.ymax = (
                 float(self.xmin),
                 float(self.ymin),
                 float(self.xmax),
-                float(self.ymax)
+                float(self.ymax),
             )
 
         if spatial_reference is None:
-            raise BadSpatialReference("Spatial reference required for Extent", extent=extent)
+            raise BadSpatialReference(
+                "Spatial reference required for Extent", extent=extent
+            )
         else:
             self.spatial_reference = SpatialReference(spatial_reference)
 
@@ -172,7 +184,9 @@ class Extent(object):
     def limit_to_global_extent(self):
 
         if not self.spatial_reference.is_web_mercator():
-            raise ValueError("Extent must be Web Mercator in order to limit global extent")
+            raise ValueError(
+                "Extent must be Web Mercator in order to limit global extent"
+            )
 
         new_extent = self.clone()
         new_extent.xmin = max(GLOBAL_EXTENT_WEB_MERCATOR[0], new_extent.xmin)
@@ -185,7 +199,9 @@ class Extent(object):
     def limit_to_global_width(self):
 
         if not self.spatial_reference.is_web_mercator():
-            raise ValueError("Extent must be Web Mercator in order to limit global width")
+            raise ValueError(
+                "Extent must be Web Mercator in order to limit global width"
+            )
 
         new_extent = self.clone()
         new_extent.xmin = max(GLOBAL_EXTENT_WEB_MERCATOR[0], new_extent.xmin)
@@ -196,14 +212,21 @@ class Extent(object):
     def crosses_anti_meridian(self):
 
         if not self.spatial_reference.is_web_mercator():
-            raise ValueError("Extent must be Web Mercator in order to test antimeridian")
+            raise ValueError(
+                "Extent must be Web Mercator in order to test antimeridian"
+            )
 
-        return self.xmin < GLOBAL_EXTENT_WEB_MERCATOR[0] or self.xmax > GLOBAL_EXTENT_WEB_MERCATOR[2]
+        return (
+            self.xmin < GLOBAL_EXTENT_WEB_MERCATOR[0]
+            or self.xmax > GLOBAL_EXTENT_WEB_MERCATOR[2]
+        )
 
     def has_negative_extent(self):
 
         if not self.spatial_reference.is_web_mercator():
-            raise ValueError("Extent must be Web Mercator in order to test for negative extent")
+            raise ValueError(
+                "Extent must be Web Mercator in order to test for negative extent"
+            )
 
         return self.xmin < GLOBAL_EXTENT_WEB_MERCATOR[0]
 
@@ -216,7 +239,9 @@ class Extent(object):
         """
         if self.has_negative_extent():
             new_extent = self.clone()
-            new_extent.xmin = GLOBAL_EXTENT_WEB_MERCATOR[2] - (GLOBAL_EXTENT_WEB_MERCATOR[0] - self.xmin)
+            new_extent.xmin = GLOBAL_EXTENT_WEB_MERCATOR[2] - (
+                GLOBAL_EXTENT_WEB_MERCATOR[0] - self.xmin
+            )
             new_extent.xmax = new_extent.xmin + self.get_dimensions()[0]
             return new_extent
 
@@ -277,9 +302,16 @@ class Extent(object):
             return new_extent
 
         if not self.spatial_reference.is_valid_proj4_projection():
-            raise ValueError("Spatial reference is not valid for proj4, must use a different service to project")
+            raise ValueError(
+                "Spatial reference is not valid for proj4, must use a different service to project"
+            )
 
-        new_extent.xmin, new_extent.ymin, new_extent.xmax, new_extent.ymax = self._get_projected_extent("EPSG:3857")
+        (
+            new_extent.xmin,
+            new_extent.ymin,
+            new_extent.xmax,
+            new_extent.ymax,
+        ) = self._get_projected_extent("EPSG:3857")
         new_extent.spatial_reference.wkid = 3857
         new_extent.spatial_reference.srs = "EPSG:3857"
 
@@ -293,9 +325,16 @@ class Extent(object):
             return new_extent
 
         if not self.spatial_reference.is_valid_proj4_projection():
-            raise ValueError("Spatial reference is not valid for proj4, must use a different service to project")
+            raise ValueError(
+                "Spatial reference is not valid for proj4, must use a different service to project"
+            )
 
-        new_extent.xmin, new_extent.ymin, new_extent.xmax, new_extent.ymax = self._get_projected_extent("EPSG:4326")
+        (
+            new_extent.xmin,
+            new_extent.ymin,
+            new_extent.xmax,
+            new_extent.ymax,
+        ) = self._get_projected_extent("EPSG:4326")
         new_extent.spatial_reference.wkid = 4326
         new_extent.spatial_reference.srs = "EPSG:4326"
         return new_extent
@@ -330,7 +369,9 @@ class Extent(object):
 
         try:
             source_proj = Proj(init=source_srs) if from_epsg else Proj(str(source_srs))
-            target_proj = Proj(init=target_srs) if ":" in target_srs else Proj(str(target_srs))
+            target_proj = (
+                Proj(init=target_srs) if ":" in target_srs else Proj(str(target_srs))
+            )
         except CRSError:
             raise BadSpatialReference(f"Invalid SRS value: {source_srs}")
 
@@ -351,7 +392,9 @@ class Extent(object):
 
         projected_values = min(x_values), min(y_values), max(x_values), max(y_values)
         if any(not is_number(coord) for coord in projected_values):
-            raise ValueError(f'Invalid projection coordinates for "{source_srs}": {projected_values}')
+            raise ValueError(
+                f'Invalid projection coordinates for "{source_srs}": {projected_values}'
+            )
 
         return projected_values
 
@@ -372,7 +415,9 @@ class Extent(object):
         kilometers_per_inch = meters_per_inch / 1000
         southern_latitude = geo_extent.ymin
 
-        scale_in_km = extract_significant_digits(kilometers_per_inch / self._calc_scale_factor(southern_latitude))
+        scale_in_km = extract_significant_digits(
+            kilometers_per_inch / self._calc_scale_factor(southern_latitude)
+        )
         scale_in_mi = extract_significant_digits(scale_in_km * 0.621371192237)
 
         return f"{scale_in_km} km ({scale_in_mi} miles)"
@@ -424,11 +469,10 @@ class Extent(object):
 
 
 class SpatialReference(object):
-
     def __init__(self, spatial_reference):
-        self.srs = None          # WMS: spatial reference system (EPSG)
-        self.wkid = None         # ESRI: well known id
-        self.wkt = None          # ESRI: well known text
+        self.srs = None  # WMS: spatial reference system (EPSG)
+        self.wkid = None  # ESRI: well known id
+        self.wkt = None  # ESRI: well known text
         self.latest_wkid = None  # Used by feature services
 
         if isinstance(spatial_reference, str):
@@ -443,7 +487,9 @@ class SpatialReference(object):
             # ESRI format: well-known text or id
             self.wkid = spatial_reference.get("wkid")
             self.wkt = spatial_reference.get("wkt")
-            self.latest_wkid = spatial_reference.get("latestWkid", spatial_reference.get("latest_wkid"))
+            self.latest_wkid = spatial_reference.get(
+                "latestWkid", spatial_reference.get("latest_wkid")
+            )
 
         elif any(hasattr(spatial_reference, prop) for prop in SPATIAL_REF_KEYS):
 
@@ -455,7 +501,7 @@ class SpatialReference(object):
             spatial_ref_type = type(spatial_reference).__name__
             raise BadSpatialReference(
                 f"Invalid spatial reference: must be dict, string or compatible object, not {spatial_ref_type}",
-                spatial_reference=spatial_reference
+                spatial_reference=spatial_reference,
             )
 
         self.srs = str(self.srs or "")
@@ -466,7 +512,9 @@ class SpatialReference(object):
             self.wkid = self.srs.split(":")[-1]
 
         if not (self.srs or self.wkid or self.wkt):
-            raise BadSpatialReference("Invalid spatial reference: empty coordinate identifier")
+            raise BadSpatialReference(
+                "Invalid spatial reference: empty coordinate identifier"
+            )
         elif isinstance(self.wkid, str):
             try:
                 self.wkid = int(self.wkid or 0)
@@ -498,12 +546,14 @@ class SpatialReference(object):
         return json.dumps(self.as_dict(esri_format))
 
     def is_geographic(self):
-        return (self.wkid == 4326 or self.srs == "EPSG:4326")
+        return self.wkid == 4326 or self.srs == "EPSG:4326"
 
     def is_web_mercator(self):
-        return (
-            self.wkid in (3857, 102100, 102113) or
-            self.srs in ("EPSG:3857", "EPSG:3785", "EPSG:900913", "EPSG:102113")
+        return self.wkid in (3857, 102100, 102113) or self.srs in (
+            "EPSG:3857",
+            "EPSG:3785",
+            "EPSG:900913",
+            "EPSG:102113",
         )
 
     def is_valid_proj4_projection(self):
@@ -512,19 +562,20 @@ class SpatialReference(object):
         # Only WKIDs < 33000 map to EPSG codes, as per
         #    http://gis.stackexchange.com/questions/18651/do-arcgis-spatialreference-object-factory-codes-correspond-with-epsg-numbers
         return (
-            bool(self.srs) or
-            bool(self.wkid and self.wkid < 33000) or
-            self.is_web_mercator()
+            bool(self.srs)
+            or bool(self.wkid and self.wkid < 33000)
+            or self.is_web_mercator()
         )
 
 
 class TileLevels(object):
-
     def __init__(self, resolutions):
 
         if not (resolutions and isinstance(resolutions, (list, tuple))):
             resolutions_type = type(resolutions).__name__
-            raise ValueError(f"Resolutions must be list or tuple, not {resolutions_type}")
+            raise ValueError(
+                f"Resolutions must be list or tuple, not {resolutions_type}"
+            )
 
         try:
             # Values are resolutions, indexes are the tile levels
@@ -537,18 +588,24 @@ class TileLevels(object):
 
         if not (isinstance(target_resolutions, (list, tuple))):
             resolutions_type = type(target_resolutions).__name__
-            raise ValueError(f"Target resolutions must be list or tuple, not {resolutions_type}")
+            raise ValueError(
+                f"Target resolutions must be list or tuple, not {resolutions_type}"
+            )
 
         source = set([round(Decimal(res), precision) for res in self.resolutions])
         target = set([round(Decimal(res), precision) for res in target_resolutions])
         return source.intersection(target)
 
-    def get_nearest_tile_level_and_resolution(self, target_resolution, allow_lower_resolution=False):
+    def get_nearest_tile_level_and_resolution(
+        self, target_resolution, allow_lower_resolution=False
+    ):
         """ Get the nearest tile level and resolution to best fit target extent. Expand to next level if necessary """
 
         if not is_number(target_resolution):
             resolutions_type = type(target_resolution).__name__
-            raise ValueError(f"Target resolution must be a number, not {resolutions_type}")
+            raise ValueError(
+                f"Target resolution must be a number, not {resolutions_type}"
+            )
 
         if allow_lower_resolution:
             diffs = [fabs(target_resolution - res) for res in self.resolutions]
@@ -558,12 +615,16 @@ class TileLevels(object):
 
             # Find the nearest index with resolution that is >= target_resolution
             last_index = len(sorted_resolutions) - 1
-            nearest_index = min(last_index, bisect_left(sorted_resolutions, round(target_resolution, 5)))
+            nearest_index = min(
+                last_index, bisect_left(sorted_resolutions, round(target_resolution, 5))
+            )
             zoom_level = last_index - nearest_index
 
         return zoom_level, self.resolutions[zoom_level]
 
-    def snap_extent_to_nearest_tile_level(self, extent, width, height, must_contain_extent=True):
+    def snap_extent_to_nearest_tile_level(
+        self, extent, width, height, must_contain_extent=True
+    ):
         """
         Updates extent (in place) to fit the resolution that best contains extent.
         Aspect ratio of image / extent must be clean before calling this, and extent must be an Extent object
@@ -573,17 +634,19 @@ class TileLevels(object):
             extent = Extent(extent)
 
         target_resolution = extent.get_image_resolution(width, height)
-        resolution = self.get_nearest_tile_level_and_resolution(target_resolution, not must_contain_extent)[1]
+        resolution = self.get_nearest_tile_level_and_resolution(
+            target_resolution, not must_contain_extent
+        )[1]
 
         if fabs(resolution - target_resolution) > 0.0001:
             # Recalculate extent to fit new width from resolution
             new_extent = extent.clone()
             x_diff = (resolution * width) - (extent.xmax - extent.xmin)
             y_diff = (resolution * height) - (extent.ymax - extent.ymin)
-            new_extent.xmin -= (x_diff / 2.0)
-            new_extent.ymin -= (y_diff / 2.0)
-            new_extent.xmax += (x_diff / 2.0)
-            new_extent.ymax += (y_diff / 2.0)
+            new_extent.xmin -= x_diff / 2.0
+            new_extent.ymin -= y_diff / 2.0
+            new_extent.xmax += x_diff / 2.0
+            new_extent.ymax += y_diff / 2.0
             return new_extent.fit_to_dimensions(width, height)
 
         return extent

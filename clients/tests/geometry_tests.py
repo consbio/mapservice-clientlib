@@ -7,15 +7,28 @@ from ..arcgis import ARCGIS_RESOLUTIONS
 from ..exceptions import BadExtent, BadSpatialReference
 from ..utils.geometry import Extent, SpatialReference, TileLevels
 from ..utils.geometry import extract_significant_digits, union_extent
-from ..utils.geometry import GLOBAL_EXTENT_WEB_MERCATOR, GLOBAL_EXTENT_WGS84, GLOBAL_EXTENT_WGS84_CORRECTED
+from ..utils.geometry import (
+    GLOBAL_EXTENT_WEB_MERCATOR,
+    GLOBAL_EXTENT_WGS84,
+    GLOBAL_EXTENT_WGS84_CORRECTED,
+)
 
 from .utils import BaseTestCase, GeometryTestCase, WEB_MERCATOR_WKT
-from .utils import get_extent, get_extent_dict, get_extent_list, get_extent_object, get_object
-from .utils import get_spatial_reference, get_spatial_reference_dict, get_spatial_reference_object
+from .utils import (
+    get_extent,
+    get_extent_dict,
+    get_extent_list,
+    get_extent_object,
+    get_object,
+)
+from .utils import (
+    get_spatial_reference,
+    get_spatial_reference_dict,
+    get_spatial_reference_object,
+)
 
 
 class ExtentTestCase(GeometryTestCase):
-
     def test_extent(self):
         """ Tests successful extent creation """
 
@@ -162,8 +175,8 @@ class ExtentTestCase(GeometryTestCase):
             "spatial_reference": {
                 "latestWkid": "3857",
                 "srs": "EPSG:3857",
-                "wkid": 3857
-            }
+                "wkid": 3857,
+            },
         }
         extent = Extent(data)
 
@@ -175,7 +188,9 @@ class ExtentTestCase(GeometryTestCase):
 
         self.assertIn("spatialReference", result)
         self.assertNotIn("spatial_reference", result)
-        self.assertEqual(result["spatialReference"], {"wkid": extent.spatial_reference.wkid})
+        self.assertEqual(
+            result["spatialReference"], {"wkid": extent.spatial_reference.wkid}
+        )
 
         # Test as_dict in non-ESRI format
 
@@ -185,7 +200,9 @@ class ExtentTestCase(GeometryTestCase):
 
         self.assertIn("spatial_reference", result)
         self.assertNotIn("spatialReference", result)
-        self.assertEqual(result["spatial_reference"], {"srs": extent.spatial_reference.srs})
+        self.assertEqual(
+            result["spatial_reference"], {"srs": extent.spatial_reference.srs}
+        )
 
         # Test as_dict with precision specified
 
@@ -221,17 +238,19 @@ class ExtentTestCase(GeometryTestCase):
 
         # Test as_original when it is a dict
 
-        extent = Extent({
-            "xmin": -179.1234,
-            "ymin": -89.2345,
-            "xmax": 179.3456,
-            "ymax": 89.4567,
-            "spatial_reference": {
-                "latestWkid": "3857",
-                "srs": "EPSG:3857",
-                "wkid": 3857
+        extent = Extent(
+            {
+                "xmin": -179.1234,
+                "ymin": -89.2345,
+                "xmax": 179.3456,
+                "ymax": 89.4567,
+                "spatial_reference": {
+                    "latestWkid": "3857",
+                    "srs": "EPSG:3857",
+                    "wkid": 3857,
+                },
             }
-        })
+        )
         self.assertEqual(extent._original_format, "dict")
         self.assertEqual(extent.as_original(), extent.as_dict())
         self.assertEqual(extent.as_original(False, 2), extent.as_dict(False, 2))
@@ -258,23 +277,25 @@ class ExtentTestCase(GeometryTestCase):
         self.assertEqual(result, target)
 
     def test_extent_as_json_string(self):
-        extent = Extent({
-            "xmin": -179.1234,
-            "ymin": -89.2345,
-            "xmax": 179.3456,
-            "ymax": 89.4567,
-            "spatial_reference": {
-                "latestWkid": "3857",
-                "srs": "EPSG:3857",
-                "wkid": 3857
+        extent = Extent(
+            {
+                "xmin": -179.1234,
+                "ymin": -89.2345,
+                "xmax": 179.3456,
+                "ymax": 89.4567,
+                "spatial_reference": {
+                    "latestWkid": "3857",
+                    "srs": "EPSG:3857",
+                    "wkid": 3857,
+                },
             }
-        })
+        )
 
         # Test in ESRI format
         target = (
             '{"spatialReference": {"wkid": 3857},'
             ' "xmax": 179.3456, "xmin": -179.1234, "ymax": 89.4567, "ymin": -89.2345'
-            '}'
+            "}"
         )
         result = extent.as_json_string()
         self.assertEqual(result, target)
@@ -283,7 +304,7 @@ class ExtentTestCase(GeometryTestCase):
         target = (
             '{"spatial_reference": {"srs": "EPSG:3857"},'
             ' "xmax": 179.3456, "xmin": -179.1234, "ymax": 89.4567, "ymin": -89.2345'
-            '}'
+            "}"
         )
         result = extent.as_json_string(esri_format=False)
         self.assertEqual(result, target)
@@ -292,28 +313,30 @@ class ExtentTestCase(GeometryTestCase):
         target = (
             '{"spatialReference": {"wkid": 3857},'
             ' "xmax": 179.35, "xmin": -179.12, "ymax": 89.46, "ymin": -89.23'
-            '}'
+            "}"
         )
         result = extent.as_json_string(precision=2)
         self.assertEqual(result, target)
 
     def test_extent_as_string(self):
-        extent = Extent({
-            "xmin": -179.1234,
-            "ymin": -89.2345,
-            "xmax": 179.3456,
-            "ymax": 89.4567,
-            "spatial_reference": {
-                "latestWkid": "3857",
-                "srs": "EPSG:3857",
-                "wkid": 3857
+        extent = Extent(
+            {
+                "xmin": -179.1234,
+                "ymin": -89.2345,
+                "xmax": 179.3456,
+                "ymax": 89.4567,
+                "spatial_reference": {
+                    "latestWkid": "3857",
+                    "srs": "EPSG:3857",
+                    "wkid": 3857,
+                },
             }
-        })
+        )
 
         target = (
             '{"spatialReference": {"wkid": 3857},'
             ' "xmax": 179.3456, "xmin": -179.1234, "ymax": 89.4567, "ymin": -89.2345'
-            '}'
+            "}"
         )
         result = str(extent)
         self.assertEqual(result, target)
@@ -337,7 +360,12 @@ class ExtentTestCase(GeometryTestCase):
         self.assertEqual(result, target)
         self.assertEqual(extent.as_list(), coords)
 
-        target = [GLOBAL_EXTENT_WEB_MERCATOR[0], extent.ymin, GLOBAL_EXTENT_WEB_MERCATOR[2], extent.ymax]
+        target = [
+            GLOBAL_EXTENT_WEB_MERCATOR[0],
+            extent.ymin,
+            GLOBAL_EXTENT_WEB_MERCATOR[2],
+            extent.ymax,
+        ]
         result = extent.limit_to_global_width().as_list()
         self.assertEqual(result, target)
         self.assertEqual(extent.as_list(), coords)
@@ -431,7 +459,9 @@ class ExtentTestCase(GeometryTestCase):
 
         # Test with Web Mercator corrected
         target = (0.0, 0.0)
-        result = Extent(GLOBAL_EXTENT_WGS84_CORRECTED, spatial_reference="EPSG:3857").get_center()
+        result = Extent(
+            GLOBAL_EXTENT_WGS84_CORRECTED, spatial_reference="EPSG:3857"
+        ).get_center()
         self.assertEqual(result, target)
 
     def test_extent_get_dimensions(self):
@@ -448,22 +478,26 @@ class ExtentTestCase(GeometryTestCase):
 
         # Test with Web Mercator corrected
         target = (360.0, 170.1022)
-        result = Extent(GLOBAL_EXTENT_WGS84_CORRECTED, spatial_reference="EPSG:3857").get_dimensions()
+        result = Extent(
+            GLOBAL_EXTENT_WGS84_CORRECTED, spatial_reference="EPSG:3857"
+        ).get_dimensions()
         self.assertEqual(result, target)
 
     def test_extent_get_geographic_labels(self):
         # Test WGS84 labels (not projected)
-        target = ('180.00°W', '90.00°S', '180.00°E', '90.00°N')
+        target = ("180.00°W", "90.00°S", "180.00°E", "90.00°N")
         result = get_extent().get_geographic_labels()
         self.assertEqual(result, target)
 
         # Test WGS84 corrected labels (not projected)
-        target = ('180.00°W', '85.05°S', '180.00°E', '85.05°N')
-        result = Extent(GLOBAL_EXTENT_WGS84_CORRECTED, spatial_reference="EPSG:4326").get_geographic_labels()
+        target = ("180.00°W", "85.05°S", "180.00°E", "85.05°N")
+        result = Extent(
+            GLOBAL_EXTENT_WGS84_CORRECTED, spatial_reference="EPSG:4326"
+        ).get_geographic_labels()
         self.assertEqual(result, target)
 
         # Test Web Mercator labels
-        target = ('180.00°W', '85.05°S', '180.00°E', '85.05°N')
+        target = ("180.00°W", "85.05°S", "180.00°E", "85.05°N")
         result = get_extent(web_mercator=True).get_geographic_labels()
         self.assertEqual(result, target)
 
@@ -497,7 +531,9 @@ class ExtentTestCase(GeometryTestCase):
 
         # Non-proj4 extent
         extent_dict["spatialReference"] = {"wkid": 44000}
-        with self.assertRaises(ValueError, msg="Spatial reference is not valid for proj4"):
+        with self.assertRaises(
+            ValueError, msg="Spatial reference is not valid for proj4"
+        ):
             Extent(extent_dict).project_to_geographic()
 
         # Test success cases
@@ -512,7 +548,9 @@ class ExtentTestCase(GeometryTestCase):
 
         # Test reprojection of corrected WGS84 (unchanged)
         target = list(GLOBAL_EXTENT_WGS84_CORRECTED)
-        result = Extent(GLOBAL_EXTENT_WGS84_CORRECTED, spatial_reference=geographic_srs).project_to_geographic()
+        result = Extent(
+            GLOBAL_EXTENT_WGS84_CORRECTED, spatial_reference=geographic_srs
+        ).project_to_geographic()
         self.assertEqual(result.as_list(), target)
         self.assertEqual(result.spatial_reference.srs, geographic_srs)
 
@@ -532,13 +570,20 @@ class ExtentTestCase(GeometryTestCase):
 
         # Non-proj4 extent
         extent_dict["spatialReference"] = {"wkid": 44000}
-        with self.assertRaises(ValueError, msg="Spatial reference is not valid for proj4"):
+        with self.assertRaises(
+            ValueError, msg="Spatial reference is not valid for proj4"
+        ):
             Extent(extent_dict).project_to_web_mercator()
 
         # Test success cases
 
         mercator_srs = "EPSG:3857"
-        projected_target = [-20037508.3427892, -20037471.2051371, 20037508.3427892, 20037471.2051371]
+        projected_target = [
+            -20037508.3427892,
+            -20037471.2051371,
+            20037508.3427892,
+            20037471.2051371,
+        ]
 
         # Test reprojection of WGS84 extent to Web Mercator
         target = projected_target
@@ -553,7 +598,9 @@ class ExtentTestCase(GeometryTestCase):
 
         # Test reprojection when extent is already Web Mercator (unchanged)
         target = projected_target
-        result = Extent(target, spatial_reference=mercator_srs).project_to_web_mercator()
+        result = Extent(
+            target, spatial_reference=mercator_srs
+        ).project_to_web_mercator()
         self.assertEqual(result.as_list(precision=7), target)
         self.assertEqual(result.spatial_reference.srs, mercator_srs)
 
@@ -585,17 +632,23 @@ class ExtentTestCase(GeometryTestCase):
 
         # Test in WGS84
         extent = get_extent(web_mercator=False)
-        result = extent.set_to_center_and_scale(scale, width, height).as_list(precision=7)
+        result = extent.set_to_center_and_scale(scale, width, height).as_list(
+            precision=7
+        )
         self.assertEqual(result, target)
 
         # Test in WGS84 corrected
         extent = Extent(GLOBAL_EXTENT_WGS84_CORRECTED, spatial_reference="EPSG:4326")
-        result = extent.set_to_center_and_scale(scale, width, height).as_list(precision=7)
+        result = extent.set_to_center_and_scale(scale, width, height).as_list(
+            precision=7
+        )
         self.assertEqual(result, target)
 
         # Test in Web Mercator
         extent = get_extent(web_mercator=True)
-        result = extent.set_to_center_and_scale(scale, width, height).as_list(precision=7)
+        result = extent.set_to_center_and_scale(scale, width, height).as_list(
+            precision=7
+        )
         self.assertEqual(result, target)
 
     def test_extract_significant_digits(self):
@@ -653,7 +706,6 @@ class ExtentTestCase(GeometryTestCase):
 
 
 class SpatialReferenceTestCase(GeometryTestCase):
-
     def test_spatial_reference(self):
         # Test with primitive values
         self.assert_spatial_reference(SpatialReference("CRS:84"), props="srs,wkid")
@@ -663,10 +715,16 @@ class SpatialReferenceTestCase(GeometryTestCase):
 
         # Test with valid spatial reference dicts
         self.assert_spatial_reference(SpatialReference(get_spatial_reference_dict()))
-        self.assert_spatial_reference(SpatialReference({"srs": "CRS:84"}), props="srs,wkid")
-        self.assert_spatial_reference(SpatialReference({"srs": "EPSG:4326"}), props="srs,wkid")
+        self.assert_spatial_reference(
+            SpatialReference({"srs": "CRS:84"}), props="srs,wkid"
+        )
+        self.assert_spatial_reference(
+            SpatialReference({"srs": "EPSG:4326"}), props="srs,wkid"
+        )
         self.assert_spatial_reference(SpatialReference({"wkid": "4326"}), props="wkid")
-        self.assert_spatial_reference(SpatialReference({"wkt": WEB_MERCATOR_WKT}), props="wkt")
+        self.assert_spatial_reference(
+            SpatialReference({"wkt": WEB_MERCATOR_WKT}), props="wkt"
+        )
 
         # Test with compatible spatial reference objects
         self.assert_spatial_reference(get_spatial_reference())
@@ -717,7 +775,7 @@ class SpatialReferenceTestCase(GeometryTestCase):
             "latestWkid": "3857",
             "srs": "EPSG:3857",
             "wkid": 3857,
-            "wkt": WEB_MERCATOR_WKT
+            "wkt": WEB_MERCATOR_WKT,
         }
 
         # Test as_dict in non-ESRI format
@@ -744,7 +802,7 @@ class SpatialReferenceTestCase(GeometryTestCase):
             "latestWkid": "3857",
             "srs": "EPSG:3857",
             "wkid": 3857,
-            "wkt": WEB_MERCATOR_WKT
+            "wkt": WEB_MERCATOR_WKT,
         }
 
         # Test as_json_string in non-ESRI format
@@ -797,20 +855,32 @@ class SpatialReferenceTestCase(GeometryTestCase):
     def test_spatial_reference_is_valid_proj4_projection(self):
 
         self.assertFalse(SpatialReference({"wkid": 33000}).is_valid_proj4_projection())
-        self.assertFalse(SpatialReference({"wkt": WEB_MERCATOR_WKT}).is_valid_proj4_projection())
+        self.assertFalse(
+            SpatialReference({"wkt": WEB_MERCATOR_WKT}).is_valid_proj4_projection()
+        )
 
-        self.assertTrue(get_spatial_reference(web_mercator=True).is_valid_proj4_projection())
+        self.assertTrue(
+            get_spatial_reference(web_mercator=True).is_valid_proj4_projection()
+        )
 
         for wkid in (1, 3857, 102100, 102113, 32999):
-            self.assertTrue(SpatialReference({"wkid": wkid}).is_valid_proj4_projection())
+            self.assertTrue(
+                SpatialReference({"wkid": wkid}).is_valid_proj4_projection()
+            )
 
         proj4_format_srs = "+units=m +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
-        for srs in ("EPSG:3857", "EPSG:3785", "EPSG:900913", "EPSG:102113", "EPSG:4326", proj4_format_srs):
+        for srs in (
+            "EPSG:3857",
+            "EPSG:3785",
+            "EPSG:900913",
+            "EPSG:102113",
+            "EPSG:4326",
+            proj4_format_srs,
+        ):
             self.assertTrue(SpatialReference(srs).is_valid_proj4_projection())
 
 
 class TileLevelsTestCase(BaseTestCase):
-
     def test_tile_levels(self):
 
         # Invalid tile level resolutions
@@ -904,20 +974,34 @@ class TileLevelsTestCase(BaseTestCase):
             get_extent(),
             get_extent_dict(),
             get_extent_object(),
-            json.dumps(get_extent_dict())
+            json.dumps(get_extent_dict()),
         )
         for data in geo_extent_data:
-            target = [-282.4587061237935, -187.21100289600264, 282.4587061237935, 187.21100289600264]
-            result = tile_levels.snap_extent_to_nearest_tile_level(data, width, height).as_list()
+            target = [
+                -282.4587061237935,
+                -187.21100289600264,
+                282.4587061237935,
+                187.21100289600264,
+            ]
+            result = tile_levels.snap_extent_to_nearest_tile_level(
+                data, width, height
+            ).as_list()
             self.assertEqual(result, target)
 
         web_extent_data = (
             get_extent(web_mercator=True),
             get_extent_dict(web_mercator=True),
             get_extent_object(web_mercator=True),
-            json.dumps(get_extent_dict(web_mercator=True))
+            json.dumps(get_extent_dict(web_mercator=True)),
         )
         for data in web_extent_data:
-            target = [-37022427.52397195, -24538120.56821397, 37022427.52397195, 24538120.568213962]
-            result = tile_levels.snap_extent_to_nearest_tile_level(data, width, height).as_list()
+            target = [
+                -37022427.52397195,
+                -24538120.56821397,
+                37022427.52397195,
+                24538120.568213962,
+            ]
+            result = tile_levels.snap_extent_to_nearest_tile_level(
+                data, width, height
+            ).as_list()
             self.assertEqual(result, target)

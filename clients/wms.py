@@ -17,7 +17,12 @@ from PIL import Image
 from io import BytesIO
 
 from parserutils.collections import setdefaults, wrap_value
-from parserutils.urls import has_trailing_slash, update_url_params, url_to_parts, parts_to_url
+from parserutils.urls import (
+    has_trailing_slash,
+    update_url_params,
+    url_to_parts,
+    parts_to_url,
+)
 from restle.fields import TextField, BooleanField, IntegerField
 
 from .exceptions import BadExtent, ClientError, HTTPError, ImageError
@@ -33,7 +38,7 @@ WMS_KNOWN_VERSIONS = ("1.1.1", "1.3.0")
 WMS_DEFAULT_PARAMS = {
     "version": WMS_KNOWN_VERSIONS[1],  # Default to maximum
     "service": "WMS",
-    "request": "GetCapabilities"
+    "request": "GetCapabilities",
 }
 WMS_EXCEPTION_FORMAT = "application/vnd.ogc.se_xml"
 WMS_SRS_DEFAULT = "EPSG:3857"
@@ -100,7 +105,7 @@ class NcWMSLayerResource(ClientResource):
             raise ValidationError(
                 message=f"Layer {self.title} does not support boxfill style",
                 styles=self.supported_styles,
-                url=self._url
+                url=self._url,
             )
 
         self.full_extent = self.full_extent.project_to_web_mercator()
@@ -110,27 +115,31 @@ class NcWMSLayerResource(ClientResource):
             "colorBands": self.num_color_bands,
             "scaleRange": self.scale_range,
             "logScaling": self.log_scaling,
-            "legendUnits": self.units or ""
+            "legendUnits": self.units or "",
         }
 
         legend_params = {
             # May add WIDTH and HEIGHT on the front-end
             "request": "GetLegendGraphic",
             "layer": self.id,
-            "colorbaronly": bool(self.num_color_bands)
+            "colorbaronly": bool(self.num_color_bands),
         }
 
         for palette in (p.lower() for p in self.palettes):
             style = f"boxfill/{palette}"
             color = self._color_map.get(palette, {})
 
-            self.styles.append({
-                "id": style,
-                "title": color.get("name", palette),
-                "abstract": None,
-                "colors": color.get("colors"),
-                "legendURL": update_url_params(self._url, palette=palette, **legend_params)
-            })
+            self.styles.append(
+                {
+                    "id": style,
+                    "title": color.get("name", palette),
+                    "abstract": None,
+                    "colors": color.get("colors"),
+                    "legendURL": update_url_params(
+                        self._url, palette=palette, **legend_params
+                    ),
+                }
+            )
 
         self.styles = sorted(self.styles, key=lambda s: s["title"].lower())
 
@@ -151,26 +160,36 @@ class WMSLayerResource(ClientResource):
     _metadata_url = DictField(name="MetadataURL", default=[])
     _style = DictField(default={}, aliases={"Name": "id"})
 
-    _geographic_extent = ExtentField(name="EX_GeographicBoundingBox", esri_format=False, required=False, aliases={
-        "southBoundLatitude": "ymin",
-        "eastBoundLongitude": "xmax",
-        "northBoundLatitude": "ymax",
-        "westBoundLongitude": "xmin"
-    })
-    _old_bbox_extent = ExtentField(name="BoundingBox", esri_format=False, required=False, aliases={
-        "minx": "xmin",
-        "miny": "ymin",
-        "maxx": "xmax",
-        "maxy": "ymax",
-        "CRS": "spatial_reference",
-        "SRS": "spatial_reference"
-    })
-    _old_latlon_extent = ExtentField(name="LatLonBoundingBox", esri_format=False, required=False, aliases={
-        "minx": "xmin",
-        "miny": "ymin",
-        "maxx": "xmax",
-        "maxy": "ymax"
-    })
+    _geographic_extent = ExtentField(
+        name="EX_GeographicBoundingBox",
+        esri_format=False,
+        required=False,
+        aliases={
+            "southBoundLatitude": "ymin",
+            "eastBoundLongitude": "xmax",
+            "northBoundLatitude": "ymax",
+            "westBoundLongitude": "xmin",
+        },
+    )
+    _old_bbox_extent = ExtentField(
+        name="BoundingBox",
+        esri_format=False,
+        required=False,
+        aliases={
+            "minx": "xmin",
+            "miny": "ymin",
+            "maxx": "xmax",
+            "maxy": "ymax",
+            "CRS": "spatial_reference",
+            "SRS": "spatial_reference",
+        },
+    )
+    _old_latlon_extent = ExtentField(
+        name="LatLonBoundingBox",
+        esri_format=False,
+        required=False,
+        aliases={"minx": "xmin", "miny": "ymin", "maxx": "xmax", "maxy": "ymax"},
+    )
 
     _spatial_refs = ListField(name="SRS", default=[])
     _coordinate_refs = ListField(name="CRS", default=[])
@@ -231,17 +250,20 @@ class WMSLayerResource(ClientResource):
         self._url = self.wms.wms_url
         self._behind_proxy = self.wms._behind_proxy
 
-        self._ncwms_layer_url = update_url_params(self._url, **{
-            "request": "GetMetadata",
-            "item": "layerDetails",
-            "layerName": "{layer_id}"
-        })
+        self._ncwms_layer_url = update_url_params(
+            self._url,
+            **{
+                "request": "GetMetadata",
+                "item": "layerDetails",
+                "layerName": "{layer_id}",
+            },
+        )
 
         self.child_layers = []
         self.leaf_layers = {}
 
-        data["old_version"] = (data["version"] == self.wms.supported_versions[0])
-        data["queryable"] = (data.get("queryable", "").lower() in {"1", "true"})
+        data["old_version"] = data["version"] == self.wms.supported_versions[0]
+        data["queryable"] = data.get("queryable", "").lower() in {"1", "true"}
         data["is_ncwms"] = self.wms._is_ncwms
 
         super(WMSLayerResource, self).populate_field_values(data)
@@ -275,7 +297,7 @@ class WMSLayerResource(ClientResource):
 
             wms_layer = WMSLayerResource(
                 session=(self._layer_session or self._session),
-                color_map=self._color_map
+                color_map=self._color_map,
             )
             wms_layer.populate_field_values(layer)
             self.child_layers.append(wms_layer)
@@ -295,7 +317,7 @@ class WMSLayerResource(ClientResource):
         elif self._attribution.get("title"):
             self.attribution = {
                 "title": self._attribution["title"],
-                "href": (self._attribution.get("online_resource") or {}).get("href")
+                "href": (self._attribution.get("online_resource") or {}).get("href"),
             }
 
     def _populate_dimensions(self):
@@ -327,7 +349,11 @@ class WMSLayerResource(ClientResource):
 
         if self.id and not extent:
             # Leaf layer missing extent as EX_GeographicBoundingBox, LatLonBoundingBox, or BoundingBox
-            raise MissingFields(f'Extent required for WMS layer "{self.id}"', missing="extent", url=self._url)
+            raise MissingFields(
+                f'Extent required for WMS layer "{self.id}"',
+                missing="extent",
+                url=self._url,
+            )
         elif extent:
             try:
                 # Standardize across layers; they may be in different projections
@@ -335,7 +361,9 @@ class WMSLayerResource(ClientResource):
             except ValueError as ex:
                 raise BadExtent(
                     f'Error reprojecting extent for WMS layer "{self.id}"',
-                    extent=self.full_extent, underlying=ex, url=self._url
+                    extent=self.full_extent,
+                    underlying=ex,
+                    url=self._url,
                 )
 
     def _populate_metadata_urls(self):
@@ -344,7 +372,9 @@ class WMSLayerResource(ClientResource):
 
         self.metadata_urls = {
             md["metadata_url_type"]: md["online_resource"]["href"]
-            for md in parsed if md.get("metadata_url_type") and (md.get("online_resource") or {}).get("href")
+            for md in parsed
+            if md.get("metadata_url_type")
+            and (md.get("online_resource") or {}).get("href")
         }
 
     def _populate_ncwms_names(self):
@@ -352,7 +382,7 @@ class WMSLayerResource(ClientResource):
 
         def append_fragment(title, fragment):
             if fragment.lower().startswith(title.lower()):
-                fragment = fragment[len(title):].strip("_")
+                fragment = fragment[len(title) :].strip("_")
             if fragment not in title:
                 title += f" ({fragment})"
             return title.replace("_", " ")
@@ -361,8 +391,13 @@ class WMSLayerResource(ClientResource):
             self.title = append_fragment(self.title, self.id.split("/")[1])
         elif self.child_layers:
             first_child_layer = self.child_layers[0]
-            if "/" in (first_child_layer.id or "") and not first_child_layer.child_layers:
-                self.title = append_fragment(self.title, first_child_layer.id.split("/")[0])
+            if (
+                "/" in (first_child_layer.id or "")
+                and not first_child_layer.child_layers
+            ):
+                self.title = append_fragment(
+                    self.title, first_child_layer.id.split("/")[0]
+                )
 
     def _populate_styles(self):
 
@@ -377,18 +412,24 @@ class WMSLayerResource(ClientResource):
 
             if self._behind_proxy:
                 # Legend URL may be internal, which won't work if service is behind a proxy: apply proxy to legend URL
-                legend_url = update_url_params(self._url, **url_to_parts(legend_url).query)
+                legend_url = update_url_params(
+                    self._url, **url_to_parts(legend_url).query
+                )
 
-            self.styles.append({
-                "id": style["id"],
-                "title": style.get("title", style["id"]),
-                "abstract": style.get("abstract"),
-                "legendURL": legend_url
-            })
+            self.styles.append(
+                {
+                    "id": style["id"],
+                    "title": style.get("title", style["id"]),
+                    "abstract": style.get("abstract"),
+                    "legendURL": legend_url,
+                }
+            )
 
     def _populate_spatial_refs(self):
 
-        supported_spatial_refs = set(getattr(self.parent, "supported_spatial_refs", ""))  # SRS is inherited
+        supported_spatial_refs = set(
+            getattr(self.parent, "supported_spatial_refs", "")
+        )  # SRS is inherited
         supported_spatial_refs.update(sr.strip() for sr in self._spatial_refs)
         supported_spatial_refs.update(cr.strip() for cr in self._coordinate_refs)
 
@@ -420,7 +461,7 @@ class WMSLayerResource(ClientResource):
                 "description": self.title,
                 "layer_order": self.layer_order,
                 "version": self.version,
-                "wms_version": self.version
+                "wms_version": self.version,
             }
 
             try:
@@ -429,7 +470,7 @@ class WMSLayerResource(ClientResource):
                     lazy=False,
                     color_map=self._color_map,
                     layer_data=layer_data,
-                    session=(self._layer_session or self._session)
+                    session=(self._layer_session or self._session),
                 )
             except ClientError:
                 pass  # No NcWMS data to query
@@ -491,8 +532,12 @@ class WMSResource(ClientResource):
 
         if not self._wms_url:
             default_params = self._meta.get_parameters.copy()
-            service_params = {k: v for k, v in self._params.items() if k not in default_params}
-            self._wms_url = update_url_params(self._url, replace_all=True, **service_params)
+            service_params = {
+                k: v for k, v in self._params.items() if k not in default_params
+            }
+            self._wms_url = update_url_params(
+                self._url, replace_all=True, **service_params
+            )
 
         return self._wms_url
 
@@ -510,17 +555,30 @@ class WMSResource(ClientResource):
             parts_to_url(parts, trailing_slash=has_trailing_slash(url)), **kwargs
         )
 
-    def _get(self, url, spatial_ref=None, styles_color_map=None, token=None, token_id="token", version=None, **kwargs):
+    def _get(
+        self,
+        url,
+        spatial_ref=None,
+        styles_color_map=None,
+        token=None,
+        token_id="token",
+        version=None,
+        **kwargs,
+    ):
         """ Overridden to do some initialization and capture version and target coordinate reference """
 
         super(WMSResource, self)._get(url, **kwargs)
 
-        self._behind_proxy = self._url.rfind("http://") > 0 or self._url.rfind("https://") > 0
+        self._behind_proxy = (
+            self._url.rfind("http://") > 0 or self._url.rfind("https://") > 0
+        )
 
         # Note: if NcWMS, initial request may take a VERY long time
         # URL is trimmed of any query parameters at this point, so endswith is valid
-        self._is_ncwms = ("ncwms" in self._url.lower() or self._url.endswith(".nc"))
-        self._ordered_layers = []  # Populated before resource is loaded, or anytime afterwards if self._lazy
+        self._is_ncwms = "ncwms" in self._url.lower() or self._url.endswith(".nc")
+        self._ordered_layers = (
+            []
+        )  # Populated before resource is loaded, or anytime afterwards if self._lazy
 
         self._spatial_ref = spatial_ref or self.default_spatial_ref
         self.styles_color_map = styles_color_map or {}
@@ -541,7 +599,9 @@ class WMSResource(ClientResource):
     def _load_resource(self, as_unicode=False):
         """ Overridden to query XML as ASCII the first time: prevents unicode errors and duplicate requests """
 
-        super(WMSResource, self)._load_resource(as_unicode)  # Default to False to ensure one attempt
+        super(WMSResource, self)._load_resource(
+            as_unicode
+        )  # Default to False to ensure one attempt
 
     def populate_field_values(self, data):
         """ Overridden to validate root fields and flatten converted WMS data """
@@ -562,7 +622,7 @@ class WMSResource(ClientResource):
             "access_constraints": service.get("AccessConstraints") or "",
             # The max number of layers that can be rendered at once
             "layer_drawing_limit": int(service.get("LayerLimit") or 0) or None,
-            "is_ncwms": self._is_ncwms
+            "is_ncwms": self._is_ncwms,
         }
 
         access_constraints = wms_data["access_constraints"]
@@ -575,7 +635,9 @@ class WMSResource(ClientResource):
         request = capabilities["Request"]
 
         wms_data["map_formats"] = (request.get("GetMap") or {}).get("Format")
-        wms_data["feature_info_formats"] = (request.get("GetFeatureInfo") or {}).get("Format")
+        wms_data["feature_info_formats"] = (request.get("GetFeatureInfo") or {}).get(
+            "Format"
+        )
 
         # Process nested layers: will not be processed as JSON by Resource
 
@@ -585,7 +647,7 @@ class WMSResource(ClientResource):
 
             wms_layer = WMSLayerResource(
                 color_map=self.styles_color_map,
-                session=(self._layer_session or self._session)
+                session=(self._layer_session or self._session),
             )
             wms_layer.populate_field_values(layer)
 
@@ -603,13 +665,17 @@ class WMSResource(ClientResource):
 
         # Prepare leaf layer dependent data
 
-        time_for_dimensions = [l.has_time for l in self.leaf_layers.values() if l.has_dimensions]
+        time_for_dimensions = [
+            l.has_time for l in self.leaf_layers.values() if l.has_dimensions
+        ]
         wms_data["has_dimensions"] = bool(time_for_dimensions)
         wms_data["has_time"] = any(time_for_dimensions)
 
         # Validate spatial references: must support a variant of Web Mercator to call get_image
 
-        supported_spatial_refs = {srs for l in self.leaf_layers.values() for srs in l.supported_spatial_refs}
+        supported_spatial_refs = {
+            srs for l in self.leaf_layers.values() for srs in l.supported_spatial_refs
+        }
         wms_data["supported_spatial_refs"] = sorted(supported_spatial_refs)
 
         # Ensure EPSG:3857 is at front of list of supported projections
@@ -638,8 +704,15 @@ class WMSResource(ClientResource):
             root_layer._populate_ordered_layers(self._ordered_layers)
 
     def get_image(
-        self, extent, width, height,
-        layer_ids=None, style_ids=None, time_range=None, params=None, image_format="png"
+        self,
+        extent,
+        width,
+        height,
+        layer_ids=None,
+        style_ids=None,
+        time_range=None,
+        params=None,
+        image_format="png",
     ):
         """
         Note: extent aspect ratio must align correctly with image aspect ratio, or this will be warped incorrectly.
@@ -648,7 +721,9 @@ class WMSResource(ClientResource):
         """
 
         if not isinstance(extent, Extent):
-            spatial_ref = getattr(extent, "spatial_reference", None) or self.spatial_reference
+            spatial_ref = (
+                getattr(extent, "spatial_reference", None) or self.spatial_reference
+            )
             extent = Extent(extent, spatial_reference=spatial_ref)
 
         if self.spatial_reference is None:
@@ -657,18 +732,32 @@ class WMSResource(ClientResource):
             raise ImageError(image_error, url=self.wms_url)
 
         elif not layer_ids:
-            raise ImageError("No layers from which to generate an image", url=self.wms_url)
+            raise ImageError(
+                "No layers from which to generate an image", url=self.wms_url
+            )
 
         elif style_ids and len(layer_ids) != len(style_ids):
-            raise ImageError("Provided styles do not correspond to specified Layers", url=self.wms_url)
+            raise ImageError(
+                "Provided styles do not correspond to specified Layers",
+                url=self.wms_url,
+            )
 
         elif not any(f.startswith(f"image/{image_format}") for f in self.map_formats):
-            image_error = "Incompatible image format {0}: {1}".format(image_format, ",".join(self.map_formats))
+            image_error = "Incompatible image format {0}: {1}".format(
+                image_format, ",".join(self.map_formats)
+            )
             raise ImageError(image_error, url=self.wms_url)
 
         elif not extent.crosses_anti_meridian():
             return self.generate_image_from_query(
-                extent, width, height, layer_ids, style_ids, time_range, params, image_format
+                extent,
+                width,
+                height,
+                layer_ids,
+                style_ids,
+                time_range,
+                params,
+                image_format,
             )
 
         # Edge case: mapserver renders badly any global extent raster data that straddles the -180/180 line
@@ -678,26 +767,58 @@ class WMSResource(ClientResource):
         new_extent = extent.limit_to_global_width()
         resolution = extent.get_image_resolution(width, height)
         left_side_adjust = int(round((new_extent.xmin - extent.xmin) / resolution, 0))
-        img_width, img_height = new_extent.fit_image_dimensions_to_extent(width, height, resolution)
+        img_width, img_height = new_extent.fit_image_dimensions_to_extent(
+            width, height, resolution
+        )
 
         img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
         wms_img = self.generate_image_from_query(
-            new_extent, img_width, img_height, layer_ids, style_ids, time_range, params, image_format
+            new_extent,
+            img_width,
+            img_height,
+            layer_ids,
+            style_ids,
+            time_range,
+            params,
+            image_format,
         )
-        img.paste(wms_img, (left_side_adjust, 0, left_side_adjust + img_width, img_height), wms_img)
+        img.paste(
+            wms_img,
+            (left_side_adjust, 0, left_side_adjust + img_width, img_height),
+            wms_img,
+        )
 
         # Request other side of meridian, if part of the extent
         if extent.has_negative_extent():
             neg_extent = extent.get_negative_extent()
-            img_width, img_height = neg_extent.fit_image_dimensions_to_extent(width, height, resolution)
+            img_width, img_height = neg_extent.fit_image_dimensions_to_extent(
+                width, height, resolution
+            )
             negative_image = self.generate_image_from_query(
-                neg_extent, img_width, img_height, layer_ids, style_ids, time_range, params, image_format
+                neg_extent,
+                img_width,
+                img_height,
+                layer_ids,
+                style_ids,
+                time_range,
+                params,
+                image_format,
             )
             img.paste(negative_image, (0, 0), negative_image)
 
         return img
 
-    def generate_image_from_query(self, extent, width, height, layer_ids, style_ids, time_range, params, image_format):
+    def generate_image_from_query(
+        self,
+        extent,
+        width,
+        height,
+        layer_ids,
+        style_ids,
+        time_range,
+        params,
+        image_format,
+    ):
 
         if not image_format.startswith("image/"):
             image_format = f"image/{image_format}"
@@ -715,7 +836,7 @@ class WMSResource(ClientResource):
                 "bbox": extent.as_bbox_string(),
                 "layers": ",".join(wrap_value(layer_ids)),
                 "styles": ",".join(wrap_value(style_ids)),
-                "version": (params or {}).get("version") or self.version
+                "version": (params or {}).get("version") or self.version,
             }
             if self._token:
                 image_params[self._token_id] = self._token
@@ -746,11 +867,18 @@ class WMSResource(ClientResource):
                     error = XMLToJSONSerializer.to_dict(response.content).get(
                         "ServiceException", "No service exception"
                     )
-                raise ImageError(error, params=image_params, underlying=response.text, url=response.url)
+                raise ImageError(
+                    error,
+                    params=image_params,
+                    underlying=response.text,
+                    url=response.url,
+                )
 
             img = Image.open(BytesIO(response.content))
             fix_transparency = False
-            if img.mode == "RGB" and img.info["transparency"]:  # PIL does not always correctly detect PNG transparency
+            if (
+                img.mode == "RGB" and img.info["transparency"]
+            ):  # PIL does not always correctly detect PNG transparency
                 fix_transparency = True
 
             img = img.convert("RGBA")
@@ -767,12 +895,14 @@ class WMSResource(ClientResource):
                 params=image_params,
                 underlying=ex,
                 url=self.wms_url,
-                status_code=getattr(ex.response, "status_code", None)
+                status_code=getattr(ex.response, "status_code", None),
             )
         except (IOError, ValueError) as ex:
             raise ImageError(
                 "The WMS service did not return a valid image",
-                params=image_params, underlying=ex, url=self.wms_url
+                params=image_params,
+                underlying=ex,
+                url=self.wms_url,
             )
 
     @property

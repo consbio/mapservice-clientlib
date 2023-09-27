@@ -20,13 +20,22 @@ from .resources import ClientResource
 from .utils.geometry import Extent, SpatialReference, union_extent
 from .utils.images import make_color_transparent
 from .wms import NcWMSLayerResource
-from .wms import WMS_DEFAULT_PARAMS, WMS_EXCEPTION_FORMAT, WMS_KNOWN_VERSIONS, WMS_SRS_DEFAULT
+from .wms import (
+    WMS_DEFAULT_PARAMS,
+    WMS_EXCEPTION_FORMAT,
+    WMS_KNOWN_VERSIONS,
+    WMS_SRS_DEFAULT,
+)
 
 
 logger = logging.getLogger(__name__)
 
 RELATED_ENDPOINT_FIELDS = (
-    "access_constraints", "credits", "description", "keywords", "layers"
+    "access_constraints",
+    "credits",
+    "description",
+    "keywords",
+    "layers",
 )
 
 
@@ -99,9 +108,9 @@ class ThreddsResource(ClientResource):
         parts = url_to_parts(url)
 
         is_catalog_query = (
-            parts.path[0] == "thredds" and
-            parts.path[1] == "catalog" and
-            parts.path[-1] in ("catalog.html", "catalog.xml")
+            parts.path[0] == "thredds"
+            and parts.path[1] == "catalog"
+            and parts.path[-1] in ("catalog.html", "catalog.xml")
         )
 
         if not is_catalog_query:
@@ -114,7 +123,9 @@ class ThreddsResource(ClientResource):
         thredds_url = parts_to_url(parts, trailing_slash=has_trailing_slash(url))
         return super(ThreddsResource, cls).get(thredds_url, **kwargs)
 
-    def _get(self, url, styles_color_map=None, spatial_ref=None, wms_version=None, **kwargs):
+    def _get(
+        self, url, styles_color_map=None, spatial_ref=None, wms_version=None, **kwargs
+    ):
         """ Overridden to initialize URL's derived from a THREDDS endpoint """
 
         super(ThreddsResource, self)._get(url, **kwargs)
@@ -128,7 +139,9 @@ class ThreddsResource(ClientResource):
         parts["path"][-1] = "catalog.xml"
         self._service_url = parts_to_url(parts, trailing_slash=has_trailing)
 
-        self.spatial_reference = SpatialReference(spatial_ref or self.default_spatial_ref)
+        self.spatial_reference = SpatialReference(
+            spatial_ref or self.default_spatial_ref
+        )
         self.wms_version = wms_version or WMS_KNOWN_VERSIONS[-1]
 
         self.styles_color_map = styles_color_map or {}
@@ -143,7 +156,7 @@ class ThreddsResource(ClientResource):
             raise ValidationError(
                 message=f"{self.client_name} must specify at least one dataset",
                 datasets=dataset_info,
-                url=self._url
+                url=self._url,
             )
 
         dataset_detail = dataset_info.pop("dataset", None)
@@ -153,7 +166,7 @@ class ThreddsResource(ClientResource):
             raise ValidationError(
                 message=f"{self.client_name} must specify only one dataset",
                 datasets=dataset_info,
-                url=self._url
+                url=self._url,
             )
 
         dataset_meta = data.pop("metadata", dataset_info.pop("metadata", None))
@@ -164,14 +177,20 @@ class ThreddsResource(ClientResource):
         # Derive and flatten other required service information
 
         data["dataSize"] = " ".join(data["dataSize"][k] for k in ("value", "units"))
-        data["modified"] = data["date"]["value"] if data["date"]["date_type"] == "modified" else ""
-        data["services"] = services = {s["name"]: s for s in data.pop("service")["service"]}
+        data["modified"] = (
+            data["date"]["value"] if data["date"]["date_type"] == "modified" else ""
+        )
+        data["services"] = services = {
+            s["name"]: s for s in data.pop("service")["service"]
+        }
 
         url_path = data["urlPath"].split("/")
 
         # Construct file server endpoint by prepending path in services to dataset
         file_base = (services.get("ftp") or services.get("http") or {}).get("base")
-        self._file_path = file_base.strip("/").split("/") + url_path if file_base else ""
+        self._file_path = (
+            file_base.strip("/").split("/") + url_path if file_base else ""
+        )
 
         # Construct metadata endpoint by prepending path in services to dataset
 
@@ -182,7 +201,7 @@ class ThreddsResource(ClientResource):
             raise ValidationError(
                 message="ISO metadata service is required for THREDDS resource",
                 services=services,
-                url=self._url
+                url=self._url,
             )
 
         # Construct WMS endpoint for image requests by prepending path in services to dataset
@@ -195,7 +214,7 @@ class ThreddsResource(ClientResource):
             raise ValidationError(
                 message="WMS service is required for THREDDS resource",
                 services=services,
-                url=self._url
+                url=self._url,
             )
 
         # Service data is ready: populate base resource fields
@@ -235,7 +254,11 @@ class ThreddsResource(ClientResource):
         self._layers_url = parts_to_url(parts, trailing_slash=has_trailing)
 
         # Derive layers url format: thredds/wms/<urlPath>?item=layerDetails&layerName={layer_name}&request=GetMetadata
-        parts["query"] = {"item": "layerDetails", "layerName": "{layer_id}", "request": "GetMetadata"}
+        parts["query"] = {
+            "item": "layerDetails",
+            "layerName": "{layer_id}",
+            "request": "GetMetadata",
+        }
         self._layers_url_format = parts_to_url(parts, trailing_slash=has_trailing)
 
         # Derive metadata url: thredds/iso/<urlPath>?dataset=<ID>
@@ -254,7 +277,9 @@ class ThreddsResource(ClientResource):
         constraints = set()
         layers = []
 
-        for idx, desc_id in enumerate((k, l) for k, v in self._query_layer_ids().items() for l in v):
+        for idx, desc_id in enumerate(
+            (k, l) for k, v in self._query_layer_ids().items() for l in v
+        ):
             layers_desc, layer_id = desc_id
 
             if not self.description:
@@ -267,18 +292,25 @@ class ThreddsResource(ClientResource):
             if layer_obj.copyright_text:
                 constraints.add(layer_obj.copyright_text)
 
-        self.full_extent = union_extent(l.full_extent for l in layers).project_to_web_mercator()
+        self.full_extent = union_extent(
+            l.full_extent for l in layers
+        ).project_to_web_mercator()
         self.layers = layers
 
-        self.access_constraints = max(constraints) if constraints else self._metadata_parser.use_constraints
+        self.access_constraints = (
+            max(constraints) if constraints else self._metadata_parser.use_constraints
+        )
         self.credits = self._metadata_parser.data_credits or self.credits
-        self.keywords.extend(k for k in self._metadata_parser.thematic_keywords if k not in layer_metadata)
+        self.keywords.extend(
+            k
+            for k in self._metadata_parser.thematic_keywords
+            if k not in layer_metadata
+        )
 
         raster_info = self._metadata_parser.raster_info
         if raster_info["x_resolution"] and raster_info["y_resolution"]:
             self.spatial_resolution = "{x} by {y}".format(
-                x=raster_info["x_resolution"],
-                y=raster_info["y_resolution"]
+                x=raster_info["x_resolution"], y=raster_info["y_resolution"]
             )
 
     def _query_layer(self, layer_id, layer_order, layer_metadata):
@@ -303,7 +335,7 @@ class ThreddsResource(ClientResource):
             lazy=False,
             color_map=self.styles_color_map,
             layer_data=layer_data,
-            session=(self._layer_session or self._session)
+            session=(self._layer_session or self._session),
         )
 
     def _query_layer_ids(self, data=None, layer_ids=None):
@@ -311,13 +343,15 @@ class ThreddsResource(ClientResource):
 
         if data is None:
             try:
-                data = JSONSerializer.to_dict(self._make_request(self._layers_url, {}, timeout=120).text)
+                data = JSONSerializer.to_dict(
+                    self._make_request(self._layers_url, {}, timeout=120).text
+                )
             except requests.exceptions.HTTPError as ex:
                 raise HTTPError(
                     "The THREDDS layer id query did not respond correctly",
                     underlying=ex,
                     url=self._layers_url,
-                    status_code=getattr(ex.response, "status_code", None)
+                    status_code=getattr(ex.response, "status_code", None),
                 )
 
         label = data["label"]
@@ -350,8 +384,15 @@ class ThreddsResource(ClientResource):
         return super(ThreddsResource, self).__getattribute__(item)
 
     def get_image(
-        self, extent, width, height,
-        layer_ids=None, style_ids=None, time_range=None, params=None, image_format="png"
+        self,
+        extent,
+        width,
+        height,
+        layer_ids=None,
+        style_ids=None,
+        time_range=None,
+        params=None,
+        image_format="png",
     ):
         """
         Note: extent aspect ratio must align correctly with image aspect ratio, or this will be warped incorrectly.
@@ -360,18 +401,29 @@ class ThreddsResource(ClientResource):
         """
 
         if not isinstance(extent, Extent):
-            spatial_ref = getattr(extent, "spatial_reference", None) or self.spatial_reference
+            spatial_ref = (
+                getattr(extent, "spatial_reference", None) or self.spatial_reference
+            )
             extent = Extent(extent, spatial_reference=spatial_ref)
 
         if not layer_ids:
             raise ImageError("No layers from which to generate an image", url=self._url)
 
         elif style_ids and len(layer_ids) != len(style_ids):
-            raise ImageError("Provided styles do not correspond to specified Layers", url=self._url)
+            raise ImageError(
+                "Provided styles do not correspond to specified Layers", url=self._url
+            )
 
         elif not extent.crosses_anti_meridian():
             return self.generate_image_from_query(
-                extent, width, height, layer_ids, style_ids, time_range, params, image_format
+                extent,
+                width,
+                height,
+                layer_ids,
+                style_ids,
+                time_range,
+                params,
+                image_format,
             )
 
         # Edge case: mapserver renders badly any global extent raster data that straddles the -180/180 line
@@ -381,26 +433,58 @@ class ThreddsResource(ClientResource):
         new_extent = extent.limit_to_global_width()
         resolution = extent.get_image_resolution(width, height)
         left_side_adjust = int(round((new_extent.xmin - extent.xmin) / resolution, 0))
-        img_width, img_height = new_extent.fit_image_dimensions_to_extent(width, height, resolution)
+        img_width, img_height = new_extent.fit_image_dimensions_to_extent(
+            width, height, resolution
+        )
 
         img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
         wms_img = self.generate_image_from_query(
-            new_extent, img_width, img_height, layer_ids, style_ids, time_range, params, image_format
+            new_extent,
+            img_width,
+            img_height,
+            layer_ids,
+            style_ids,
+            time_range,
+            params,
+            image_format,
         )
-        img.paste(wms_img, (left_side_adjust, 0, left_side_adjust + img_width, img_height), wms_img)
+        img.paste(
+            wms_img,
+            (left_side_adjust, 0, left_side_adjust + img_width, img_height),
+            wms_img,
+        )
 
         # Request other side of meridian, if part of the extent
         if extent.has_negative_extent():
             neg_extent = extent.get_negative_extent()
-            img_width, img_height = neg_extent.fit_image_dimensions_to_extent(width, height, resolution)
+            img_width, img_height = neg_extent.fit_image_dimensions_to_extent(
+                width, height, resolution
+            )
             negative_image = self.generate_image_from_query(
-                neg_extent, img_width, img_height, layer_ids, style_ids, time_range, params, image_format
+                neg_extent,
+                img_width,
+                img_height,
+                layer_ids,
+                style_ids,
+                time_range,
+                params,
+                image_format,
             )
             img.paste(negative_image, (0, 0), negative_image)
 
         return img
 
-    def generate_image_from_query(self, extent, width, height, layer_ids, style_ids, time_range, params, image_format):
+    def generate_image_from_query(
+        self,
+        extent,
+        width,
+        height,
+        layer_ids,
+        style_ids,
+        time_range,
+        params,
+        image_format,
+    ):
 
         if not image_format.startswith("image/"):
             image_format = f"image/{image_format}"
@@ -418,7 +502,7 @@ class ThreddsResource(ClientResource):
                 "bbox": extent.as_bbox_string(),
                 "layers": ",".join(wrap_value(layer_ids)),
                 "styles": ",".join(wrap_value(style_ids)),
-                "version": (params or {}).get("version") or self.wms_version
+                "version": (params or {}).get("version") or self.wms_version,
             }
 
             spatial_ref_srs = extent.spatial_reference.srs or self.spatial_reference.srs
@@ -443,11 +527,18 @@ class ThreddsResource(ClientResource):
 
             if response_type != image_format:
                 error = f"Unexpected image format {response_type}: {image_format}\n\t{response.text}"
-                raise ImageError(error, params=image_params, underlying=response.text, url=response.url)
+                raise ImageError(
+                    error,
+                    params=image_params,
+                    underlying=response.text,
+                    url=response.url,
+                )
 
             img = Image.open(BytesIO(response.content))
             fix_transparency = False
-            if img.mode == "RGB" and img.info["transparency"]:  # PIL does not always correctly detect PNG transparency
+            if (
+                img.mode == "RGB" and img.info["transparency"]
+            ):  # PIL does not always correctly detect PNG transparency
                 fix_transparency = True
 
             img = img.convert("RGBA")
@@ -464,17 +555,18 @@ class ThreddsResource(ClientResource):
                 params=image_params,
                 underlying=ex,
                 url=self._wms_url,
-                status_code=getattr(ex.response, "status_code", None)
+                status_code=getattr(ex.response, "status_code", None),
             )
         except (IOError, ValueError) as ex:
             raise ImageError(
                 "The THREDDS service did not return a valid image",
-                params=image_params, underlying=ex, url=self._wms_url
+                params=image_params,
+                underlying=ex,
+                url=self._wms_url,
             )
 
 
 class ThreddsIsoParser(IsoParser):
-
     def _init_data_map(self):
         super(ThreddsIsoParser, self)._init_data_map()
 
@@ -488,13 +580,20 @@ class ThreddsIsoParser(IsoParser):
         dim_format = dim_root + "/MD_Band/{dim_path}"
         dim_struct = {"id": "{id}", "title": "{title}", "units": "{units}"}
 
-        self._data_structures["dimensions"] = format_xpaths(dim_struct, **{
-            "id": dim_format.format(dim_path="sequenceIdentifier/MemberName/aName/CharacterString"),
-            "title": dim_format.format(dim_path="descriptor/CharacterString"),
-            "units": dim_format.format(
-                dim_path="sequenceIdentifier/MemberName/attributeType/TypeName/aName/CharacterString"
-            )
-        })
+        self._data_structures["dimensions"] = format_xpaths(
+            dim_struct,
+            **{
+                "id": dim_format.format(
+                    dim_path="sequenceIdentifier/MemberName/aName/CharacterString"
+                ),
+                "title": dim_format.format(dim_path="descriptor/CharacterString"),
+                "units": dim_format.format(
+                    dim_path="sequenceIdentifier/MemberName/attributeType/TypeName/aName/CharacterString"
+                ),
+            },
+        )
 
         self._data_map["_dimensions_root"] = dim_root
-        self._data_map["dimensions"] = ParserProperty(self._parse_complex_list, self._update_complex_list)
+        self._data_map["dimensions"] = ParserProperty(
+            self._parse_complex_list, self._update_complex_list
+        )

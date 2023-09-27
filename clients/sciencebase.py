@@ -12,7 +12,9 @@ from .query.fields import DictField, ListField, ObjectField
 from .wms import WMSResource
 
 
-SCIENCE_BASE_CONTENT_TYPES = "text/html,application/json,application/xhtml+xml,application/xml"
+SCIENCE_BASE_CONTENT_TYPES = (
+    "text/html,application/json,application/xhtml+xml,application/xml"
+)
 SCIENCE_BASE_TOKEN_IDS = {"arcgis": "token", "wms": "josso"}
 
 
@@ -56,10 +58,14 @@ class ScienceBaseSession(SbSession, object):
         except requests.exceptions.HTTPError as ex:
             try:
                 value = response.json()["errors"]
-                error = value["message"] if isinstance(value, dict) else value[0]["message"]
+                error = (
+                    value["message"] if isinstance(value, dict) else value[0]["message"]
+                )
             except (IndexError, KeyError, ValueError):
                 error = f"ScienceBase denied your request for this item: {external_id}"
-            raise HTTPError(error, underlying=ex, url=url, status_code=response.status_code)
+            raise HTTPError(
+                error, underlying=ex, url=url, status_code=response.status_code
+            )
 
         return self._get_json(response, external_id)
 
@@ -84,7 +90,9 @@ class ScienceBaseSession(SbSession, object):
         if "permissions" not in item_json:
             # Permissions will be excluded from response if the requesting account doesn't have WRITE access
             try:
-                requests.get(self.get_public_url(response), params={"format": "json"}).raise_for_status()
+                requests.get(
+                    self.get_public_url(response), params={"format": "json"}
+                ).raise_for_status()
             except requests.exceptions.HTTPError:
                 is_private = True  # Must be private if anonymous GET fails
             else:
@@ -96,13 +104,23 @@ class ScienceBaseSession(SbSession, object):
             write_permissions = item_json["permissions"].get("write") or {}
 
             read_access_control_list = read_permissions.get("acl") or ["PUBLIC"]
-            is_private = "PUBLIC" not in read_access_control_list  # PUBLIC is stripped out by following
-            read_access_control_list = (perm.split(":", 1) for perm in read_access_control_list if ":" in perm)
-            item_permissions["read"] = accumulate_items((k.lower(), v) for k, v in read_access_control_list)
+            is_private = (
+                "PUBLIC" not in read_access_control_list
+            )  # PUBLIC is stripped out by following
+            read_access_control_list = (
+                perm.split(":", 1) for perm in read_access_control_list if ":" in perm
+            )
+            item_permissions["read"] = accumulate_items(
+                (k.lower(), v) for k, v in read_access_control_list
+            )
 
             write_access_control_list = write_permissions.get("acl") or []
-            write_access_control_list = (perm.split(":", 1) for perm in write_access_control_list if ":" in perm)
-            item_permissions["write"] = accumulate_items((k.lower(), v) for k, v in read_access_control_list)
+            write_access_control_list = (
+                perm.split(":", 1) for perm in write_access_control_list if ":" in perm
+            )
+            item_permissions["write"] = accumulate_items(
+                (k.lower(), v) for k, v in read_access_control_list
+            )
 
         item_settings["isPrivate"] = is_private
 
@@ -112,7 +130,9 @@ class ScienceBaseSession(SbSession, object):
         has_valid_layers = False
 
         if "distributionLinks" in item_json:
-            service_types = {dl.get("title"): dl for dl in item_json["distributionLinks"]}
+            service_types = {
+                dl.get("title"): dl for dl in item_json["distributionLinks"]
+            }
 
             if "ArcGIS REST Service" in service_types:
                 service_type = "arcgis"
@@ -127,18 +147,23 @@ class ScienceBaseSession(SbSession, object):
                 files_key = "Download Attached Files"
                 if files_key in service_types:
                     # Prevents footprint-only map services: attached files must contain shape or GeoTIFF
-                    file_extensions = (f["name"].split(".")[-1] for f in service_types[files_key]["files"])
-                    has_valid_layers = any(ext for ext in file_extensions if ext in ("shp", "tif", "tiff"))
+                    file_extensions = (
+                        f["name"].split(".")[-1]
+                        for f in service_types[files_key]["files"]
+                    )
+                    has_valid_layers = any(
+                        ext for ext in file_extensions if ext in ("shp", "tif", "tiff")
+                    )
 
         if not service_url:
             raise ValidationError(
                 f"The ScienceBase item has not yet been published by ScienceBase: {external_id}",
-                url=service_url
+                url=service_url,
             )
         elif not has_valid_layers:
             raise NoLayers(
                 f"The ScienceBase item has no valid layers; shapefile or GeoTIFF are required: {external_id}",
-                url=service_url
+                url=service_url,
             )
 
         item_settings["serviceTokenId"] = SCIENCE_BASE_TOKEN_IDS[service_type]
@@ -152,8 +177,12 @@ class ScienceBaseResource(ClientResource):
 
     data_provider_types = (
         # Contact types used to populate the credits field
-        "author", "co-investigator", "data owner",
-        "lead organization", "originator", "principal investigator"
+        "author",
+        "co-investigator",
+        "data owner",
+        "lead organization",
+        "originator",
+        "principal investigator",
     )
 
     id = TextField()
@@ -168,17 +197,25 @@ class ScienceBaseResource(ClientResource):
     parent_id = TextField(required=False)
     has_children = BooleanField(default=False)
 
-    distribution_links = ObjectField(class_name="DistributionLink", name="distributionLinks", default=[])
-    facets = ObjectField(required=False, class_name="Facet", aliases={
-        "boundingBox": "extent",
-        "minX": "xmin",
-        "minY": "ymin",
-        "maxX": "xmax",
-        "maxY": "ymax"
-    })
+    distribution_links = ObjectField(
+        class_name="DistributionLink", name="distributionLinks", default=[]
+    )
+    facets = ObjectField(
+        required=False,
+        class_name="Facet",
+        aliases={
+            "boundingBox": "extent",
+            "minX": "xmin",
+            "minY": "ymin",
+            "maxX": "xmax",
+            "maxY": "ymax",
+        },
+    )
     files = ObjectField(class_name="File", default=[])
     links = ObjectField(name="webLinks", class_name="Link", default=[])
-    provenance = ObjectField(class_name="Provenance", aliases={"lastUpdated": "date_updated"})
+    provenance = ObjectField(
+        class_name="Provenance", aliases={"lastUpdated": "date_updated"}
+    )
 
     browse_categories = ListField(default=[])
     browse_types = ListField(default=[])
@@ -188,13 +225,20 @@ class ScienceBaseResource(ClientResource):
     contact_persons = ListField(default=[])
     contact_orgs = ListField(default=[])
     originators = ListField(default=[])
-    settings = ObjectField(name="itemSettings", class_name="Settings", aliases={"isPrivate": "private"})
+    settings = ObjectField(
+        name="itemSettings", class_name="Settings", aliases={"isPrivate": "private"}
+    )
 
     _contacts = ObjectField(name="contacts", class_name="Contact", default=[])
-    _dates = ObjectField(name="dates", class_name="Date", default=[], aliases={"dateString": "value"})
-    _permissions = ObjectField(name="permissions", class_name="Permission", default=[], aliases={
-        "acl": "access_list"
-    })
+    _dates = ObjectField(
+        name="dates", class_name="Date", default=[], aliases={"dateString": "value"}
+    )
+    _permissions = ObjectField(
+        name="permissions",
+        class_name="Permission",
+        default=[],
+        aliases={"acl": "access_list"},
+    )
     _tags = ObjectField(name="tags", class_name="Tag")
 
     _service_client = None
@@ -227,7 +271,9 @@ class ScienceBaseResource(ClientResource):
 
         elif self.service_type == "arcgis":
             self._service_client = MapServerResource.get(
-                self.service_url, lazy=True, **(self.arcgis_credentials if self.private else {})
+                self.service_url,
+                lazy=True,
+                **(self.arcgis_credentials if self.private else {}),
             )
             self.arcgis_credentials.update(self._service_client.arcgis_credentials)
 
@@ -290,21 +336,21 @@ class ScienceBaseResource(ClientResource):
 
             if arcgis_user and arcgis_pass:
                 # Referencing `self.settings.service_url` forces the resource to populate field values for correct URL
-                server_admin = ArcGISSecureResource.generate_token(self.settings.service_url, arcgis_user, arcgis_pass)
+                server_admin = ArcGISSecureResource.generate_token(
+                    self.settings.service_url, arcgis_user, arcgis_pass
+                )
                 if server_admin.token:
                     arcgis_credentials["token"] = server_admin.token
 
         self.arcgis_credentials = {
             "username": arcgis_credentials.get("username"),
-            "token": arcgis_credentials.get("token")
+            "token": arcgis_credentials.get("token"),
         }
 
     def _load_resource(self):
         """ Overridden to make session handling compatible with SbSession """
 
-        self.populate_field_values(
-            self._session.get_json(self._url, self._external_id)
-        )
+        self.populate_field_values(self._session.get_json(self._url, self._external_id))
 
     def populate_field_values(self, data):
 
@@ -347,12 +393,18 @@ class ScienceBaseResource(ClientResource):
         # Parse WMS properties from facets depending on browse types
 
         if self.service_type == "wms":
-            any_facet_has_files = any(getattr(facet, "files", None) for facet in self.facets)
-            has_valid_browse_types = {"GeoTIFF", "Shapefile"}.intersection(self.browse_types)
+            any_facet_has_files = any(
+                getattr(facet, "files", None) for facet in self.facets
+            )
+            has_valid_browse_types = {"GeoTIFF", "Shapefile"}.intersection(
+                self.browse_types
+            )
 
             if any_facet_has_files and has_valid_browse_types:
                 # Note: ScienceBase escapes certain characters to underscores for WMS layer names
-                facet_names = (facet.name for facet in self.facets if hasattr(facet, "name"))
+                facet_names = (
+                    facet.name for facet in self.facets if hasattr(facet, "name")
+                )
                 self.properties["wms_layer_name"] = next(facet_names).replace("/", "_")
 
     def populate_contact_related_fields(self, valid_contacts=None):
@@ -360,7 +412,9 @@ class ScienceBaseResource(ClientResource):
 
         if valid_contacts is None:
             # Require a name for contacts by default
-            valid_contacts = [c.get_data() for c in self._contacts if hasattr(c, "name")]
+            valid_contacts = [
+                c.get_data() for c in self._contacts if hasattr(c, "name")
+            ]
 
         # Append contact persons with emails if present
 
@@ -376,9 +430,13 @@ class ScienceBaseResource(ClientResource):
         anchor_format = '<a href="mailto:{0}">{1}</a>'
 
         self.contact_orgs = []
-        for org in (o for o in valid_contacts if o.get("contact_type") == "organization"):
+        for org in (
+            o for o in valid_contacts if o.get("contact_type") == "organization"
+        ):
             if org.get("name") and org.get("email"):
-                self.contact_orgs.append(anchor_format.format(org["email"], org["name"]))
+                self.contact_orgs.append(
+                    anchor_format.format(org["email"], org["name"])
+                )
             else:
                 self.contact_orgs.append(org.get("email") or org.get("name"))
 
@@ -393,15 +451,21 @@ class ScienceBaseResource(ClientResource):
             # Append originators with organization or company names
 
             originator_contacts = (
-                o for o in valid_contacts if (o.get("type") or "").lower() in self.data_provider_types
+                o
+                for o in valid_contacts
+                if (o.get("type") or "").lower() in self.data_provider_types
             )
             for originator in originator_contacts:
                 originator_txt = originator["name"] or ""
                 if (originator.get("organization") or {}).get("display_text"):
-                    originator_txt += "({})".format(originator["organization"]["display_text"])
+                    originator_txt += "({})".format(
+                        originator["organization"]["display_text"]
+                    )
                 elif originator.get("company"):
                     originator_txt += "({})".format(originator["company"])
                 self.originators.append(originator_txt)
 
     def get_image(self, extent, width, height, **kwargs):
-        return self.get_service_client().get_image(extent=extent, width=width, height=height, **kwargs)
+        return self.get_service_client().get_image(
+            extent=extent, width=width, height=height, **kwargs
+        )

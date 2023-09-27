@@ -11,7 +11,6 @@ from .utils import ResourceTestCase, get_extent
 
 
 class THREDDSTestCase(ResourceTestCase):
-
     def setUp(self):
         super(THREDDSTestCase, self).setUp()
 
@@ -25,15 +24,17 @@ class THREDDSTestCase(ResourceTestCase):
 
         self.download_url = f"{self.base_url}/fileServer/{self.dataset_path}"
 
-        self.catalog_url = (
-            f"{self.base_url}/catalog/{self.service_path}/catalog.xml?dataset={self.dataset_path}"
-        )
+        self.catalog_url = f"{self.base_url}/catalog/{self.service_path}/catalog.xml?dataset={self.dataset_path}"
         self.catalog_path = self.thredds_directory / "thredds-catalog.xml"
 
-        self.metadata_url = f"{self.base_url}/iso/{self.dataset_path}?dataset={self.dataset_path}"
+        self.metadata_url = (
+            f"{self.base_url}/iso/{self.dataset_path}?dataset={self.dataset_path}"
+        )
         self.metadata_path = self.thredds_directory / "thredds-metadata.xml"
 
-        self.wms_service_url = f"{self.base_wms_url}?service=WMS&version=1.3.0&request=GetCapabilities"
+        self.wms_service_url = (
+            f"{self.base_wms_url}?service=WMS&version=1.3.0&request=GetCapabilities"
+        )
         self.wms_service_path = self.thredds_directory / "thredds-wms.xml"
 
         self.layer_menu_url = f"{self.base_wms_url}?item=menu&request=GetMetadata"
@@ -53,11 +54,19 @@ class THREDDSTestCase(ResourceTestCase):
 
         mock_request.head(self.download_url, status_code=200)
 
-        self.mock_mapservice_request(mock_request.get, self.catalog_url, self.catalog_path)
-        self.mock_mapservice_request(mock_request.get, self.metadata_url, self.metadata_path)
-        self.mock_mapservice_request(mock_request.get, self.wms_service_url, self.wms_service_path)
+        self.mock_mapservice_request(
+            mock_request.get, self.catalog_url, self.catalog_path
+        )
+        self.mock_mapservice_request(
+            mock_request.get, self.metadata_url, self.metadata_path
+        )
+        self.mock_mapservice_request(
+            mock_request.get, self.wms_service_url, self.wms_service_path
+        )
         self.mock_mapservice_request(mock_request.get, self.layer_url, self.layer_path)
-        self.mock_mapservice_request(mock_request.get, self.layer_menu_url, self.layer_menu_path)
+        self.mock_mapservice_request(
+            mock_request.get, self.layer_menu_url, self.layer_menu_path
+        )
 
     def test_client_name(self):
 
@@ -76,7 +85,9 @@ class THREDDSTestCase(ResourceTestCase):
         # Test with invalid url
         session = self.mock_mapservice_session(self.data_directory / "test.html")
         with self.assertRaises(HTTPError):
-            ThreddsResource.get("http://www.google.com/test", session=session, lazy=False)
+            ThreddsResource.get(
+                "http://www.google.com/test", session=session, lazy=False
+            )
 
         # Test with invalid catalog url
         session = self.mock_mapservice_session(self.catalog_path)
@@ -85,28 +96,38 @@ class THREDDSTestCase(ResourceTestCase):
             ThreddsResource.get(broken_url, session=session, lazy=False)
 
         # Test with multiple catalog datasets
-        session = self.mock_mapservice_session(self.thredds_directory / "multiple-datasets.xml")
+        session = self.mock_mapservice_session(
+            self.thredds_directory / "multiple-datasets.xml"
+        )
         with self.assertRaises(ValidationError):
             ThreddsResource.get(self.catalog_url, session=session, lazy=False)
 
         # Test with missing catalog dataset
-        session = self.mock_mapservice_session(self.thredds_directory / "missing-dataset.xml")
+        session = self.mock_mapservice_session(
+            self.thredds_directory / "missing-dataset.xml"
+        )
         with self.assertRaises(ValidationError):
             ThreddsResource.get(self.catalog_url, session=session, lazy=False)
 
         # Test with missing metadata endpoint
-        session = self.mock_mapservice_session(self.thredds_directory / "invalid-iso-catalog.xml")
+        session = self.mock_mapservice_session(
+            self.thredds_directory / "invalid-iso-catalog.xml"
+        )
         with self.assertRaises(ValidationError):
             ThreddsResource.get(self.catalog_url, session=session, lazy=False)
 
         # Test with missing WMS endpoint
-        session = self.mock_mapservice_session(self.thredds_directory / "invalid-wms-catalog.xml")
+        session = self.mock_mapservice_session(
+            self.thredds_directory / "invalid-wms-catalog.xml"
+        )
         with self.assertRaises(ValidationError):
             ThreddsResource.get(self.catalog_url, session=session, lazy=False)
 
         # Test with broken layer menu endpoint
         self.mock_thredds_client(mock_request, mock_metadata)
-        self.mock_mapservice_request(mock_request.get, self.layer_menu_url, self.layer_menu_path, ok=False)
+        self.mock_mapservice_request(
+            mock_request.get, self.layer_menu_url, self.layer_menu_path, ok=False
+        )
 
         with self.assertRaises(HTTPError):
             ThreddsResource.get(self.catalog_url, lazy=False)
@@ -123,10 +144,20 @@ class THREDDSTestCase(ResourceTestCase):
         self.assertEqual(client.wms_version, "1.1.1")
         self.assertEqual(client._catalog_url, self.catalog_url.replace(".xml", ".html"))
         self.assertEqual(client._service_url, self.catalog_url)
-        self.assertEqual(set(client._required_fields), {
-            "id", "name", "authority", "version",
-            "dataSize", "dataFormat", "dataType", "modified", "services"
-        })
+        self.assertEqual(
+            set(client._required_fields),
+            {
+                "id",
+                "name",
+                "authority",
+                "version",
+                "dataSize",
+                "dataFormat",
+                "dataType",
+                "modified",
+                "services",
+            },
+        )
 
         # Test population of related-endpoint-specific fields
         self.assertEqual(client.access_constraints, None)
@@ -136,15 +167,17 @@ class THREDDSTestCase(ResourceTestCase):
         styles_color_map = {
             "ferret": {
                 "name": "Ferret",
-                "colors": ["#CC00FF", "#00994D", "#FFFF00", "#FF0000", "#990000"]
+                "colors": ["#CC00FF", "#00994D", "#FFFF00", "#FF0000", "#990000"],
             }
         }
         client = ThreddsResource.get(
-            self.catalog_url, lazy=True,
-            styles_color_map=styles_color_map
+            self.catalog_url, lazy=True, styles_color_map=styles_color_map
         )
 
-        self.assertEqual(client.id, "NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc")
+        self.assertEqual(
+            client.id,
+            "NWCSC_IS_ALL_SCAN/projections/macav2metdata/DATABASIN/macav2metdata.nc",
+        )
         self.assertEqual(client.title, "macav2metdata.nc")
         self.assertEqual(client.credits, "NKN Northwest Knowledge Network")
         self.assertEqual(client.version, "1.0.1")
@@ -165,27 +198,49 @@ class THREDDSTestCase(ResourceTestCase):
         self.assertEqual(client.wms_version, "1.3.0")
 
         self.assertEqual(len(client._services), 3)
-        self.assertEqual(client._services["http"], {
-            "name": "http", "service_type": "HTTPServer", "base": "/thredds/fileServer/"
-        })
-        self.assertEqual(client._services["iso"], {"name": "iso", "service_type": "ISO", "base": "/thredds/iso/"})
-        self.assertEqual(client._services["wms"], {"name": "wms", "service_type": "WMS", "base": "/thredds/wms/"})
+        self.assertEqual(
+            client._services["http"],
+            {
+                "name": "http",
+                "service_type": "HTTPServer",
+                "base": "/thredds/fileServer/",
+            },
+        )
+        self.assertEqual(
+            client._services["iso"],
+            {"name": "iso", "service_type": "ISO", "base": "/thredds/iso/"},
+        )
+        self.assertEqual(
+            client._services["wms"],
+            {"name": "wms", "service_type": "WMS", "base": "/thredds/wms/"},
+        )
 
         # Derived from layer and metadata fields
 
         self.assertEqual(client.access_constraints, "northwestknowledge.net")
-        self.assertEqual(client.description, "Downscaled daily meteorological data of Precipitation from Average.")
+        self.assertEqual(
+            client.description,
+            "Downscaled daily meteorological data of Precipitation from Average.",
+        )
         self.assertEqual(
             client.full_extent.as_list(precision=7),
-            [-13889573.6938739, 2883446.5788959, -7465511.4126787, 6342327.2904656]
+            [-13889573.6938739, 2883446.5788959, -7465511.4126787, 6342327.2904656],
         )
         self.assertEqual(client.full_extent.spatial_reference.wkid, 3857)
-        self.assertEqual(client.keywords, [
-            "daily precipitation", "daily maximum temperature", "daily minimum temperature", "latitude", "longitude"
-        ])
-        self.assertEqual(client.spatial_resolution, (
-            "0.041666666666666664 degrees_east by 0.041666666666666664 degrees_north"
-        ))
+        self.assertEqual(
+            client.keywords,
+            [
+                "daily precipitation",
+                "daily maximum temperature",
+                "daily minimum temperature",
+                "latitude",
+                "longitude",
+            ],
+        )
+        self.assertEqual(
+            client.spatial_resolution,
+            ("0.041666666666666664 degrees_east by 0.041666666666666664 degrees_north"),
+        )
 
         self.assertEqual(client.styles, [])
 
@@ -202,13 +257,16 @@ class THREDDSTestCase(ResourceTestCase):
 
         wms_url = ThreddsResource.to_wms_url(self.catalog_url)
         self.assertEqual(get_base_url(wms_url, True), self.base_wms_url)
-        self.assertEqual(url_to_parts(wms_url).query, url_to_parts(self.wms_service_url).query)
+        self.assertEqual(
+            url_to_parts(wms_url).query, url_to_parts(self.wms_service_url).query
+        )
 
         self.assertEqual(client._wms_url, self.base_wms_url)
         self.assertEqual(client._layers_url, self.layer_menu_url)
         self.assertEqual(
             client._layers_url_format,
-            self.base_wms_url + "?item=layerDetails&layerName={layer_id}&request=GetMetadata"
+            self.base_wms_url
+            + "?item=layerDetails&layerName={layer_id}&request=GetMetadata",
         )
         self.assertEqual(client._metadata_url, self.metadata_url)
 
@@ -223,7 +281,7 @@ class THREDDSTestCase(ResourceTestCase):
 
         self.assertEqual(
             Extent(first_layer.full_extent).as_list(precision=7),
-            [-13889573.6938739, 2883446.5788959, -7465511.4126787, 6342327.2904656]
+            [-13889573.6938739, 2883446.5788959, -7465511.4126787, 6342327.2904656],
         )
         self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
 
@@ -234,10 +292,16 @@ class THREDDSTestCase(ResourceTestCase):
         self.assertEqual(first_layer.styles[0]["id"], "boxfill/ferret")
         self.assertEqual(first_layer.styles[0]["title"], "Ferret")
         self.assertEqual(first_layer.styles[0]["abstract"], None)
-        self.assertEqual(first_layer.styles[0]["colors"], ["#CC00FF", "#00994D", "#FFFF00", "#FF0000", "#990000"])
+        self.assertEqual(
+            first_layer.styles[0]["colors"],
+            ["#CC00FF", "#00994D", "#FFFF00", "#FF0000", "#990000"],
+        )
         self.assertEqual(first_layer.styles[0]["legendURL"], self.legend_url)
 
-        self.assertEqual(first_layer.dimensions, {"id": self.layer_name, "title": "Precipitation", "units": "float"})
+        self.assertEqual(
+            first_layer.dimensions,
+            {"id": self.layer_name, "title": "Precipitation", "units": "float"},
+        )
 
         # Test NcWMS specific layer level information
 
@@ -268,7 +332,10 @@ class THREDDSTestCase(ResourceTestCase):
         self.assert_get_image(client, layer_ids=[self.layer_name], style_ids=["ferret"])
 
         self.assert_get_image(
-            client, layer_ids=[self.layer_name], style_ids=["ferret"], params={"version": "1.1.1"}
+            client,
+            layer_ids=[self.layer_name],
+            style_ids=["ferret"],
+            params={"version": "1.1.1"},
         )
 
         extent = get_extent(web_mercator=True)
@@ -281,7 +348,7 @@ class THREDDSTestCase(ResourceTestCase):
             layer_ids=[self.layer_name],
             style_ids=["ferret"],
             time_range="2004-01-01/2004-02-01",
-            params={"version": "1.1.1"}
+            params={"version": "1.1.1"},
         )
 
     @requests_mock.Mocker()
@@ -295,14 +362,18 @@ class THREDDSTestCase(ResourceTestCase):
 
         # Test with valid params and broken endpoint
 
-        client._session = self.mock_mapservice_session(self.data_directory / "wms" / "service-exception.xml", ok=False)
+        client._session = self.mock_mapservice_session(
+            self.data_directory / "wms" / "service-exception.xml", ok=False
+        )
         with self.assertRaises(HTTPError):
             client.get_image(client.full_extent, *valid_image_args)
 
         # Test with invalid params but working endpoint
 
         client._session = self.mock_mapservice_session(
-            self.data_directory / "test.png", mode="rb", headers={"content-type": "image/png"}
+            self.data_directory / "test.png",
+            mode="rb",
+            headers={"content-type": "image/png"},
         )
         extent = get_extent(web_mercator=True)
 
@@ -311,15 +382,21 @@ class THREDDSTestCase(ResourceTestCase):
             client.get_image(extent.as_dict(), 100, 100)
         with self.assertRaises(ImageError):
             # Provided styles do not correspond to specified Layers
-            client.get_image(extent, 100, 100, layer_ids=["layer1"], style_ids=["style1", "style2"])
+            client.get_image(
+                extent, 100, 100, layer_ids=["layer1"], style_ids=["style1", "style2"]
+            )
         with self.assertRaises(ImageError):
             # Incompatible image format invalid_format
-            client.get_image(extent, 100, 100, layer_ids=["layer1"], image_format="invalid_format")
+            client.get_image(
+                extent, 100, 100, layer_ids=["layer1"], image_format="invalid_format"
+            )
 
         # Test bad image response
 
         client._session = self.mock_mapservice_session(
-            self.data_directory / "test.html", mode="rb", headers={"content-type": "image/png"}
+            self.data_directory / "test.html",
+            mode="rb",
+            headers={"content-type": "image/png"},
         )
         with self.assertRaises(ImageError):
             client.get_image(client.full_extent, *valid_image_args)

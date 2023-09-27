@@ -12,7 +12,6 @@ from .utils import get_extent, get_extent_dict, get_extent_object
 
 
 class ConversionTestCase(GeometryTestCase):
-
     def test_to_words(self):
         target_str = "conversion test case"
         target_list = ["conversion", "test", "case"]
@@ -62,7 +61,9 @@ class ConversionTestCase(GeometryTestCase):
         self.assert_object_values(obj, target, props)
         obj = to_object(json.dumps(object_dict), **kwargs)
         self.assert_object_values(obj, target, props)
-        obj = to_object(ObjectField(convert_camel=False).to_python(object_dict, None), **kwargs)
+        obj = to_object(
+            ObjectField(convert_camel=False).to_python(object_dict, None), **kwargs
+        )
         self.assert_object_values(obj, target, props)
 
         # Test with aliases and camel casing
@@ -76,7 +77,9 @@ class ConversionTestCase(GeometryTestCase):
         self.assert_object_values(obj, target, props)
         obj = to_object(json.dumps(object_dict), **kwargs)
         self.assert_object_values(obj, target, props)
-        obj = to_object(ObjectField(aliases={"aBc": "xYz"}).to_python(object_dict, None), **kwargs)
+        obj = to_object(
+            ObjectField(aliases={"aBc": "xYz"}).to_python(object_dict, None), **kwargs
+        )
         self.assert_object_values(obj, target, props)
 
         # Test with defaults and no camel casing
@@ -90,7 +93,9 @@ class ConversionTestCase(GeometryTestCase):
         self.assert_object_values(obj, target, props)
         obj = to_object(json.dumps(object_dict), **kwargs)
         self.assert_object_values(obj, target, props)
-        obj = to_object(ObjectField(convert_camel=False).to_python(object_dict, None), **kwargs)
+        obj = to_object(
+            ObjectField(convert_camel=False).to_python(object_dict, None), **kwargs
+        )
         self.assert_object_values(obj, target, props)
 
     def test_to_renderer(self):
@@ -107,7 +112,7 @@ class ConversionTestCase(GeometryTestCase):
             "style": "esriSFSSolid",
             "type": "esriSFS",
             "offset_x": None,
-            "offset_y": None
+            "offset_y": None,
         }
         renderer_dict = {
             "symbol": copy.deepcopy(renderer_symbol),
@@ -121,13 +126,13 @@ class ConversionTestCase(GeometryTestCase):
             "unique_values": [copy.deepcopy(renderer_symbol)],
             "class_breaks": [copy.deepcopy(renderer_symbol)],
             "type": "classBreaks",
-            "max": .000009,
-            "min": .000001,
+            "max": 0.000009,
+            "min": 0.000001,
             "method": "esriClassifyQuantile",
             "normalization": "quantile",
             "image": "image val",
             "offset_x": "x offset",
-            "offset_y": "y offset"
+            "offset_y": "y offset",
         }
         esri_renderer_dict = {
             "symbol": copy.deepcopy(renderer_symbol),
@@ -141,13 +146,13 @@ class ConversionTestCase(GeometryTestCase):
             "uniqueValueInfos": [copy.deepcopy(renderer_symbol)],
             "classBreakInfos": [copy.deepcopy(renderer_symbol)],
             "type": "classBreaks",
-            "classMaxValue": .000009,
-            "classMinValue": .000001,
+            "classMaxValue": 0.000009,
+            "classMinValue": 0.000001,
             "classificationMethod": "esriClassifyQuantile",
             "normalizationType": "quantile",
             "imageData": "image val",
             "xoffset": "x offset",
-            "yoffset": "y offset"
+            "yoffset": "y offset",
         }
 
         # Test with camel casing (to ESRI format)
@@ -191,7 +196,7 @@ class ConversionTestCase(GeometryTestCase):
             "color": [1, 1, 1, 1],
             "width": 2,
             "style": "esriSLSSolid",
-            "type": "esriSLS"
+            "type": "esriSLS",
         }
         symbol_dict = {
             "label": "symbol label",
@@ -203,7 +208,7 @@ class ConversionTestCase(GeometryTestCase):
             "type": "esriSFS",
             "image": "image val",
             "offset_x": "x offset",
-            "offset_y": "y offset"
+            "offset_y": "y offset",
         }
         esri_symbol_dict = {
             "label": "symbol label",
@@ -215,7 +220,7 @@ class ConversionTestCase(GeometryTestCase):
             "type": "esriSFS",
             "imageData": "image val",
             "xoffset": "x offset",
-            "yoffset": "y offset"
+            "yoffset": "y offset",
         }
 
         # Test with camel casing (to ESRI format)
@@ -254,15 +259,30 @@ class ConversionTestCase(GeometryTestCase):
         symbol_obj = type("Invalid", (), symbol)
         symbol_obj.get_data = types.MethodType(lambda field: symbol, symbol_obj)
 
-        invalid_symbols = (None, {}, symbol, "{}", json.dumps(symbol), empty_obj, symbol_obj)
+        invalid_symbols = (
+            None,
+            {},
+            symbol,
+            "{}",
+            json.dumps(symbol),
+            empty_obj,
+            symbol_obj,
+        )
         for invalid in invalid_symbols:
             symbol_type = type(invalid).__name__
 
-            self.assertFalse(is_symbol(invalid), f"Invalid symbol passed: {symbol_type}")
-            self.assertFalse(is_symbol(renderer, "nope"), f"Missing symbol passed: {symbol_type}")
+            self.assertFalse(
+                is_symbol(invalid), f"Invalid symbol passed: {symbol_type}"
+            )
+            self.assertFalse(
+                is_symbol(renderer, "nope"), f"Missing symbol passed: {symbol_type}"
+            )
 
             renderer["symbol"] = invalid
-            self.assertFalse(is_symbol(renderer, "symbol"), f'Invalid keyed symbol passed: {symbol_type}')
+            self.assertFalse(
+                is_symbol(renderer, "symbol"),
+                f"Invalid keyed symbol passed: {symbol_type}",
+            )
 
     def test_is_symbol_valid(self):
         renderer = {"type": "simple", "label": ""}
@@ -270,7 +290,7 @@ class ConversionTestCase(GeometryTestCase):
             "color": [0, 0, 0, 0],
             "width": 3,
             "type": "esriSLS",
-            "style": "esriSLSSolid"
+            "style": "esriSLSSolid",
         }
 
         symbol_obj = type("Valid", (), symbol)
@@ -278,9 +298,14 @@ class ConversionTestCase(GeometryTestCase):
 
         for valid in (symbol, json.dumps(symbol), symbol_obj):
             symbol_type = type(valid).__name__
-            self.assertTrue(is_symbol(symbol), "Valid symbol dict failed: {symbol_type}")
+            self.assertTrue(
+                is_symbol(symbol), "Valid symbol dict failed: {symbol_type}"
+            )
             renderer["symbol"] = valid
-            self.assertTrue(is_symbol(renderer, "symbol"), f"Valid keyed symbol failed: {symbol_type}")
+            self.assertTrue(
+                is_symbol(renderer, "symbol"),
+                f"Valid keyed symbol failed: {symbol_type}",
+            )
 
     def test_extent_to_polygon_wkt(self):
 

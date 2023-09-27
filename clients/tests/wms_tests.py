@@ -1,12 +1,17 @@
 from ..exceptions import BadExtent, ContentError, HTTPError, ImageError
 from ..exceptions import MissingFields, NoLayers, ServiceError, ValidationError
-from ..wms import WMSResource, WMSLayerResource, NcWMSLayerResource, WMS_EXCEPTION_FORMAT, WMS_SRS_DEFAULT
+from ..wms import (
+    WMSResource,
+    WMSLayerResource,
+    NcWMSLayerResource,
+    WMS_EXCEPTION_FORMAT,
+    WMS_SRS_DEFAULT,
+)
 
 from .utils import ResourceTestCase, get_extent
 
 
 class WMSTestCase(ResourceTestCase):
-
     def setUp(self):
         super(WMSTestCase, self).setUp()
 
@@ -23,20 +28,23 @@ class WMSTestCase(ResourceTestCase):
 
     def assert_ncwms_request(self, data_path, version, token=None):
 
-        is_max_version = (version == "1.3.0")
+        is_max_version = version == "1.3.0"
 
         session = self.mock_mapservice_session(data_path)
         layer_session = self.mock_mapservice_session(
             self.wms_directory / "ncwms-layer.json",
-            headers={"content-type": "application/json"}
+            headers={"content-type": "application/json"},
         )
 
         # Test ordered_layers initialized before query
 
         client = WMSResource.get(
             self.ncwms_url,
-            lazy=True, token=token, version=version,
-            session=session, layer_session=layer_session
+            lazy=True,
+            token=token,
+            version=version,
+            session=session,
+            layer_session=layer_session,
         )
         self.assertEqual(len(client.ordered_layers), 2)
 
@@ -45,14 +53,17 @@ class WMSTestCase(ResourceTestCase):
         styles_color_map = {
             "alg": {
                 "name": "Algorithmic",
-                "colors": ["#CC00FF", "#00FFFF", "#CCFF33", "#FF9900", "#AA0000"]
+                "colors": ["#CC00FF", "#00FFFF", "#CCFF33", "#FF9900", "#AA0000"],
             }
         }
         client = WMSResource.get(
             self.ncwms_url,
-            lazy=True, token=token, version=version,
-            session=session, layer_session=layer_session,
-            styles_color_map=styles_color_map
+            lazy=True,
+            token=token,
+            version=version,
+            session=session,
+            layer_session=layer_session,
+            styles_color_map=styles_color_map,
         )
         self.assertEqual(set(client._required_fields), {"Title", "Abstract", "Version"})
 
@@ -79,12 +90,20 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client.layer_drawing_limit, 1 if is_max_version else None)
         self.assertEqual(
             client.full_extent.as_list(precision=7),
-            [-15696047.8304898, 5012341.8609072, -5788613.7839642, 18295676.0488543]
+            [-15696047.8304898, 5012341.8609072, -5788613.7839642, 18295676.0488543],
         )
         self.assertEqual(client.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(
             client.supported_spatial_refs,
-            ["EPSG:27700", "EPSG:32661", "EPSG:32761", "EPSG:3408", "EPSG:3409", "EPSG:3857", "EPSG:41001"]
+            [
+                "EPSG:27700",
+                "EPSG:32661",
+                "EPSG:32761",
+                "EPSG:3408",
+                "EPSG:3409",
+                "EPSG:3857",
+                "EPSG:41001",
+            ],
         )
         self.assertEqual(client.has_dimensions, True)
         self.assertEqual(client.has_time, True)
@@ -108,7 +127,10 @@ class WMSTestCase(ResourceTestCase):
 
         first_layer = client.root_layers[0].child_layers[0]
 
-        self.assertEqual(first_layer.id, "pr-tasmax-tasmin_day_precipitation_flux/pr-tasmax-tasmin_day")
+        self.assertEqual(
+            first_layer.id,
+            "pr-tasmax-tasmin_day_precipitation_flux/pr-tasmax-tasmin_day",
+        )
         self.assertEqual(first_layer.title, "precipitation flux (pr-tasmax-tasmin day)")
         self.assertEqual(first_layer.description, "Precipitation")
         self.assertEqual(first_layer.version, version)
@@ -123,36 +145,55 @@ class WMSTestCase(ResourceTestCase):
             self.assertEqual(first_layer._extent["name"], "time")
             self.assertEqual(
                 first_layer._extent["values"],
-                "1950-01-01T00:00:00.000Z/2100-12-31T00:00:00.000Z/P1D"
+                "1950-01-01T00:00:00.000Z/2100-12-31T00:00:00.000Z/P1D",
             )
 
-        extent_coords = [-140.99999666399998, 41.000001336, -52.00000235999998, 83.49999861600001]
+        extent_coords = [
+            -140.99999666399998,
+            41.000001336,
+            -52.00000235999998,
+            83.49999861600001,
+        ]
 
         self.assertEqual(first_layer._spatial_refs, [])
         self.assertEqual(first_layer._coordinate_refs, [])
 
         self.assertEqual(first_layer._old_bbox_extent.as_list(), extent_coords)
-        self.assertEqual(first_layer._old_bbox_extent.spatial_reference.srs, "EPSG:4326")
+        self.assertEqual(
+            first_layer._old_bbox_extent.spatial_reference.srs, "EPSG:4326"
+        )
 
         if not is_max_version:
             self.assertEqual(first_layer._geographic_extent, None)
 
             self.assertEqual(first_layer._old_latlon_extent.as_list(), extent_coords)
-            self.assertEqual(first_layer._old_latlon_extent.spatial_reference.srs, "EPSG:4326")
+            self.assertEqual(
+                first_layer._old_latlon_extent.spatial_reference.srs, "EPSG:4326"
+            )
         else:
             self.assertEqual(first_layer._geographic_extent.as_list(), extent_coords)
-            self.assertEqual(first_layer._geographic_extent.spatial_reference.srs, "EPSG:4326")
+            self.assertEqual(
+                first_layer._geographic_extent.spatial_reference.srs, "EPSG:4326"
+            )
 
             self.assertEqual(first_layer._old_latlon_extent, None)
 
         self.assertEqual(
             first_layer.full_extent.as_list(precision=7),
-            [-15696047.8304898, 5012341.8609072, -5788613.7839642, 18295676.0488543]
+            [-15696047.8304898, 5012341.8609072, -5788613.7839642, 18295676.0488543],
         )
         self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(
             first_layer.supported_spatial_refs,
-            ["EPSG:27700", "EPSG:32661", "EPSG:32761", "EPSG:3408", "EPSG:3409", "EPSG:3857", "EPSG:41001"]
+            [
+                "EPSG:27700",
+                "EPSG:32661",
+                "EPSG:32761",
+                "EPSG:3408",
+                "EPSG:3409",
+                "EPSG:3857",
+                "EPSG:41001",
+            ],
         )
 
         self.assertEqual(first_layer.has_time, True)
@@ -167,25 +208,38 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(len(first_layer._style), 24)
         self.assertEqual(first_layer._style[0]["id"], "boxfill/alg")
         self.assertEqual(first_layer._style[0]["title"], "boxfill/alg")
-        self.assertEqual(first_layer._style[0]["abstract"], "boxfill style, using the alg palette")
+        self.assertEqual(
+            first_layer._style[0]["abstract"], "boxfill style, using the alg palette"
+        )
         self.assertEqual(first_layer._style[0]["legend_url"]["format"], "image/png")
         self.assertEqual(first_layer._style[0]["legend_url"]["width"], "110")
         self.assertEqual(first_layer._style[0]["legend_url"]["height"], "264")
-        self.assertEqual(first_layer._style[0]["legend_url"]["online_resource"]["href"], (
-            "http://tools.pacificclimate.org/ncWMS-PCIC/wms?"
-            "REQUEST=GetLegendGraphic&LAYER=pr-tasmax-tasmin_day&PALETTE=alg"
-        ))
-        self.assertEqual(first_layer._style[0]["legend_url"]["online_resource"]["online_resource_type"], "simple")
+        self.assertEqual(
+            first_layer._style[0]["legend_url"]["online_resource"]["href"],
+            (
+                "http://tools.pacificclimate.org/ncWMS-PCIC/wms?"
+                "REQUEST=GetLegendGraphic&LAYER=pr-tasmax-tasmin_day&PALETTE=alg"
+            ),
+        )
+        self.assertEqual(
+            first_layer._style[0]["legend_url"]["online_resource"][
+                "online_resource_type"
+            ],
+            "simple",
+        )
 
         self.assertEqual(len(first_layer.styles), 17)
         self.assertEqual(len(first_layer.styles[0]), 5)
         self.assertEqual(first_layer.styles[0]["id"], "boxfill/alg")
         self.assertEqual(first_layer.styles[0]["title"], "Algorithmic")
         self.assertEqual(first_layer.styles[0]["abstract"], None)
-        self.assertEqual(first_layer.styles[0]["legendURL"], (
-            "http://tools.pacificclimate.org/ncWMS-PCIC/wms?palette=alg&request=GetLegendGraphic"
-            "&layer=pr-tasmax-tasmin_day_precipitation_flux/pr-tasmax-tasmin_day&colorbaronly=True"
-        ))
+        self.assertEqual(
+            first_layer.styles[0]["legendURL"],
+            (
+                "http://tools.pacificclimate.org/ncWMS-PCIC/wms?palette=alg&request=GetLegendGraphic"
+                "&layer=pr-tasmax-tasmin_day_precipitation_flux/pr-tasmax-tasmin_day&colorbaronly=True"
+            ),
+        )
 
         self.assertEqual(first_layer._attribution, {})
         self.assertEqual(first_layer.attribution, {})
@@ -197,13 +251,15 @@ class WMSTestCase(ResourceTestCase):
         else:
             self.assertEqual(len(first_layer._dimension), 6)
             self.assertEqual(first_layer._dimension["current"], "true")
-            self.assertEqual(first_layer._dimension["default"], "2021-05-05T00:00:00.000Z")
+            self.assertEqual(
+                first_layer._dimension["default"], "2021-05-05T00:00:00.000Z"
+            )
             self.assertEqual(first_layer._dimension["multiple_values"], "true")
             self.assertEqual(first_layer._dimension["name"], "time")
             self.assertEqual(first_layer._dimension["units"], "ISO8601")
             self.assertEqual(
                 first_layer._dimension["values"],
-                "1950-01-01T00:00:00.000Z/2100-12-31T00:00:00.000Z/P1D"
+                "1950-01-01T00:00:00.000Z/2100-12-31T00:00:00.000Z/P1D",
             )
 
         self.assertEqual(len(first_layer.dimensions), 1)
@@ -212,15 +268,19 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(first_layer.dimensions["time"]["units"], "ISO8601")
         self.assertEqual(
             first_layer.dimensions["time"]["values"],
-            ["1950-01-01T00:00:00.000Z/2100-12-31T00:00:00.000Z/P1D"]
+            ["1950-01-01T00:00:00.000Z/2100-12-31T00:00:00.000Z/P1D"],
         )
         if is_max_version:
             self.assertEqual(first_layer.dimensions["time"]["current"], "true")
-            self.assertEqual(first_layer.dimensions["time"]["default"], "2021-05-05T00:00:00.000Z")
+            self.assertEqual(
+                first_layer.dimensions["time"]["default"], "2021-05-05T00:00:00.000Z"
+            )
             self.assertEqual(first_layer.dimensions["time"]["multiple_values"], "true")
         else:
             self.assertEqual(first_layer.dimensions["time"]["current"], "1")
-            self.assertEqual(first_layer.dimensions["time"]["default"], "2021-06-14T00:00:00.000Z")
+            self.assertEqual(
+                first_layer.dimensions["time"]["default"], "2021-06-14T00:00:00.000Z"
+            )
             self.assertEqual(first_layer.dimensions["time"]["multiple_values"], "1")
 
         self.assertEqual(first_layer.child_layers, [])
@@ -242,16 +302,33 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(first_layer.units, "mm day-1")
         self.assertEqual(first_layer.default_style, "boxfill/rainbow")
         self.assertEqual(first_layer.default_palette, "rainbow")
-        self.assertEqual(first_layer.palettes, [
-            "alg", "greyscale", "ncview", "occam", "yellow_red", "red_yellow", "lightblue_darkblue_log", "occam_inv",
-            "ferret", "redblue", "brown_green", "blueheat", "brown_blue", "blue_brown", "blue_darkred",
-            "lightblue_darkblue", "rainbow"
-        ])
+        self.assertEqual(
+            first_layer.palettes,
+            [
+                "alg",
+                "greyscale",
+                "ncview",
+                "occam",
+                "yellow_red",
+                "red_yellow",
+                "lightblue_darkblue_log",
+                "occam_inv",
+                "ferret",
+                "redblue",
+                "brown_green",
+                "blueheat",
+                "brown_blue",
+                "blue_brown",
+                "blue_darkred",
+                "lightblue_darkblue",
+                "rainbow",
+            ],
+        )
         self.assertEqual(first_layer.supported_styles, ["boxfill", "contours"])
 
     def assert_wms_request(self, data_path, version, token=None):
 
-        is_max_version = (version == "1.3.0")
+        is_max_version = version == "1.3.0"
 
         session = self.mock_mapservice_session(data_path)
 
@@ -259,8 +336,11 @@ class WMSTestCase(ResourceTestCase):
 
         client = WMSResource.get(
             self.wms_url,
-            lazy=False, session=session,
-            spatial_ref="EPSG:3978", token=token, version=version
+            lazy=False,
+            session=session,
+            spatial_ref="EPSG:3978",
+            token=token,
+            version=version,
         )
         self.assertEqual(set(client._required_fields), {"Title", "Abstract", "Version"})
         self.assertEqual(len(client.ordered_layers), 4)
@@ -270,9 +350,12 @@ class WMSTestCase(ResourceTestCase):
 
         client = WMSResource.get(
             self.wms_url,
-            lazy=False, session=session,
+            lazy=False,
+            session=session,
             spatial_ref="EPSG:900913",
-            token_id="josso", token=token, version=version
+            token_id="josso",
+            token=token,
+            version=version,
         )
 
         # Test service level information
@@ -283,7 +366,9 @@ class WMSTestCase(ResourceTestCase):
             self.assertEqual(client.wms_url, f"{self.wms_url}?josso={token}")
 
         self.assertEqual(client.title, "WMS Demo Server for MapServer")
-        self.assertEqual(client.description, "This demonstration server showcases MapServer")
+        self.assertEqual(
+            client.description, "This demonstration server showcases MapServer"
+        )
         self.assertEqual(client.access_constraints, None)
 
         self.assertEqual(client.version, version)
@@ -292,18 +377,23 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(client._params.get("josso"), token)
         self.assertEqual(client.wms_credentials, {"token_id": "josso", "josso": token})
 
-        self.assertEqual(client.feature_info_formats, ["text/html", "application/vnd.ogc.gml", "text/plain"])
-        self.assertEqual(client.map_formats, ["image/png", "image/jpeg", "application/json"])
+        self.assertEqual(
+            client.feature_info_formats,
+            ["text/html", "application/vnd.ogc.gml", "text/plain"],
+        )
+        self.assertEqual(
+            client.map_formats, ["image/png", "image/jpeg", "application/json"]
+        )
         self.assertEqual(client.keywords, ["DEMO", "WMS"])
         self.assertEqual(client.layer_drawing_limit, None)
         self.assertEqual(
             client.full_extent.as_list(precision=7),
-            [-20037508.3427892, -20037471.2051371, 20037508.3427892, 20037471.2051371]
+            [-20037508.3427892, -20037471.2051371, 20037508.3427892, 20037471.2051371],
         )
         self.assertEqual(client.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(
             client.supported_spatial_refs,
-            ["EPSG:3857", "EPSG:4269", "EPSG:4326", "EPSG:900913"]
+            ["EPSG:3857", "EPSG:4269", "EPSG:4326", "EPSG:900913"],
         )
         self.assertEqual(client.has_dimensions, False)
         self.assertEqual(client.has_time, False)
@@ -338,13 +428,17 @@ class WMSTestCase(ResourceTestCase):
             self.assertEqual(first_layer._geographic_extent, None)
 
             self.assertEqual(first_layer._old_latlon_extent.as_list(), extent_coords)
-            self.assertEqual(first_layer._old_latlon_extent.spatial_reference.srs, "EPSG:4326")
+            self.assertEqual(
+                first_layer._old_latlon_extent.spatial_reference.srs, "EPSG:4326"
+            )
 
             self.assertEqual(first_layer._spatial_refs, ["EPSG:4326"])
             self.assertEqual(first_layer._coordinate_refs, [])
         else:
             self.assertEqual(first_layer._geographic_extent.as_list(), extent_coords)
-            self.assertEqual(first_layer._geographic_extent.spatial_reference.srs, "EPSG:4326")
+            self.assertEqual(
+                first_layer._geographic_extent.spatial_reference.srs, "EPSG:4326"
+            )
 
             self.assertEqual(first_layer._old_latlon_extent, None)
 
@@ -352,16 +446,18 @@ class WMSTestCase(ResourceTestCase):
             self.assertEqual(first_layer._coordinate_refs, ["EPSG:4326"])
 
         self.assertEqual(first_layer._old_bbox_extent.as_list(), extent_coords)
-        self.assertEqual(first_layer._old_bbox_extent.spatial_reference.srs, "EPSG:4326")
+        self.assertEqual(
+            first_layer._old_bbox_extent.spatial_reference.srs, "EPSG:4326"
+        )
 
         self.assertEqual(
             first_layer.full_extent.as_list(precision=7),
-            [-19833459.7161652, -7323146.5445767, 19968824.2169698, 14888598.9926087]
+            [-19833459.7161652, -7323146.5445767, 19968824.2169698, 14888598.9926087],
         )
         self.assertEqual(first_layer.full_extent.spatial_reference.wkid, 3857)
         self.assertEqual(
             first_layer.supported_spatial_refs,
-            ["EPSG:3857", "EPSG:4269", "EPSG:4326", "EPSG:900913"]
+            ["EPSG:3857", "EPSG:4269", "EPSG:4326", "EPSG:900913"],
         )
 
         self.assertEqual(first_layer.has_time, False)
@@ -375,12 +471,18 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(first_layer._metadata_url["metadata_url_type"], "TC211")
         self.assertEqual(
             first_layer._metadata_url["online_resource"]["href"],
-            "https://demo.mapserver.org/cgi-bin/wms?request=GetMetadata&layer=cities"
+            "https://demo.mapserver.org/cgi-bin/wms?request=GetMetadata&layer=cities",
         )
-        self.assertEqual(first_layer._metadata_url["online_resource"]["online_resource_type"], "simple")
-        self.assertEqual(first_layer.metadata_urls, {
-            "TC211": "https://demo.mapserver.org/cgi-bin/wms?request=GetMetadata&layer=cities"
-        })
+        self.assertEqual(
+            first_layer._metadata_url["online_resource"]["online_resource_type"],
+            "simple",
+        )
+        self.assertEqual(
+            first_layer.metadata_urls,
+            {
+                "TC211": "https://demo.mapserver.org/cgi-bin/wms?request=GetMetadata&layer=cities"
+            },
+        )
 
         sld_version = "&sld_version=1.1.0" if is_max_version else ""
 
@@ -389,12 +491,16 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(first_layer._style["legend_url"]["format"], "image/png")
         self.assertEqual(first_layer._style["legend_url"]["width"], "192")
         self.assertEqual(first_layer._style["legend_url"]["height"], "41")
-        self.assertEqual(first_layer._style["legend_url"]["online_resource"]["href"], (
-            f"https://demo.mapserver.org/cgi-bin/wms?version={version}&service=WMS&request=GetLegendGraphic"
-            f"{sld_version}&layer=cities&format=image/png&STYLE=default"
-        ))
         self.assertEqual(
-            first_layer._style["legend_url"]["online_resource"]["online_resource_type"], "simple"
+            first_layer._style["legend_url"]["online_resource"]["href"],
+            (
+                f"https://demo.mapserver.org/cgi-bin/wms?version={version}&service=WMS&request=GetLegendGraphic"
+                f"{sld_version}&layer=cities&format=image/png&STYLE=default"
+            ),
+        )
+        self.assertEqual(
+            first_layer._style["legend_url"]["online_resource"]["online_resource_type"],
+            "simple",
         )
 
         self.assertEqual(len(first_layer.styles), 1)
@@ -402,10 +508,13 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(first_layer.styles[0]["id"], "default")
         self.assertEqual(first_layer.styles[0]["title"], "default")
         self.assertEqual(first_layer.styles[0]["abstract"], None)
-        self.assertEqual(first_layer.styles[0]["legendURL"], (
-            f"https://demo.mapserver.org/cgi-bin/wms?version={version}&service=WMS&request=GetLegendGraphic"
-            f"{sld_version}&layer=cities&format=image/png&STYLE=default"
-        ))
+        self.assertEqual(
+            first_layer.styles[0]["legendURL"],
+            (
+                f"https://demo.mapserver.org/cgi-bin/wms?version={version}&service=WMS&request=GetLegendGraphic"
+                f"{sld_version}&layer=cities&format=image/png&STYLE=default"
+            ),
+        )
 
         self.assertEqual(first_layer._attribution, {})
         self.assertEqual(first_layer.attribution, {})
@@ -455,14 +564,16 @@ class WMSTestCase(ResourceTestCase):
         self.assert_ncwms_request(self.wms_directory / "ncwms-max.xml", version="1.3.0")
 
     def test_valid_old_ncwms_request(self):
-        self.assert_ncwms_request(self.wms_directory / "ncwms-min.xml", version="1.1.1", token="secure")
+        self.assert_ncwms_request(
+            self.wms_directory / "ncwms-min.xml", version="1.1.1", token="secure"
+        )
 
     def test_valid_ncwms_layer_request(self):
 
         session = self.mock_mapservice_session(self.wms_directory / "ncwms-max.xml")
         layer_session = self.mock_mapservice_session(
             self.wms_directory / "invalid-ncwms-layer.json",
-            headers={"content-type": "application/json"}
+            headers={"content-type": "application/json"},
         )
 
         client = WMSResource.get(
@@ -487,26 +598,38 @@ class WMSTestCase(ResourceTestCase):
         self.assertEqual(first_layer.supported_styles, ["boxfill"])
 
     def test_invalid_ncwms_layer_request(self):
-        session = self.mock_mapservice_session(self.wms_directory / "invalid-ncwms-layer.json")
+        session = self.mock_mapservice_session(
+            self.wms_directory / "invalid-ncwms-layer.json"
+        )
         with self.assertRaises(ValidationError):
             NcWMSLayerResource.get(self.ncwms_url, session=session, lazy=False)
 
     def test_valid_new_wms_request(self):
-        self.assert_wms_request(self.wms_directory / "demo-wms-max.xml", version="1.3.0", token="secure")
+        self.assert_wms_request(
+            self.wms_directory / "demo-wms-max.xml", version="1.3.0", token="secure"
+        )
 
     def test_valid_old_wms_request(self):
-        self.assert_wms_request(self.wms_directory / "demo-wms-min.xml", version="1.1.1")
+        self.assert_wms_request(
+            self.wms_directory / "demo-wms-min.xml", version="1.1.1"
+        )
 
     def test_invalid_wms_request(self):
-        session = self.mock_mapservice_session(self.wms_directory / "invalid-wms-layer-extent.xml")
+        session = self.mock_mapservice_session(
+            self.wms_directory / "invalid-wms-layer-extent.xml"
+        )
         with self.assertRaises(BadExtent):
             WMSResource.get(self.wms_url, session=session, lazy=False)
 
-        session = self.mock_mapservice_session(self.wms_directory / "missing-wms-layer-extent.xml")
+        session = self.mock_mapservice_session(
+            self.wms_directory / "missing-wms-layer-extent.xml"
+        )
         with self.assertRaises(MissingFields):
             WMSResource.get(self.wms_url, session=session, lazy=False)
 
-        session = self.mock_mapservice_session(self.wms_directory / "missing-wms-layers.xml")
+        session = self.mock_mapservice_session(
+            self.wms_directory / "missing-wms-layers.xml"
+        )
         with self.assertRaises(NoLayers):
             WMSResource.get(self.wms_url, session=session, lazy=False)
 
@@ -517,12 +640,19 @@ class WMSTestCase(ResourceTestCase):
     def test_valid_wms_image_request(self):
 
         session = self.mock_mapservice_session(self.wms_directory / "demo-wms-max.xml")
-        client = WMSResource.get(self.wms_url, lazy=False, session=session, token="secure")
-
-        self.assert_get_image(client, layer_ids=["country_bounds"], style_ids=["default"])
+        client = WMSResource.get(
+            self.wms_url, lazy=False, session=session, token="secure"
+        )
 
         self.assert_get_image(
-            client, layer_ids=["country_bounds"], style_ids=["default"], params={"version": "1.1.1"}
+            client, layer_ids=["country_bounds"], style_ids=["default"]
+        )
+
+        self.assert_get_image(
+            client,
+            layer_ids=["country_bounds"],
+            style_ids=["default"],
+            params={"version": "1.1.1"},
         )
 
         extent = get_extent(web_mercator=True)
@@ -535,7 +665,7 @@ class WMSTestCase(ResourceTestCase):
             layer_ids=["country_bounds"],
             style_ids=["default"],
             time_range="2004-01-01/2004-02-01",
-            params={"version": "1.1.1"}
+            params={"version": "1.1.1"},
         )
 
     def test_invalid_wms_image_request(self):
@@ -547,7 +677,9 @@ class WMSTestCase(ResourceTestCase):
 
         # Test with valid params and broken endpoint
 
-        client._session = self.mock_mapservice_session(self.service_exception_path, ok=False)
+        client._session = self.mock_mapservice_session(
+            self.service_exception_path, ok=False
+        )
         with self.assertRaises(HTTPError):
             client.get_image(client.full_extent, *valid_image_args)
 
@@ -564,10 +696,14 @@ class WMSTestCase(ResourceTestCase):
             client.get_image(extent.as_dict(), 100, 100)
         with self.assertRaises(ImageError):
             # Provided styles do not correspond to specified Layers
-            client.get_image(extent, 100, 100, layer_ids=["layer1"], style_ids=["style1", "style2"])
+            client.get_image(
+                extent, 100, 100, layer_ids=["layer1"], style_ids=["style1", "style2"]
+            )
         with self.assertRaises(ImageError):
             # Incompatible image format
-            client.get_image(extent, 100, 100, layer_ids=["layer1"], image_format="invalid_format")
+            client.get_image(
+                extent, 100, 100, layer_ids=["layer1"], image_format="invalid_format"
+            )
         with self.assertRaises(ImageError):
             # Missing spatial reference
             client.spatial_reference = None
@@ -586,14 +722,18 @@ class WMSTestCase(ResourceTestCase):
 
         # Invalid image format with WMS header
         client._session = self.mock_mapservice_session(
-            self.service_exception_path, mode="rb", headers={"content-type": WMS_EXCEPTION_FORMAT}
+            self.service_exception_path,
+            mode="rb",
+            headers={"content-type": WMS_EXCEPTION_FORMAT},
         )
         with self.assertRaises(ImageError):
             client.get_image(client.full_extent, *valid_image_args)
 
         # Invalid image data
         client._session = self.mock_mapservice_session(
-            self.data_directory / "test.html", mode="rb", headers={"content-type": "image/png"}
+            self.data_directory / "test.html",
+            mode="rb",
+            headers={"content-type": "image/png"},
         )
         with self.assertRaises(ImageError):
             client.get_image(client.full_extent, *valid_image_args)

@@ -5,11 +5,36 @@ from .actions import QueryAction
 
 
 FEATURE_LAYER_PARAMS = (
-    "f", "where", "object_ids", "geometry", "geometry_type", "in_sr", "spatial_rel", "relation_param", "time",
-    "distance", "units", "out_fields", "return_geometry", "max_allowable_offset", "geometry_precision",
-    "out_sr", "gdb_version", "return_distinct_values", "return_ids_only", "return_count_only",
-    "return_extent_only", "order_by_fields", "group_by_fields_for_statistics", "out_statistics", "return_z",
-    "return_m", "multipatch_option", "result_offset", "result_record_count", "token"
+    "f",
+    "where",
+    "object_ids",
+    "geometry",
+    "geometry_type",
+    "in_sr",
+    "spatial_rel",
+    "relation_param",
+    "time",
+    "distance",
+    "units",
+    "out_fields",
+    "return_geometry",
+    "max_allowable_offset",
+    "geometry_precision",
+    "out_sr",
+    "gdb_version",
+    "return_distinct_values",
+    "return_ids_only",
+    "return_count_only",
+    "return_extent_only",
+    "order_by_fields",
+    "group_by_fields_for_statistics",
+    "out_statistics",
+    "return_z",
+    "return_m",
+    "multipatch_option",
+    "result_offset",
+    "result_record_count",
+    "token",
 )
 FEATURE_LAYER_QUERY = QueryAction(
     "query",
@@ -39,12 +64,12 @@ FEATURE_LAYER_QUERY = QueryAction(
         "return_m": "returnM",
         "multipatch_option": "multipatchOption",
         "result_offset": "resultOffset",
-        "result_record_count": "resultRecordCount"
+        "result_record_count": "resultRecordCount",
     },
     params_via_post=True,
     serializer=URLSerializer,
     deserializer=JSONSerializer,
-    response_type=Action.DICT_RESPONSE
+    response_type=Action.DICT_RESPONSE,
 )
 
 FEATURE_LAYER_TIME_PARAMS = ("f", "token")
@@ -57,14 +82,27 @@ FEATURE_LAYER_TIME_QUERY = QueryAction(
     params_via_post=True,
     serializer=URLSerializer,
     deserializer=JSONSerializer,
-    response_type=Action.DICT_RESPONSE
+    response_type=Action.DICT_RESPONSE,
 )
 
 
 FEATURE_SERVER_PARAMS = (
-    "f", "layer_defs", "geometry", "geometry_type", "in_sr", "spatial_rel", "time", "out_sr", "gdb_version",
-    "return_geometry", "max_allowable_offset", "return_ids_only", "return_count_only", "return_z", "return_m",
-    "geometry_precision"
+    "f",
+    "layer_defs",
+    "geometry",
+    "geometry_type",
+    "in_sr",
+    "spatial_rel",
+    "time",
+    "out_sr",
+    "gdb_version",
+    "return_geometry",
+    "max_allowable_offset",
+    "return_ids_only",
+    "return_count_only",
+    "return_z",
+    "return_m",
+    "geometry_precision",
 )
 FEATURE_SERVER_QUERY = QueryAction(
     "query",
@@ -83,9 +121,9 @@ FEATURE_SERVER_QUERY = QueryAction(
         "return_count_only": "returnCountOnly",
         "return_z": "returnZ",
         "return_m": "returnM",
-        "geometry_precision": "geometryPrecision"
+        "geometry_precision": "geometryPrecision",
     },
     params_via_post=True,
     serializer=URLSerializer,
-    response_type=Action.DICT_RESPONSE
+    response_type=Action.DICT_RESPONSE,
 )
