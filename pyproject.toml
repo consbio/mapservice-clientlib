@@ -13,16 +13,16 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-gis-metadata-parser = "^2.0"
+python = "^3.11"
+gis-metadata-parser = "^2.0.1"
 parserutils = "^2.0.1"
 restle = "^0.5.1"
-Pillow = "^9.5"
-pyproj = "^3.2.1"
+Pillow = "^12.1.1"
+pyproj = "^3.7.2"
 python-ags = "^0.3.2"
-sciencebasepy = "^2.0.4"
+sciencebasepy = "^2.0.22"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mock = "*"
 requests-mock = "*"
 pipdeptree = "*"

@@ -244,25 +244,25 @@ class ImagesTestCase(BaseTestCase):
 
 TEST_PNG_BASE64 = (
     # Generated from test.png with quality:100 and optimize:True
-    b"iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAgMAAAAOFJJnAAAACVBMVEXf39/"
-    b"Nzc3Ozs5AK8nSAAAAIUlEQVR42mNgyATDLAYsjFA0yLASKodgwKUQrGFhDowBAB/QMmr7D/cBAAAAAElFTkSuQmCC"
+    b"iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAgMAAAAOFJJnAAAACVBMVEXf39/Nzc3Ozs5AK8nSAAAAOklEQVR42mNgyGTIZMhkyGJigAIkxhuGNwxvG"
+    b"F4zhEIhUwiDCIMIgwiSmjVQRQwwRUxQJaJD2xwYAwAomidhJiUUQAAAAABJRU5ErkJggg=="
 )
 TEST_PNG_BYTES = (
     # Generated from test.png with quality:100 and optimize:True
-    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00 \x00\x00\x00 \x02\x03\x00\x00\x00\x0e\x14\x92g\x00\x00\x00"
-    b"\tPLTE\xdf\xdf\xdf\xcd\xcd\xcd\xce\xce\xce@+\xc9\xd2\x00\x00\x00!IDATx\xdac`\xc8\x04\xc3,\x06,"
-    b"\x8cP4\xc8\xb0\x12*\x87`\xc0\xa5\x10\xacaa\x0e\x8c\x01\x00\x1f"
-    b"\xd02j\xfb\x0f\xf7\x01\x00\x00\x00\x00IEND\xaeB`\x82"
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00 \x00\x00\x00 \x02\x03\x00\x00\x00\x0e\x14\x92g\x00\x00\x00\tPLTE"
+    b"\xdf\xdf\xdf\xcd\xcd\xcd\xce\xce\xce@+\xc9\xd2\x00\x00\x00:IDATx\xdac`\xc8d\xc8d\xc8d\xc8bb\x80\x02$\xc6\x1b\x867"
+    b"\x0co\x18^3\x84B!S\x08\x83\x08\x83\x08\x83\x08\x92\x9a5PE\x0c0ELP%\xa2C\xdb\x1c\x18\x03\x00(\x9a'a&%\x14@\x00\x00"
+    b"\x00\x00IEND\xaeB`\x82"
 )
 TEST_STACKED_PNG = (
-    b"iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAiklEQVR4nO2UwQ3AMAgDL1UmyP67ZQNWoF+KqPopTVThp++"
-    b"DZOM251SMRITWGgCqyhiDLA5wsFjLD+iRqaqRncK7iFxglFkm77YQd5fbUr3N13fgKS/I7UT/OnPPwy/"
-    b"IzNxy2KEDkVk74FU7UDuQxWGHDkRm7YBX7UDtQBaHHToQmbUDXr/egeUHnBTtC5fqUmvZAAAAAElFTkSuQmCC"
+    b"iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAiElEQVR4nO2XQQrAMAgEVXxB/v+3/CBfsNiTSNpekkhh5xSyF8nKsuHeu1FgjEHMf"
+    b"J/NjFprtEt3hIqR6gF0dulP98ZKXd2TyMyznbrGhXiaPC7Val2oGP3ya/dO6GnPs66nPY+6U78DNAE5kEEOGHIggRww9IEE+oChDyTQBwz/gj/9C6"
+    b"R6gAsU7QuXQ0M9cAAAAABJRU5ErkJggg=="
 )
 TEST_TRANPARENT_PNG = (
-    b"iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkklEQVR4nO2UwQ0EIQwDJysKoYX0XwQlQCfsl0W5uw850Cp+eoQUycZSa+"
-    b"0MyjlLKaUDqKq01tw4wMVmbT8gWaaqyrdHK7n0/ogIKzNPnsZCfLp8LNVqvr8Dv/IC306kf2c+c/MXeGY+"
-    b"cjihA5YZOzArdiB2wIvDCR2wzNiBWbEDsQNeHE7ogGXGDsx69Q5sP+AGkCUYuteIHK0AAAAASUVORK5CYII="
+    b"iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAjUlEQVR4nO2X0QnAIAxEE8kgrpD9h3AE3cRiv9Jg2x9tKNz7zCEE7wgJ11o7GXLOX"
+    b"Eo5a6rKrbVt+iBRMCm6AZkVx9c9PVqpc+8Xi2jm2U5dbCDuOrehWq0nCkbe/NqdCfnac6/L155bfRCfAZqAOeDBHFDMAQfmgGIfcGAfUOwDDuwDir"
+    b"vgT3dBim7gAJAlGLoqFiEVAAAAAElFTkSuQmCC"
 )
 TEST_JPG_BASE64 = (
     # Generated from test.jpg with quality and optimization unspecified
@@ -324,8 +324,7 @@ TEST_TRANPARENT_JPG = (
     b"8APX/Wf7mdv55BzQAf8ev/AD1/1n+5nb+eQc0f8ev/AD1/1n+5nb+eQc0f8ev/AD1/1n+5nb+eQc1GGRYmCPMAZCpKnyzlfz45/SgD/9k="
 )
 TEST_OVERLAID_PNG_JPG = (
-    b"iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAxUlEQVR4nO1XURLEEBRLOu8E7n83J+AKb7/"
-    b"sWFWmVdYM+SPtm0ciA621igjee5AEAKgqjDFI+RhP+FCfJA4UoKrZeZLfIk/48I2qlhuoFWlBWJyUyNrPb/DyhqYtvMTbXNK8F1/"
-    b"0wAhI2lVwZ4yenpBUE+fcz7i3J7IStJ7zO/z/PZCbXCoHDmCs5inm8MBIzU8NjNZ850CKnQM7B9bKAZKn+"
-    b"0b2FPS6A4Zx7Ic5PJBiqRyY410w4g14Bcm9A+4WKfG1xX0AWB72305QlfQAAAAASUVORK5CYII="
+    b"iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAw0lEQVR4nO2X6w2FIAyF26YTsP9uTAAr1GDShIAXclWKUb4/Po40xVMroPdeICPGC"
+    b"Ii4n4sIOOeg1HPO6Bo/HQkapASOSAM1yBldn0nxmwn0glxBJ8ctsTf4Dp3v8PSKzvlrbnk+SieYDJdZaXVa1QSXnoQQTGuCRnzn/+gEk2H4eh8ga8"
+    b"9LCJ5QA2LoeZWAM/Z89YESru6sPnDA6gPylj6AiNV6gy3XgHqd/xcIJsPw9fUAP2JfgAZ7wF/sb2Ck573JbVge9t/la3LdAAAAAElFTkSuQmCC"
 )
